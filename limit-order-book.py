@@ -113,18 +113,68 @@ class Order:
         assert validate_volume(volume), VALIDATE_VOLUME_ERROR_STR
 
         self.order_id = order_id
+        self.ticker = ticker
+        self.order_side = order_side
         self.int_price = int_price
         self.volume = volume
 
-    def match(self, order: Order) -> list[tuple[Trade, Order, Order]]:
+    def match(self, order) -> list[tuple]:
+        '''
+            Return a pair of trades: maker order converted to trade, taker order converted to trade
+            and a remaining order, or None.
+        '''
         pass
+
+
+class PartialOrder:
+
+    def __init__(self):
+        self.order_id = None
+        self.ticker = None
+        self.order_side = None
+        self.int_price = None
+        self.volume = None
+
+    def with_order_id(self, order_id: int):
+        self.order_id = order_id
+        return self
+
+    def with_ticker(self, ticker: str):
+        assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
+        self.ticker = ticker
+        return self
+
+    def with_order_side(self, order_side: str):
+        assert validate_order_side(order_side), VALIDATE_ORDER_SIDE_ERROR_STR
+        self.order_side = order_side
+        return self
+
+    def with_int_price(self, int_price: int):
+        assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
+        return self
+
+    def with_volume(self, volume: int):
+        assert validate_volume(volume), VALIDATE_VOLUME_ERROR_STR
+        return self
+
+    def to_order(self):
+        if None in [self.order_id, self.ticker, self.order_side, self.int_price, self.volume]:
+            raise RuntimeError(f'PartialOrder has missing fields')
+
+        return Order(
+            order_id=self.order_id,
+            ticker=self.ticker,
+            order_side=self.order_side,
+            int_price=self.int_price,
+            volume=self.volume,
+        )
 
 
 class Trade:
 
     def __init__(self, ticker: str, int_price: int, volume: int, order_id_taker: int, order_id_maker: int):
         assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
-        assert validate_order_side(order_side), VALIDATE_INT_PRICE_ERROR_STR
+        assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
         assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
 
         self.ticker = ticker
@@ -139,9 +189,8 @@ class PriceLevel:
     def __init__(self):
         self.price_level = []
 
-    def _lambda_order_id_match(order: Order) -> bool:
-        order_id_ = order.order_id
-        return order_id_ == order_id
+    def _lambda_order_id_match(order: Order, order_id: int) -> bool:
+        return order.order_id == order_id
 
     def order_insert(self, order_id: int, int, ticker: str, order_side: str, int_price: int, volume: int):
         assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
@@ -153,7 +202,7 @@ class PriceLevel:
         count_ = (
             count(
                 filter(
-                    _lambda_order_id_match,
+                    PriceLevel._lambda_order_id_match, # TODO this doesn't work yet
                     self.price_level,
                 )
             )
@@ -172,7 +221,7 @@ class PriceLevel:
         matching_orders = (
             list(
                 filter(
-                    _lambda_order_id_match,
+                    lambda order: PriceLevel._lambda_order_id_match(order, order_id),
                     self.price_level,
                 )
             )
@@ -189,7 +238,7 @@ class PriceLevel:
         elif match_order_count > 1:
             raise RuntimeError(f'cannot update order with duplicate order_id {order_id}')
 
-        existing_order = matching_orders[0]
+        existing_order: Order = matching_orders[0]
 
         existing_order_volume = existing_order.volume
         existing_order.volume = volume
@@ -200,7 +249,7 @@ class PriceLevel:
             self.price_level = (
                 list(
                     filter(
-                        lambda order: not _lambda_order_id_match,
+                        lambda order: not PriceLevel._lambda_order_id_match(order, order_id), # TODO this doesn't work yet
                         self.price_level,
                     )
                 )
@@ -217,7 +266,7 @@ class PriceLevel:
         # remove
         self.price_level = list(
             filter(
-                lambda order: not _lambda_order_id_match(order),
+                lambda order: not PriceLevel._lambda_order_id_match(order, order_id),
                 self.price_level,
             )
         )
@@ -232,11 +281,19 @@ def run_all_price_level_tests():
         price_level.order_insert(order_id=2, volume=20)
         price_level.order_insert(order_id=3, volume=30)
 
+        order_id = 2
         try:
-            price_level_order_insert(order_id=2, volume=20)
+            price_level.order_insert(order_id, volume=20)
         except RuntimeError as e:
-            assert str(e) == f'cannot insert order with duplicate order_id {2}'
+            assert str(e) == f'cannot insert order with duplicate order_id {order_id}'
 
+        price_level.order_cancel(order_id=2)
+
+        order_id = 2
+        try:
+            price_level.order_cancel(order_id)
+        except RuntimeError as e:
+            assert str(e) == f'cannot cancel order with missing order_id {order_id}'
 
     price_level_test_1()
     price_level_test_2()
