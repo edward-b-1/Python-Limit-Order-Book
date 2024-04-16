@@ -57,6 +57,23 @@ import sys
 # The function accepts STRING_ARRAY operations as parameter.
 #
 
+'''
+    ****************************************************************************
+
+    IMPROVEMENTS:
+
+    - Use typeguard
+    - Implement an AST + Parser to handle incoming stream of text based
+      instructions for order book
+    - Use pytest or other testing framework (obviously doesn't work with
+      HackerRank)
+    - Split into multiple modules, packages (again does not work with
+      HackerRank)
+
+
+    ****************************************************************************
+'''
+
 def consume(iterable):
     for _ in iterable:
         pass
@@ -82,26 +99,67 @@ def validate_int_price(int_price: int) -> bool:
 def validate_volume(volume: int) -> bool:
     return volume > 0
 
-def parse_price_string_and_return_int_price(price_str: str) -> int:
+def parse_price_string_and_convert_to_int_price(price_str: str) -> int:
 
     split_price_str = price_str.split('.')
 
-    if len(split_price_str) == 1:
-        int_price = 100 * int(price_str)
-    elif len(split_price_str) == 2:
-        integer_part_price_str = split_price_str[0]
-        fractional_part_price_str = split_price_str[1]
+    try:
+        if len(split_price_str) == 1:
+            int_price = 100 * int(price_str)
+            return int_price
+        elif len(split_price_str) == 2:
+            integer_part_price_str = split_price_str[0]
+            fractional_part_price_str = split_price_str[1]
 
-        if len(fractional_part_price_str) == 1:
-            int_price = 100 * int(integer_part_price_str) + 10 * int(fractional_part_price_str)
-            return int_price
-        elif len(fractional_part_price_str) == 2:
-            int_price = 100 * int(integer_part_price_str) + int(fractional_part_price_str)
-            return int_price
+            if len(fractional_part_price_str) == 1:
+                int_price = 100 * int(integer_part_price_str) + 10 * int(fractional_part_price_str)
+                return int_price
+            elif len(fractional_part_price_str) == 2:
+                int_price = 100 * int(integer_part_price_str) + int(fractional_part_price_str)
+                return int_price
+            else:
+                raise ValueError(f'{price_str} is not a valid string formatted price')
         else:
             raise ValueError(f'{price_str} is not a valid string formatted price')
-    else:
+    except ValueError as e:
         raise ValueError(f'{price_str} is not a valid string formatted price')
+
+def run_all_parse_price_string_and_convert_to_int_price_tests():
+
+    def parse_price_string_and_convert_to_int_price_test_1():
+        price_string = '12'
+        int_price = parse_price_string_and_convert_to_int_price(price_string)
+        assert int_price == 1200, f'parse_price_string_and_convert_to_int_price_test_1 failed: {int_price}'
+
+    def parse_price_string_and_convert_to_int_price_test_2():
+        price_string = '12.3'
+        int_price = parse_price_string_and_convert_to_int_price(price_string)
+        assert int_price == 1230, f'parse_price_string_and_convert_to_int_price_test_2 failed: {int_price}'
+
+    def parse_price_string_and_convert_to_int_price_test_3():
+        price_string = '12.34'
+        int_price = parse_price_string_and_convert_to_int_price(price_string)
+        assert int_price == 1234, f'parse_price_string_and_convert_to_int_price_test_3 failed: {int_price}'
+
+    def parse_price_string_and_convert_to_int_price_test_4():
+        price_string = '12.345'
+        try:
+            parse_price_string_and_convert_to_int_price(price_string)
+        except ValueError as e:
+            assert str(e) == f'{price_string} is not a valid string formatted price'
+
+    def parse_price_string_and_convert_to_int_price_test_5():
+        price_string = 'hello world'
+        try:
+            parse_price_string_and_convert_to_int_price(price_string)
+        except ValueError as e:
+            assert str(e) == f'{price_string} is not a valid string formatted price'
+
+    parse_price_string_and_convert_to_int_price_test_1()
+    parse_price_string_and_convert_to_int_price_test_2()
+    parse_price_string_and_convert_to_int_price_test_3()
+    parse_price_string_and_convert_to_int_price_test_4()
+    parse_price_string_and_convert_to_int_price_test_5()
 
 
 class Order:
@@ -135,27 +193,66 @@ class PartialOrder:
         self.int_price = None
         self.volume = None
 
-    def with_order_id(self, order_id: int):
+    def __str__(self) -> str:
+        return f'PartialOrder({self.order_id}, {self.ticker}, {self.order_side}, price={self.int_price}, volume={self.volume})'
+
+    def copy(self):
+        return (
+            PartialOrder()
+            .set_order_id(self.order_id)
+            .set_ticker(self.ticker)
+            .set_order_side(self.order_side)
+            .set_int_price(self.int_price)
+            .set_volume(self.volume)
+        )
+
+    def set_order_id(self, order_id: int):
+        if order_id is None: return self
         self.order_id = order_id
         return self
 
-    def with_ticker(self, ticker: str):
+    def set_ticker(self, ticker: str):
+        if ticker is None: return self
         assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
         self.ticker = ticker
         return self
 
-    def with_order_side(self, order_side: str):
+    def set_order_side(self, order_side: str):
+        if order_side is None: return self
         assert validate_order_side(order_side), VALIDATE_ORDER_SIDE_ERROR_STR
         self.order_side = order_side
         return self
 
+    def set_int_price(self, int_price: int):
+        if int_price is None: return self
+        assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
+        self.int_price = int_price
+        return self
+
+    def set_volume(self, volume: int):
+        if volume is None: return self
+        assert validate_volume(volume), VALIDATE_VOLUME_ERROR_STR
+        self.volume = volume
+        return self
+
+    def with_order_id(self, order_id: int):
+        return self.copy().set_order_id(order_id)
+
+    def with_ticker(self, ticker: str):
+        assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
+        return self.copy().set_ticker(ticker)
+
+    def with_order_side(self, order_side: str):
+        assert validate_order_side(order_side), VALIDATE_ORDER_SIDE_ERROR_STR
+        return self.copy().set_order_side(order_side)
+
     def with_int_price(self, int_price: int):
         assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
-        return self
+        return self.copy().set_int_price(int_price)
 
     def with_volume(self, volume: int):
         assert validate_volume(volume), VALIDATE_VOLUME_ERROR_STR
-        return self
+        return self.copy().set_volume(volume)
 
     def to_order(self):
         if None in [self.order_id, self.ticker, self.order_side, self.int_price, self.volume]:
@@ -168,6 +265,34 @@ class PartialOrder:
             int_price=self.int_price,
             volume=self.volume,
         )
+
+def run_all_partial_order_tests():
+
+    def partial_order_test():
+        partial_order = PartialOrder()
+
+        try:
+            partial_order.to_order()
+        except RuntimeError as e:
+            assert str(e) == f'PartialOrder has missing fields'
+
+        partial_order.set_order_id(1).set_ticker('PYTH').set_order_side('BUY').set_int_price(1234)
+
+        try:
+            partial_order.to_order()
+        except RuntimeError as e:
+            assert str(e) == f'PartialOrder has missing fields'
+
+        partial_order.set_volume(10)
+        order = partial_order.to_order()
+
+        assert order.order_id == 1, 'unexpected value for order_id'
+        assert order.order_side == 'BUY', 'unexpected value for order_side'
+        assert order.int_price == 1234, 'unexpected value for int_price'
+        assert order.volume == 10, 'unexpected value for volume'
+
+    partial_order_test()
+
 
 
 class Trade:
@@ -187,38 +312,27 @@ class Trade:
 class PriceLevel:
 
     def __init__(self):
+        # PRICE_LEVEL: list of Order by priority
         self.price_level = []
 
     def _lambda_order_id_match(order: Order, order_id: int) -> bool:
         return order.order_id == order_id
 
-    def order_insert(self, order_id: int, int, ticker: str, order_side: str, int_price: int, volume: int):
-        assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
-        assert validate_order_side(order_side), VALIDATE_INT_PRICE_ERROR_STR
-        assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
-        assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
-
-        # check the order id doesn't exist
-        count_ = (
-            count(
+    def _remove_order_by_order_id(self, order_id: int):
+        self.price_level = (
+            list(
                 filter(
-                    PriceLevel._lambda_order_id_match, # TODO this doesn't work yet
+                    lambda order: not PriceLevel._lambda_order_id_match(order, order_id),
                     self.price_level,
                 )
             )
         )
 
-        if count_ > 0:
-            raise RuntimeError(f'cannot insert order with existing order_id {order_id}')
-
-        order = Order(order_id, ticker, order_side, int_price, volume)
+    def _append_order(self, order: Order):
         self.price_level.append(order)
 
-    def order_update(self, order_id: int, volume: int):
-        assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
-
-        # check the order id exists, and only once
-        matching_orders = (
+    def _filter_orders_by_order_id(self, order_id: int):
+        return (
             list(
                 filter(
                     lambda order: PriceLevel._lambda_order_id_match(order, order_id),
@@ -227,18 +341,70 @@ class PriceLevel:
             )
         )
 
-        match_order_count = (
-            len(
-                matching_orders
+    def _count_orders_by_order_id(self, order_id: int):
+        return (
+            count(
+                filter(
+                    lambda order: PriceLevel._lambda_order_id_match(order, order_id),
+                    self.price_level,
+                )
             )
         )
 
-        if match_order_count == 0:
-            raise RuntimeError(f'cannot update order with missing order_id {order_id}')
-        elif match_order_count > 1:
-            raise RuntimeError(f'cannot update order with duplicate order_id {order_id}')
+    def order_id_exists(self, order_id: int) -> bool:
+        return self._count_orders_by_order_id(order_id) > 0
+
+    def order_id_count(self, order_id: int) -> int:
+        return self._count_orders_by_order_id(order_id)
+
+    def _get_order(self, order_id: int) -> Order:
+        # TODO: this is lazy
+        return self._filter_orders_by_order_id(order_id)[0]
+
+    def _get_order_by_order_id(self, order_id: int) -> Order:
+
+        matching_orders = self._filter_orders_by_order_id(order_id)
+        assert len(matching_orders) == 1, '_get_order_by_order_id failed'
 
         existing_order: Order = matching_orders[0]
+        return existing_order
+
+    def depth(self) -> int:
+        return len(self.price_level)
+
+    # OLD API, move to another class
+    # def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int):
+    #     assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
+    #     assert validate_order_side(order_side), VALIDATE_INT_PRICE_ERROR_STR
+    #     assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
+    #     assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
+
+    # TODO: change this to a partial order and call partial_order.to_order to create the order before calling _append_order
+    def order_insert(self, partial_order: PartialOrder):
+        order_id = partial_order.order_id
+
+        # check the order id doesn't exist
+        if self.order_id_exists(order_id):
+            raise RuntimeError(f'cannot insert order with existing order_id {order_id}')
+
+        #order = Order(order_id, ticker, order_side, int_price, volume)
+        order = partial_order.to_order()
+        self._append_order(order)
+
+    # OLD API, move to another class
+    # def order_update(self, order_id: int, volume: int):
+    #     assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
+
+    def order_update(self, order_id: int, volume: int):
+        assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
+
+        # check the order id exists, and only once
+        if self.order_id_count(order_id) == 0:
+            raise RuntimeError(f'cannot update order with missing order_id {order_id}')
+        elif self.order_id_count(order_id) > 1:
+            raise RuntimeError(f'cannot update order with duplicate order_id {order_id}')
+
+        existing_order = self._get_order_by_order_id(order_id)
 
         existing_order_volume = existing_order.volume
         existing_order.volume = volume
@@ -246,46 +412,50 @@ class PriceLevel:
         if volume <= existing_order_volume:
             pass
         else:
-            self.price_level = (
-                list(
-                    filter(
-                        lambda order: not PriceLevel._lambda_order_id_match(order, order_id), # TODO this doesn't work yet
-                        self.price_level,
-                    )
-                )
-            )
+            # reduce order priority if order volume is increased
+            self._remove_order_by_order_id(order_id)
+            self._append_order(existing_order)
 
-            self.price_level.append(existing_order)
-
+    # OLD API, move to another class
+    # def order_cancel(self, order_id: int):
 
     def order_cancel(self, order_id: int):
 
         # check the order id exists, and only once
-        # TODO
+        if self.order_id_count(order_id) == 0:
+            raise RuntimeError(f'cannot cancel order with missing order_id {order_id}')
+        elif self.order_id_count(order_id) > 1:
+            raise RuntimeError(f'cannot cancel order with duplicate order_id {order_id}')
 
-        # remove
-        self.price_level = list(
-            filter(
-                lambda order: not PriceLevel._lambda_order_id_match(order, order_id),
-                self.price_level,
-            )
-        )
+        # remove matching order
+        self._remove_order_by_order_id(order_id)
 
 
 def run_all_price_level_tests():
 
     def price_level_test_1():
+        ticker = 'PYTH'
+        order_side = 'BUY'
+        int_price = 1000
+        partial_order = PartialOrder().set_ticker(ticker).set_order_side(order_side).set_int_price(int_price)
+
+        partial_order_1 = partial_order.with_order_id(1).with_volume(10)
+        partial_order_2 = partial_order.with_order_id(2).with_volume(20)
+        partial_order_3 = partial_order.with_order_id(3).with_volume(30)
+
         price_level = PriceLevel()
 
-        price_level.order_insert(order_id=1, volume=10)
-        price_level.order_insert(order_id=2, volume=20)
-        price_level.order_insert(order_id=3, volume=30)
+        # price_level.order_insert(order_id=1, ticker=ticker, order_side=order_side, int_price=int_price, volume=10)
+        # price_level.order_insert(order_id=2, ticker=ticker, order_side=order_side, int_price=int_price, volume=20)
+        # price_level.order_insert(order_id=3, ticker=ticker, order_side=order_side, int_price=int_price, volume=30)
+        price_level.order_insert(partial_order_1)
+        price_level.order_insert(partial_order_2)
+        price_level.order_insert(partial_order_3)
 
-        order_id = 2
         try:
-            price_level.order_insert(order_id, volume=20)
+            price_level.order_insert(partial_order_2)
         except RuntimeError as e:
-            assert str(e) == f'cannot insert order with duplicate order_id {order_id}'
+            assert str(e) == f'cannot insert order with existing order_id {partial_order_2.order_id}'
 
         price_level.order_cancel(order_id=2)
 
@@ -295,14 +465,172 @@ def run_all_price_level_tests():
         except RuntimeError as e:
             assert str(e) == f'cannot cancel order with missing order_id {order_id}'
 
+        price_level.order_cancel(order_id=1)
+
+        price_level.order_update(order_id=3, volume=50)
+        assert price_level._get_order(order_id=3).volume == 50, f'unexpected order volume'
+
+        price_level.order_cancel(order_id=3)
+        depth = price_level.depth()
+        assert depth == 0, f'depth is not 0, depth = {depth}'
+
     price_level_test_1()
-    price_level_test_2()
+    #price_level_test_2()
+
 
 class SingleTickerLimitOrderBook:
 
     def __init__(self):
         # PRICE_LEVEL -> list of orders and volumes
-        self.limit_order_book = {}
+        self.price_levels: dict[int, PriceLevel] = {}
+
+    def _initialize_price_level(self, int_price: int):
+        if not int_price in self.price_levels:
+            self.price_levels[int_price] = PriceLevel()
+
+    def _insert_order(self, int_price: int, partial_order: PartialOrder):
+        self.price_levels[int_price].order_insert(partial_order)
+
+    def _find_order_price_level_by_order_id(self, order_id: int) -> int:
+
+        def select_int_price_level(key_value: tuple[int, PriceLevel]) -> int:
+            return key_value[0]
+
+        def filter_by_order_id(key_value: tuple[int, PriceLevel]) -> bool:
+            price_level = key_value[1]
+            return price_level.order_id_exists(order_id)
+
+        int_price_levels = (
+            set(
+                map(
+                    select_int_price_level,
+                    filter(
+                        filter_by_order_id,
+                        self.price_levels.items(),
+                    )
+                )
+            )
+        )
+
+        if len(int_price_levels) == 0:
+            raise RuntimeError(f'order_id not found in price_levels')
+        elif len(int_price_levels) > 1:
+            raise RuntimeError(f'order_id duplicated in multiple price_levels')
+
+        return int_price_levels[0]
+
+    def order_id_exists(self, order_id: int):
+        return (
+            any(
+                filter(
+                    lambda price_level: price_level.order_id_exists(order_id),
+                    self.price_levels.values(),
+                )
+            )
+        )
+
+    def order_id_count(self, order_id: int) -> int:
+        return (
+            sum(
+                map(
+                    lambda price_level: price_level.order_id_count(order_id),
+                    self.price_levels.values(),
+                )
+            )
+        )
+
+    def depth(self, int_price: int) -> int:
+        self._initialize_price_level(int_price)
+        return self.price_levels[int_price].depth()
+
+    # def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int):
+    #     assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
+    #     assert validate_order_side(order_side), VALIDATE_INT_PRICE_ERROR_STR
+    #     assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
+    #     assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
+
+    def order_insert(self, int_price: int, partial_order: PartialOrder):
+        self._initialize_price_level(int_price)
+
+        order_id = partial_order.order_id
+
+        # check the order id doesn't exist
+        if self.order_id_exists(order_id):
+            raise RuntimeError(f'cannot insert order with existing order_id {order_id}')
+
+        partial_order = partial_order.with_int_price(int_price)
+        self._insert_order(int_price, partial_order)
+
+    def order_update(self, order_id: int, volume: int):
+        assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
+
+        # check the order id exists, and only once
+        if self.order_id_count() == 0:
+            raise RuntimeError(f'cannot update order with missing order_id {order_id}')
+        elif self.order_id_count() > 1:
+            raise RuntimeError(f'cannot update order with duplicate order_id {order_id}')
+
+        int_price = self._find_order_price_level_by_order_id(order_id)
+        self.price_levels[int_price].order_update(order_id, volume)
+
+    def order_cancel(self, order_id: int):
+        # check the order id exists, and only once
+        if self.order_id_count(order_id) == 0:
+            raise RuntimeError(f'cannot cancel order with missing order_id {order_id}')
+        elif self.order_id_count(order_id) > 1:
+            raise RuntimeError(f'cannot cancel order with duplicate order_id {order_id}')
+
+        # remove matching order
+        self._remove_order_by_order_id(order_id)
+
+
+# TODO: write these tests, working from here
+def run_all_single_ticker_limit_order_book_tests():
+
+    def price_level_test_1():
+        ticker = 'PYTH'
+        order_side = 'BUY'
+        int_price = 1000
+        partial_order = PartialOrder().set_ticker(ticker).set_order_side(order_side).set_int_price(int_price)
+
+        partial_order_1 = partial_order.with_order_id(1).with_volume(10)
+        partial_order_2 = partial_order.with_order_id(2).with_volume(20)
+        partial_order_3 = partial_order.with_order_id(3).with_volume(30)
+
+        single_ticker_limit_order_book = SingleTickerLimitOrderBook()
+
+        # price_level.order_insert(order_id=1, ticker=ticker, order_side=order_side, int_price=int_price, volume=10)
+        # price_level.order_insert(order_id=2, ticker=ticker, order_side=order_side, int_price=int_price, volume=20)
+        # price_level.order_insert(order_id=3, ticker=ticker, order_side=order_side, int_price=int_price, volume=30)
+        single_ticker_limit_order_book.order_insert(partial_order_1)
+        single_ticker_limit_order_book.order_insert(partial_order_2)
+        single_ticker_limit_order_book.order_insert(partial_order_3)
+
+        try:
+            single_ticker_limit_order_book.order_insert(partial_order_2)
+        except RuntimeError as e:
+            assert str(e) == f'cannot insert order with existing order_id {partial_order_2.order_id}'
+
+        single_ticker_limit_order_book.order_cancel(order_id=2)
+
+        order_id = 2
+        try:
+            single_ticker_limit_order_book.order_cancel(order_id)
+        except RuntimeError as e:
+            assert str(e) == f'cannot cancel order with missing order_id {order_id}'
+
+        single_ticker_limit_order_book.order_cancel(order_id=1)
+
+        single_ticker_limit_order_book.order_update(order_id=3, volume=50)
+        assert single_ticker_limit_order_book._get_order(order_id=3).volume == 50, f'unexpected order volume'
+
+        single_ticker_limit_order_book.order_cancel(order_id=3)
+        depth = single_ticker_limit_order_book.depth()
+        assert depth == 0, f'depth is not 0, depth = {depth}'
+
+    price_level_test_1()
+    #price_level_test_2()
+
 
 class LimitOrderBook:
 
@@ -351,16 +679,16 @@ class LimitOrderBook:
         ticker_order_book[int_price].append(order_id_volume_tuple)
 
     def order_update(self, order_id: int, int_price: int, volume: int):
-        assert validate_order_side(order_side), VALIDATE_INT_PRICE_ERROR_STR
         assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
         assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
 
-        if not ticker in self.limit_order_book:
-            raise RuntimeError(f'ticker {ticker} not in order book when update called')
+        # TODO
+        #if not ticker in self.limit_order_book:
+        #    raise RuntimeError(f'ticker {ticker} not in order book when update called')
 
         # ! don't do this - order by price level
-        if not order_id in self.limit_order_book[ticker]:
-            raise RuntimeError(f'')
+        #if not order_id in self.limit_order_book[ticker]:
+        #    raise RuntimeError(f'')
 
         pass
 
@@ -389,14 +717,14 @@ class DoubleLimitOrderBook:
 
 
 
- INSERT,<order_id>,<symbol>,<side>,<price>,<volume>
- e.g. INSERT,4,FFLY,BUY,23.45,12
+#  INSERT,<order_id>,<symbol>,<side>,<price>,<volume>
+#  e.g. INSERT,4,FFLY,BUY,23.45,12
 
- UPDATE,<order_id>,<price>,<volume>
- e.g. UPDATE,4,23.12,11
+#  UPDATE,<order_id>,<price>,<volume>
+#  e.g. UPDATE,4,23.12,11
 
- CANCEL,<order_id>
- e.g. CANCEL,4
+#  CANCEL,<order_id>
+#  e.g. CANCEL,4
 
 
 def runMatchingEngine(operations: list[str]) -> list[str]:
@@ -419,12 +747,15 @@ def runMatchingEngine(operations: list[str]) -> list[str]:
             volume = split_operation[5]
 
             int_price = parse_price_string_and_convert_to_int_price(price_str)
+            volume = int(volume)
 
+            # TODO: keep this API the same, PartialOrder should be an internal implementation detail
             lob.order_insert(order_id, ticker, order_side, int_price, volume)
         elif operation_opcode == 'UPDATE':
             assert len(split_operation) == 4, 'invalid UPDATE syntax'
             price_str = split_operation[2]
             volume = split_operation[3]
+            volume = int(volume)
 
             int_price = parse_price_string_and_convert_to_int_price(price_str)
 
@@ -436,13 +767,18 @@ def runMatchingEngine(operations: list[str]) -> list[str]:
         else:
             raise ValueError(f'invalid opcode: {operation_opcode}')
 
+    return []
+
 
 
 def run_all_tests():
+    run_all_parse_price_string_and_convert_to_int_price_tests()
+    #run_all_order_tests()
+    run_all_partial_order_tests()
     run_all_price_level_tests()
-    run_all_single_ticker_order_book_tests()
-    run_all_limit_order_book_tests()
-    run_all_double_limit_order_book_tests()
+    run_all_single_ticker_limit_order_book_tests()
+    # run_all_limit_order_book_tests()
+    # run_all_double_limit_order_book_tests()
 
 
 if __name__ == '__main__':
@@ -451,12 +787,15 @@ if __name__ == '__main__':
     fptr = open(os.environ['OUTPUT_PATH'], 'w')
 
     operations_count = int(input().strip())
+    print(f'operations_count={operations_count}')
 
     operations = []
 
     for _ in range(operations_count):
         operations_item = input()
         operations.append(operations_item)
+
+    print(operations)
 
     result = runMatchingEngine(operations)
 
