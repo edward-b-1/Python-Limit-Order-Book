@@ -92,9 +92,6 @@ import sys
 # decide on the set of operations which are common (public and private) to all data structures
 # there should be some common operations between DoubleSidedLimitOrderBook, LimitOrderBook,
 # LimitOrderBookPriceLevel and PriceLevel
-# TODO: prices can have 4 decimal places! use a fixed integer conversion factor of 1000
-# 1000 * digits before `.` + digits after `.`, just split on `.` convert to int
-# multiply and add
 # TODO: for DoubleSidedLimitOrderBook write complex logic to test the depth
 # by inserting sequences of orders and checking after every insert,
 # this logic should test all code paths
@@ -129,6 +126,12 @@ def validate_volume(volume: int) -> bool:
     return volume > 0
 
 def parse_price_string_and_convert_to_int_price(price_str: str) -> int:
+    '''
+        prices can have 4 decimal places!
+        use a fixed integer conversion factor of 1000
+        1000 * digits before `.` + digits after `.`, just split on `.`
+        convert to int multiply and add
+    '''
 
     split_price_str = price_str.split('.')
 
