@@ -49,3 +49,79 @@ a better price 3 Buy 7
 
 Please write production-quality code!
 Design your code structure carefully, decompose logic into parts, and include comments, documentation, and tests as appropriate, taking into account the performance (in particular algorithmic complexity) and maintainability of your solution.
+
+
+<p>In this challenge, you will write a matching engine that manages multiple central limit order books. To fulfill the challenge,</p>
+
+<p>you will have to implement the interface as described in `matching_engine.py`<br>
+<br>
+A matching engine matches orders from market participants. These matches will result in trades. A trade occurs when Participant A</p>
+
+<p>wants to buy a particular&nbsp;asset at an equal or higher price than Participant B is willing to sell that same asset.</p>
+
+<p><br>
+When someone wants to buy an asset, a market participant sends a buy order for a given symbol (e.g. FFLY). A sent order<br>
+contains an id, symbol, side, limit price and volume. The limit price indicates that in the case of a buy order, you are willing to buy at the given<br>
+price or lower. In the case of a sell order, the limit price indicates that you are willing to sell at the given price or higher.</p>
+
+<p><br>
+All orders are managed in a central limit order book&nbsp;which has two sides, the buy side and the sell side. If a new order is<br>
+received by the matching engine, it first checks whether it can match with orders already in the order book on the opposite side.<br>
+The order will be matched with the opposite side until either the volume of the new order is exhausted or until there are no orders<br>
+on the opposite side with which the new order can match. The matching priority starts with price priority; the "best" price matches<br>
+first. If there are multiple orders in the order book at the same price, these orders are matched with time priority; orders which<br>
+were inserted earlier are matched first.</p>
+
+<p><br>
+Two operations can be applied to an order once it is in the order book; "cancel' and "update." A cancel&nbsp;removes the order<br>
+from the order book. An update changes the price and/or volume of the order. An update causes the order to lose time priority in<br>
+the order book, unless the only change to the order is that the volume is decreased. If the order price is updated, it needs<br>
+to be re-evaluated for potential matches.<br>
+<br>
+<strong>Examples</strong><br>
+&nbsp;</p>
+
+<p>Suppose the order book has the following open orders:<br>
+&nbsp;</p>
+
+<pre><code>## Orderbook  
+ID Side Volume Price
+1  Buy  1      122
+2  Buy  12     121 &lt;- Higher time priority than the order below since it came in earlier
+4  Buy  23     121 &lt;- Higher price priority than the order below since it offers a better price
+3  Buy  7      120 </code></pre>
+
+<p>&nbsp;</p>
+
+<p>Next, we insert a sell order (ID=5) with a volume&nbsp;16 and price&nbsp;120. The order book now looks like this:</p>
+
+<pre><code>## Fills  
+MatchedId Volume Price (in the following order)
+1         1      122
+2         12     121
+4         3      121
+
+## Orderbook  
+ID Side Volume Price
+4  Buy  20     121
+3  Buy  7      120</code></pre>
+
+<p><br>
+Finally we insert another sell order (ID=6) with volume 24 and price 121. The order book now looks like this:<br>
+&nbsp;</p>
+
+<pre><code>## Fills
+MatchedId Volume Price
+4         20     121
+
+## Orderbook
+ID Side Volume Price
+6  Sell 4      121 &lt;- leftover volume after match
+--------------------
+3  Buy  7      120</code></pre>
+
+<p><br>
+<strong>Please write production-quality code! </strong></p>
+
+<p>Design your code structure carefully, decompose logic into parts, and include comments, documentation, and tests as appropriate, taking into account the performance (in particular algorithmic complexity)&nbsp;and maintainability of your solution.</p>
+</div>
