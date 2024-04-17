@@ -1,0 +1,51 @@
+﻿
+
+5d 1h left
+ALL
+1
+1. Orderbook
+In this challenge, you will write a matching engine that manages multiple central limit order books. To fulfill the challenge,
+you will have to implement the interface as described in `matching_engine.py`
+A matching engine matches orders from market participants. These matches will result in trades. A trade occurs when Participant A
+wants to buy a particular asset at an equal or higher price than Participant B is willing to sell that same asset.
+When someone wants to buy an asset, a market participant sends a buy order for a given symbol (e.g. FFLY). A sent order
+contains an id, symbol, side, limit price and volume. The limit price indicates that in the case of a buy order, you are willing to buy at the given
+price or lower. In the case of a sell order, the limit price indicates that you are willing to sell at the given price or higher.
+All orders are managed in a central limit order book which has two sides, the buy side and the sell side. If a new order is
+received by the matching engine, it first checks whether it can match with orders already in the order book on the opposite side.
+The order will be matched with the opposite side until either the volume of the new order is exhausted or until there are no orders
+on the opposite side with which the new order can match. The matching priority starts with price priority; the "best" price matches
+first. If there are multiple orders in the order book at the same price, these orders are matched with time priority; orders which
+were inserted earlier are matched first.
+Two operations can be applied to an order once it is in the order book; "cancel" and "update." A cancel removes the order
+from the order book. An update changes the price and/or volume of the order. An update causes the order to lose time priority in
+the order book, unless the only change to the order is that the volume is decreased. If the order price is updated, it needs
+to be re-evaluated for potential matches.
+Examples
+Suppose the order book has the following open orders:
+## Orderbook
+ID Side Volume Price
+1 Buy 1
+2 Buy 12 earlier
+4 Buy 23
+122
+121 
+
+﻿
+
+Examples
+Suppose the order book has the following open orders:
+## Orderbook
+ID Side Volume Price
+1 Buy 1
+2 Buy 12 earlier
+4 Buy 23
+122
+a better price 3 Buy 7
+121 
+
+
+﻿
+
+Please write production-quality code!
+Design your code structure carefully, decompose logic into parts, and include comments, documentation, and tests as appropriate, taking into account the performance (in particular algorithmic complexity) and maintainability of your solution.
