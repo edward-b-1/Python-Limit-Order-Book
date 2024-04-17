@@ -74,6 +74,11 @@ import sys
     ****************************************************************************
 '''
 
+# TODO:
+# decide on the set of operations which are common (public and private) to all data structures
+# there should be some common operations between DoubleSidedLimitOrderBook, LimitOrderBook,
+# LimitOrderBookPriceLevel and PriceLevel
+
 def consume(iterable):
     for _ in iterable:
         pass
@@ -356,11 +361,25 @@ class PriceLevel:
 
     def order_id_count(self, order_id: int) -> int:
         return self._count_orders_by_order_id(order_id)
+    
+    # filter, get_or_none and get could perhaps be merged
+    # filter just filters, doesn't care if there are 0, 1 or more orders
+    # get requires that there is exactly 1 order
+    # get_or_none requires 1 or none
 
-    def _get_order(self, order_id: int) -> Order:
-        # TODO: this is lazy
-        return self._filter_orders_by_order_id(order_id)[0]
+    # TODO: might not have a use for this?
+    def _get_order_or_none_by_order_id(self, order_id: int) -> Order|None:
 
+        matching_orders = self._filter_orders_by_order_id(order_id)
+        assert len(matching_orders) <= 1, 'get_order_or_none_by_order_id failed'
+
+        existing_order: Order|None = None
+        if len(matching_orders) == 1:
+            existing_order = matching_orders[0]
+
+        return existing_order
+
+    # TODO: implement in terms of _get_order_or_none_by_order_id
     def _get_order_by_order_id(self, order_id: int) -> Order:
 
         matching_orders = self._filter_orders_by_order_id(order_id)
@@ -468,7 +487,7 @@ def run_all_price_level_tests():
         price_level.order_cancel(order_id=1)
 
         price_level.order_update(order_id=3, volume=50)
-        assert price_level._get_order(order_id=3).volume == 50, f'unexpected order volume'
+        assert price_level._get_order_by_order_id(order_id=3).volume == 50, f'unexpected order volume'
 
         price_level.order_cancel(order_id=3)
         depth = price_level.depth()
@@ -478,7 +497,7 @@ def run_all_price_level_tests():
     #price_level_test_2()
 
 
-class SingleTickerLimitOrderBook:
+class LimitOrderBookPriceLevel:
 
     def __init__(self):
         # PRICE_LEVEL -> list of orders and volumes
@@ -490,6 +509,15 @@ class SingleTickerLimitOrderBook:
 
     def _insert_order(self, int_price: int, partial_order: PartialOrder):
         self.price_levels[int_price].order_insert(partial_order)
+
+    # Note: will actually remove all orders with order_id
+    def _remove_order_by_order_id(self, order_id: int):
+        consume(
+            map(
+                lambda price_level: price_level._remove_order_by_order_id(order_id),
+                self.price_levels.values(),
+            )
+        )
 
     def _find_order_price_level_by_order_id(self, order_id: int) -> int:
 
@@ -517,7 +545,35 @@ class SingleTickerLimitOrderBook:
         elif len(int_price_levels) > 1:
             raise RuntimeError(f'order_id duplicated in multiple price_levels')
 
-        return int_price_levels[0]
+        [int_price_level] = int_price_levels
+        return int_price_level
+
+    def _get_order_by_order_id(self, order_id: int) -> Order:
+        def filter_empty_list(list: list) -> bool:
+            return len(list) > 0
+        
+        def extract_single_element_from_list(list: list):
+            assert len(list) == 1, f'extract_single_element_from_list failed'
+            return list[0]
+
+        matching_orders = (
+            list(
+                map(
+                    extract_single_element_from_list,
+                    filter(
+                        filter_empty_list,
+                        map(
+                            lambda price_level: price_level._filter_orders_by_order_id(order_id),
+                            self.price_levels.values(),
+                        ),
+                    ),
+                )
+            )
+        )
+        assert len(matching_orders) == 1, f'_get_order_by_order_id failed'
+
+        existing_order: Order = matching_orders[0]
+        return existing_order
 
     def order_id_exists(self, order_id: int):
         return (
@@ -542,14 +598,24 @@ class SingleTickerLimitOrderBook:
     def depth(self, int_price: int) -> int:
         self._initialize_price_level(int_price)
         return self.price_levels[int_price].depth()
-
+    
+    def depth_aggregated(self) -> int:
+        return (
+            sum(
+                map(
+                    lambda price_level: price_level.depth(),
+                    self.price_levels.values(),
+                )
+            )
+        )
+         
     # def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int):
     #     assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
     #     assert validate_order_side(order_side), VALIDATE_INT_PRICE_ERROR_STR
     #     assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
     #     assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
 
-    def order_insert(self, int_price: int, partial_order: PartialOrder):
+    def order_insert(self, partial_order: PartialOrder, int_price: int):
         self._initialize_price_level(int_price)
 
         order_id = partial_order.order_id
@@ -565,9 +631,9 @@ class SingleTickerLimitOrderBook:
         assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
 
         # check the order id exists, and only once
-        if self.order_id_count() == 0:
+        if self.order_id_count(order_id) == 0:
             raise RuntimeError(f'cannot update order with missing order_id {order_id}')
-        elif self.order_id_count() > 1:
+        elif self.order_id_count(order_id) > 1:
             raise RuntimeError(f'cannot update order with duplicate order_id {order_id}')
 
         int_price = self._find_order_price_level_by_order_id(order_id)
@@ -584,48 +650,59 @@ class SingleTickerLimitOrderBook:
         self._remove_order_by_order_id(order_id)
 
 
-# TODO: write these tests, working from here
-def run_all_single_ticker_limit_order_book_tests():
+def run_all_limit_order_book_price_level_tests():
 
     def price_level_test_1():
         ticker = 'PYTH'
         order_side = 'BUY'
-        int_price = 1000
-        partial_order = PartialOrder().set_ticker(ticker).set_order_side(order_side).set_int_price(int_price)
+        int_price_1 = 1000
+        int_price_2 = 1010
+        partial_order = PartialOrder().set_ticker(ticker).set_order_side(order_side).set_int_price(int_price_1)
 
         partial_order_1 = partial_order.with_order_id(1).with_volume(10)
         partial_order_2 = partial_order.with_order_id(2).with_volume(20)
         partial_order_3 = partial_order.with_order_id(3).with_volume(30)
+        partial_order_4 = partial_order.with_order_id(4).with_volume(40)
+        partial_order_5 = partial_order.with_order_id(5).with_volume(50)
 
-        single_ticker_limit_order_book = SingleTickerLimitOrderBook()
+        limit_order_book_price_level = LimitOrderBookPriceLevel()
 
-        # price_level.order_insert(order_id=1, ticker=ticker, order_side=order_side, int_price=int_price, volume=10)
-        # price_level.order_insert(order_id=2, ticker=ticker, order_side=order_side, int_price=int_price, volume=20)
-        # price_level.order_insert(order_id=3, ticker=ticker, order_side=order_side, int_price=int_price, volume=30)
-        single_ticker_limit_order_book.order_insert(partial_order_1)
-        single_ticker_limit_order_book.order_insert(partial_order_2)
-        single_ticker_limit_order_book.order_insert(partial_order_3)
+        limit_order_book_price_level.order_insert(partial_order_1, int_price=int_price_1)
+        limit_order_book_price_level.order_insert(partial_order_2, int_price=int_price_1)
+        limit_order_book_price_level.order_insert(partial_order_3, int_price=int_price_1)
+        limit_order_book_price_level.order_insert(partial_order_4, int_price=int_price_2)
+        limit_order_book_price_level.order_insert(partial_order_5, int_price=int_price_2)
 
+        depth = limit_order_book_price_level.depth_aggregated()
+        assert depth == 5, f'depth is not 5, depth = {depth}'
+
+        # inserting a duplicate fails
         try:
-            single_ticker_limit_order_book.order_insert(partial_order_2)
+            limit_order_book_price_level.order_insert(partial_order_2, int_price=int_price_1)
         except RuntimeError as e:
             assert str(e) == f'cannot insert order with existing order_id {partial_order_2.order_id}'
 
-        single_ticker_limit_order_book.order_cancel(order_id=2)
+        limit_order_book_price_level.order_cancel(order_id=2)
 
+        # cancelling a non-existing/already cancelled order fails
         order_id = 2
         try:
-            single_ticker_limit_order_book.order_cancel(order_id)
+            limit_order_book_price_level.order_cancel(order_id)
         except RuntimeError as e:
             assert str(e) == f'cannot cancel order with missing order_id {order_id}'
 
-        single_ticker_limit_order_book.order_cancel(order_id=1)
+        limit_order_book_price_level.order_cancel(order_id=1)
 
-        single_ticker_limit_order_book.order_update(order_id=3, volume=50)
-        assert single_ticker_limit_order_book._get_order(order_id=3).volume == 50, f'unexpected order volume'
+        # TODO: can you update an order to change the price?
+        limit_order_book_price_level.order_update(order_id=3, volume=50)
+        assert limit_order_book_price_level._get_order_by_order_id(order_id=3).volume == 50, f'unexpected order volume'
 
-        single_ticker_limit_order_book.order_cancel(order_id=3)
-        depth = single_ticker_limit_order_book.depth()
+        limit_order_book_price_level.order_cancel(order_id=3)
+
+        limit_order_book_price_level.order_cancel(order_id=4)
+        limit_order_book_price_level.order_cancel(order_id=5)
+
+        depth = limit_order_book_price_level.depth_aggregated()
         assert depth == 0, f'depth is not 0, depth = {depth}'
 
     price_level_test_1()
@@ -636,18 +713,35 @@ class LimitOrderBook:
 
     def __init__(self):
         self.limit_order_book = {} # TICKER -> PRICE_LEVEL -> list of orders and volumes
-
-    def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int):
-        assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
-        assert validate_order_side(order_side), VALIDATE_INT_PRICE_ERROR_STR
-        assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
-        assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
-
+        
+    def _initialize_ticker(self, ticker: str):
         if not ticker in self.limit_order_book:
-            self.limit_order_book[ticker] = {}
+            self.limit_order_book[ticker] = LimitOrderBookPriceLevel()
+
+    # def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int):
+    def order_insert(self, order_id: int, ticker: str, int_price: int, volume: int):
+        # assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
+        # assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
+        # assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
+        # ^ removed, done by PartialOrder
+
+        self._initialize_ticker(ticker)
 
         # check the order id doesn't exist
         ticker_order_book = self.limit_order_book[ticker]
+
+
+        # TODO: working here
+        self._initialize_price_level(int_price)
+
+        order_id = partial_order.order_id
+
+        # check the order id doesn't exist
+        if self.order_id_exists(order_id):
+            raise RuntimeError(f'cannot insert order with existing order_id {order_id}')
+
+        partial_order = partial_order.with_int_price(int_price)
+        self._insert_order(int_price, partial_order)
 
         # TODO:
         # @static_vars(counter=0)
@@ -776,7 +870,7 @@ def run_all_tests():
     #run_all_order_tests()
     run_all_partial_order_tests()
     run_all_price_level_tests()
-    run_all_single_ticker_limit_order_book_tests()
+    run_all_limit_order_book_price_level_tests()
     # run_all_limit_order_book_tests()
     # run_all_double_limit_order_book_tests()
 
