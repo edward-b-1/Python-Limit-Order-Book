@@ -128,27 +128,38 @@ def validate_int_price(int_price: int) -> bool:
 def validate_volume(volume: int) -> bool:
     return volume > 0
 
-# TODO: needs 5 dp
 def parse_price_string_and_convert_to_int_price(price_str: str) -> int:
 
     split_price_str = price_str.split('.')
 
     try:
         if len(split_price_str) == 1:
-            int_price = 100 * int(price_str)
+            int_price = 10000 * int(price_str)
             return int_price
         elif len(split_price_str) == 2:
             integer_part_price_str = split_price_str[0]
             fractional_part_price_str = split_price_str[1]
+            scaled_fractional_part_price_str = 0
 
-            if len(fractional_part_price_str) == 1:
-                int_price = 100 * int(integer_part_price_str) + 10 * int(fractional_part_price_str)
-                return int_price
-            elif len(fractional_part_price_str) == 2:
-                int_price = 100 * int(integer_part_price_str) + int(fractional_part_price_str)
-                return int_price
-            else:
+            if len(fractional_part_price_str) > 4:
                 raise ValueError(f'{price_str} is not a valid string formatted price')
+            elif len(fractional_part_price_str) == 0:
+                raise ValueError(f'{price_str} is not a valid string formatted price')
+            else:
+                missing_digits = 4 - len(fractional_part_price_str)
+                scale_factor = 10**missing_digits
+                scaled_fractional_part_price_str = scale_factor * int(fractional_part_price_str)
+
+            return 10000 * int(integer_part_price_str) + scaled_fractional_part_price_str
+
+            # if len(fractional_part_price_str) == 1:
+            #     int_price = 100 * int(integer_part_price_str) + 10 * int(fractional_part_price_str)
+            #     return int_price
+            # elif len(fractional_part_price_str) == 2:
+            #     int_price = 100 * int(integer_part_price_str) + int(fractional_part_price_str)
+            #     return int_price
+            # else:
+            #     raise ValueError(f'{price_str} is not a valid string formatted price')
         else:
             raise ValueError(f'{price_str} is not a valid string formatted price')
     except ValueError as e:
@@ -159,26 +170,36 @@ def run_all_parse_price_string_and_convert_to_int_price_tests():
     def parse_price_string_and_convert_to_int_price_test_1():
         price_string = '12'
         int_price = parse_price_string_and_convert_to_int_price(price_string)
-        assert int_price == 1200, f'parse_price_string_and_convert_to_int_price_test_1 failed: {int_price}'
+        assert int_price == 120000, f'parse_price_string_and_convert_to_int_price_test_1 failed: {int_price}'
 
     def parse_price_string_and_convert_to_int_price_test_2():
         price_string = '12.3'
         int_price = parse_price_string_and_convert_to_int_price(price_string)
-        assert int_price == 1230, f'parse_price_string_and_convert_to_int_price_test_2 failed: {int_price}'
+        assert int_price == 123000, f'parse_price_string_and_convert_to_int_price_test_2 failed: {int_price}'
 
     def parse_price_string_and_convert_to_int_price_test_3():
         price_string = '12.34'
         int_price = parse_price_string_and_convert_to_int_price(price_string)
-        assert int_price == 1234, f'parse_price_string_and_convert_to_int_price_test_3 failed: {int_price}'
+        assert int_price == 123400, f'parse_price_string_and_convert_to_int_price_test_3 failed: {int_price}'
 
     def parse_price_string_and_convert_to_int_price_test_4():
         price_string = '12.345'
+        int_price = parse_price_string_and_convert_to_int_price(price_string)
+        assert int_price == 123450, f'parse_price_string_and_convert_to_int_price_test_3 failed: {int_price}'
+
+    def parse_price_string_and_convert_to_int_price_test_5():
+        price_string = '12.3456'
+        int_price = parse_price_string_and_convert_to_int_price(price_string)
+        assert int_price == 123456, f'parse_price_string_and_convert_to_int_price_test_3 failed: {int_price}'
+
+    def parse_price_string_and_convert_to_int_price_test_6():
+        price_string = '12.34567'
         try:
             parse_price_string_and_convert_to_int_price(price_string)
         except ValueError as e:
             assert str(e) == f'{price_string} is not a valid string formatted price'
 
-    def parse_price_string_and_convert_to_int_price_test_5():
+    def parse_price_string_and_convert_to_int_price_test_7():
         price_string = 'hello world'
         try:
             parse_price_string_and_convert_to_int_price(price_string)
@@ -190,6 +211,8 @@ def run_all_parse_price_string_and_convert_to_int_price_tests():
     parse_price_string_and_convert_to_int_price_test_3()
     parse_price_string_and_convert_to_int_price_test_4()
     parse_price_string_and_convert_to_int_price_test_5()
+    parse_price_string_and_convert_to_int_price_test_6()
+    parse_price_string_and_convert_to_int_price_test_7()
 
 
 class Order:
