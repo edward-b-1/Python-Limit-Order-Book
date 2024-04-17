@@ -6,7 +6,21 @@ import random
 import re
 import sys
 
+'''
+    Hashmap like operations:
 
+    - insert
+    - update (special operation) (can change price and volume)
+    - delete
+    - _get (for testing)
+    - _find/_filter (for validation/logic consistency checking)
+
+    - _find (is always by order_id)
+    - _get (is always by order_id)
+
+    Note: Changing price or volume causes order to lose priority, unless the only change
+    is to decrease the volume.
+'''
 
 '''
  Run the matching engine for a list of input operations and returns the trades and orderbooks in a
@@ -78,6 +92,9 @@ import sys
 # decide on the set of operations which are common (public and private) to all data structures
 # there should be some common operations between DoubleSidedLimitOrderBook, LimitOrderBook,
 # LimitOrderBookPriceLevel and PriceLevel
+# TODO: prices can have 4 decimal places! use a fixed integer conversion factor of 1000
+# 1000 * digits before `.` + digits after `.`, just split on `.` convert to int
+# multiply and add
 
 def consume(iterable):
     for _ in iterable:
@@ -615,7 +632,7 @@ class LimitOrderBookPriceLevel:
     #     assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
     #     assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
 
-    def order_insert(self, partial_order: PartialOrder, int_price: int):
+    def order_insert(self, int_price: int, partial_order: PartialOrder):
         self._initialize_price_level(int_price)
 
         order_id = partial_order.order_id
@@ -667,18 +684,18 @@ def run_all_limit_order_book_price_level_tests():
 
         limit_order_book_price_level = LimitOrderBookPriceLevel()
 
-        limit_order_book_price_level.order_insert(partial_order_1, int_price=int_price_1)
-        limit_order_book_price_level.order_insert(partial_order_2, int_price=int_price_1)
-        limit_order_book_price_level.order_insert(partial_order_3, int_price=int_price_1)
-        limit_order_book_price_level.order_insert(partial_order_4, int_price=int_price_2)
-        limit_order_book_price_level.order_insert(partial_order_5, int_price=int_price_2)
+        limit_order_book_price_level.order_insert(int_price_1, partial_order_1)
+        limit_order_book_price_level.order_insert(int_price_1, partial_order_2)
+        limit_order_book_price_level.order_insert(int_price_1, partial_order_3)
+        limit_order_book_price_level.order_insert(int_price_2, partial_order_4)
+        limit_order_book_price_level.order_insert(int_price_2, partial_order_5)
 
         depth = limit_order_book_price_level.depth_aggregated()
         assert depth == 5, f'depth is not 5, depth = {depth}'
 
         # inserting a duplicate fails
         try:
-            limit_order_book_price_level.order_insert(partial_order_2, int_price=int_price_1)
+            limit_order_book_price_level.order_insert(int_price_1, partial_order_2)
         except RuntimeError as e:
             assert str(e) == f'cannot insert order with existing order_id {partial_order_2.order_id}'
 
@@ -712,36 +729,55 @@ def run_all_limit_order_book_price_level_tests():
 class LimitOrderBook:
 
     def __init__(self):
-        self.limit_order_book = {} # TICKER -> PRICE_LEVEL -> list of orders and volumes
+        # TICKER -> PRICE_LEVEL -> list of orders and volumes
+        self.limit_order_book: dict[str, LimitOrderBookPriceLevel] = {}
         
     def _initialize_ticker(self, ticker: str):
         if not ticker in self.limit_order_book:
             self.limit_order_book[ticker] = LimitOrderBookPriceLevel()
 
+    def _insert_order(self, ticker: str, int_price: int, partial_order: PartialOrder):
+        self.limit_order_book[ticker].order_insert(int_price, partial_order)
+
+    def order_id_count(self, order_id: int) -> int:
+        return (
+            sum(
+                map(
+                    lambda limit_order_book_price_level: limit_order_book_price_level.order_id_count(order_id),
+                    self.limit_order_book.values(),
+                )
+            )
+        )
+
+    def depth(self, ticker: str) -> int:
+        self._initialize_ticker(ticker)
+        return self.limit_order_book[ticker].depth()
+    
+    def depth_aggregated(self) -> int:
+        return (
+            sum(
+                map(
+                    lambda price_level: price_level.depth(),
+                    self.price_levels.values(),
+                )
+            )
+        )
+    
     # def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int):
     def order_insert(self, order_id: int, ticker: str, int_price: int, volume: int):
         # assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
         # assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
         # assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
         # ^ removed, done by PartialOrder
-
+        
         self._initialize_ticker(ticker)
-
-        # check the order id doesn't exist
-        ticker_order_book = self.limit_order_book[ticker]
-
-
-        # TODO: working here
-        self._initialize_price_level(int_price)
-
-        order_id = partial_order.order_id
 
         # check the order id doesn't exist
         if self.order_id_exists(order_id):
             raise RuntimeError(f'cannot insert order with existing order_id {order_id}')
 
-        partial_order = partial_order.with_int_price(int_price)
-        self._insert_order(int_price, partial_order)
+        partial_order = PartialOrder().with_ticker(ticker)
+        self._insert_order(ticker, int_price, partial_order)
 
         # TODO:
         # @static_vars(counter=0)
@@ -766,15 +802,22 @@ class LimitOrderBook:
         # )
 
         # insert the order into the lob
-        if not int_price in ticker_order_book:
-            ticker_order_book[int_price] = []
-
-        order_id_volume_tuple = (order_id, volume)
-        ticker_order_book[int_price].append(order_id_volume_tuple)
 
     def order_update(self, order_id: int, int_price: int, volume: int):
-        assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
-        assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
+        # assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
+        # assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
+        # ^ removed, done by PartialOrder
+        
+        # TODO: implement the below, copied from above
+
+        # check the order id exists, and only once
+        if self.order_id_count(order_id) == 0:
+            raise RuntimeError(f'cannot update order with missing order_id {order_id}')
+        elif self.order_id_count(order_id) > 1:
+            raise RuntimeError(f'cannot update order with duplicate order_id {order_id}')
+
+        int_price = self._find_order_price_level_by_order_id(order_id)
+        self.price_levels[int_price].order_update(order_id, volume)
 
         # TODO
         #if not ticker in self.limit_order_book:
