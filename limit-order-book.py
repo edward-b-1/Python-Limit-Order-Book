@@ -232,6 +232,19 @@ class Order:
         self.int_price = int_price
         self.volume = volume
 
+    def to_partial_order(self):
+        return (
+            PartialOrder()
+            .with_order_id(self.order_id)
+            .with_ticker(self.ticker)
+            .with_order_side(self.order_side)
+            .with_int_price(self.int_price)
+            .with_volume(self.volume)
+        )
+
+    def set_int_price(self, int_price: int) -> None:
+        assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
+
     def match(self, order) -> list[tuple]:
         '''
             Return a pair of trades: maker order converted to trade, taker order converted to trade
@@ -458,6 +471,17 @@ class PriceLevel:
 
         existing_order: Order = matching_orders[0]
         return existing_order
+    
+    def _query_priority(self, order_id: int) -> int:
+        _lambda_order_id_match = PriceLevel._lambda_order_id_match
+        #matching_order = next(order for order in self.price_level if _lambda_order_id_match(order, order_id))
+        index = (
+            next(
+                index for (index, order) in enumerate(self.price_level)
+                    if _lambda_order_id_match(order, order_id))
+        )
+        #priority = self.price_level.index(matching_order)
+        return index
 
     def depth(self) -> int:
         return len(self.price_level)
@@ -509,6 +533,7 @@ class PriceLevel:
     # OLD API, move to another class
     # def order_cancel(self, order_id: int):
 
+    # TODO: update semantics of others (return partialorder)
     def order_cancel(self, order_id: int):
 
         # check the order id exists, and only once
@@ -518,7 +543,9 @@ class PriceLevel:
             raise RuntimeError(f'cannot cancel order with duplicate order_id {order_id}')
 
         # remove matching order
+        order = self._get_order_by_order_id(order_id)
         self._remove_order_by_order_id(order_id)
+        return order.to_partial_order()
 
 
 def run_all_price_level_tests():
@@ -575,6 +602,9 @@ class LimitOrderBookPriceLevel:
         self.price_levels: dict[int, PriceLevel] = {}
 
     def _initialize_price_level(self, int_price: int):
+        if not validate_int_price(int_price):
+            raise ValueError(f'price \'{int_price}\' is not a valid integer price')
+
         if not int_price in self.price_levels:
             self.price_levels[int_price] = PriceLevel()
 
@@ -669,6 +699,11 @@ class LimitOrderBookPriceLevel:
 
         existing_order: Order = matching_orders[0]
         return existing_order
+    
+    def _query_priority(self, order_id: int) -> int:
+        int_price = self._find_order_price_level_by_order_id(order_id)
+        price_level = self.price_levels[int_price]
+        return price_level._query_priority(order_id)
 
     def order_id_exists(self, order_id: int):
         return (
@@ -727,6 +762,8 @@ class LimitOrderBookPriceLevel:
         assert validate_int_price(int_price) > 0, VALIDATE_INT_PRICE_ERROR_STR
         assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
 
+        self._initialize_price_level(int_price)
+
         # check the order id exists, and only once
         if self.order_id_count(order_id) == 0:
             raise RuntimeError(f'cannot update order with missing order_id {order_id}')
@@ -737,8 +774,13 @@ class LimitOrderBookPriceLevel:
         if existing_order_int_price == int_price:
             self.price_levels[existing_order_int_price].order_update(order_id, volume)
         else:
-            self.price_levels[existing_order_int_price].order_cancel(order_id)
-            self.price_levels[int_price].order_insert(order_id)
+            ##existing_order: Order = self._get_order_by_order_id(order_id)
+            ##existing_order.set_int_price(int_price)
+            # TODO: add order_cancel_pop to return order or make order_cancel return the order
+            # should it return a partial order with the int_price removed? (probably no?)
+            partial_order = self.price_levels[existing_order_int_price].order_cancel(order_id)
+            partial_order.set_int_price(int_price)
+            self.price_levels[int_price].order_insert(partial_order)
             # TODO write a test for both of these cases
 
     def order_cancel(self, order_id: int):
@@ -754,7 +796,7 @@ class LimitOrderBookPriceLevel:
 
 def run_all_limit_order_book_price_level_tests():
 
-    def price_level_test_1():
+    def limit_order_book_price_level_test_1():
         ticker = 'PYTH'
         order_side = 'BUY'
         int_price_1 = 1000
@@ -808,7 +850,37 @@ def run_all_limit_order_book_price_level_tests():
         depth = limit_order_book_price_level.depth_aggregated()
         assert depth == 0, f'depth is not 0, depth = {depth}'
 
-    price_level_test_1()
+    def limit_order_book_price_level_update_test():
+        partial_order_1 = (
+            PartialOrder()
+            .with_order_id(100)
+            .with_ticker('PYTH')
+            .with_order_side('BUY')
+            .with_int_price(1234)
+            .with_volume(10)
+        )
+
+        # lower priority
+        partial_order_2 = (
+            PartialOrder()
+            .with_order_id(101)
+            .with_ticker('PYTH')
+            .with_order_side('BUY')
+            .with_int_price(1234)
+            .with_volume(20)
+        )
+
+        limit_order_book_price_level = LimitOrderBookPriceLevel()
+
+        limit_order_book_price_level.order_insert(partial_order_1)
+
+        # todo add function to check priority
+        priority = limit_order_book_price_level._query_priority(partial_order_1.order_id)
+        assert priority == 0, f'unexpected order priority {priority}, expected priority {0}'
+
+
+    limit_order_book_price_level_test_1()
+    limit_order_book_price_level_update_test()
     #price_level_test_2()
 
 
@@ -819,6 +891,9 @@ class LimitOrderBook:
         self.limit_order_book: dict[str, LimitOrderBookPriceLevel] = {}
 
     def _initialize_ticker(self, ticker: str):
+        if not validate_ticker(ticker):
+            raise ValueError(f'ticker \'{ticker}\' is not a valid ticker')
+
         if not ticker in self.limit_order_book:
             self.limit_order_book[ticker] = LimitOrderBookPriceLevel()
 
@@ -1074,16 +1149,118 @@ class DoubleLimitOrderBook:
             'SELL': LimitOrderBook(),
         }
 
+    def _find_order_side_by_order_id(self, order_id: int) -> str:
+        limit_order_book_buy = self.double_limit_order_book['BUY']
+        limit_order_book_sell = self.double_limit_order_book['SELL']
+
+        # TODO: consider using count here instead
+        order_exists_in_buy_side = limit_order_book_buy.order_id_exists(order_id)
+        order_exists_in_sell_side = limit_order_book_sell.order_id_exists(order_id)
+
+        if order_exists_in_buy_side and not order_exists_in_sell_side:
+            return 'BUY'
+        elif not order_exists_in_buy_side and order_exists_in_sell_side:
+            return 'SELL'
+        
+    def _find_limit_order_book_buy_order_side(self, order_side: str) -> LimitOrderBook:
+        # if order_side == 'BUY':
+        #     return True
+        # elif order_side == 'SELL':
+        #     return True
+        # else:
+        #     return False
+
+        limit_order_book = None
+        
+        if order_side == 'BUY':
+            limit_order_book = self.double_limit_order_book['BUY']
+        elif order_side == 'SELL':
+            limit_order_book = self.double_limit_order_book['SELL']
+
+        if limit_order_book is None:
+            raise RuntimeError(f'invalid order_side {order_side}')
+        
+        return limit_order_book
+
+    def depth(self, order_side: str) -> int:
+        return self.double_limit_order_book[order_side].depth()
+
+    def depth_aggregated(self) -> int:
+        return (
+            sum(
+                map(
+                    lambda limit_order_book: limit_order_book.depth_aggregated(),
+                    self.double_limit_order_book.values(),
+                )
+            )
+        )
+
     def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int):
-        pass
+        # limit_order_book = None
+
+        # if order_side == 'BUY':
+        #     limit_order_book = self.double_limit_order_book['BUY']
+        # elif order_side == 'SELL':
+        #     limit_order_book = self.double_limit_order_book['SELL']
+
+        # if limit_order_book is None:
+        #     raise RuntimeError(f'invalid order_side {order_side}')
+
+        # TODO: _find_limit_order_book_by_order_id
+        limit_order_book = self._find_limit_order_book_buy_order_side(order_side)   # TODO: use this kind of semantics in other structures
+
+        # TODO: create PartialOrder here and set order side?
+        limit_order_book.order_insert(
+            order_id=order_id,
+            ticker=ticker,
+            order_side=order_side,
+            int_price=int_price,
+            volume=volume,
+        )
 
     def order_update(self, order_id: int, int_price: int, volume: int):
-        pass
+        order_side = self._find_order_side_by_order_id(order_id)
+
+        # TODO: _find_limit_order_book_by_order_id
+        limit_order_book = self._find_limit_order_book_buy_order_side(order_side)
+        limit_order_book.order_update(order_id, int_price, volume)
+        
+        # if order_side == 'BUY':
+        #     limit_order_book_buy = self.double_limit_order_book['BUY']
+        #     limit_order_book_buy.order_update(order_id, int_price, volume)
+        # elif order_side == 'SELL':
+        #     limit_order_book_sell = self.double_limit_order_book['SELL']    
+        #     limit_order_book_sell.order_update(order_id, int_price, volume)
+        # else:
+        #     raise RuntimeError(f'cannot update order which exists in both buy and sell side book with order_id {order_id}')
 
     def order_cancel(self, order_id: int):
-        pass
+        order_side = self._find_order_side_by_order_id(order_id)
+
+        # TODO: _find_limit_order_book_by_order_id
+        limit_order_book = self._find_limit_order_book_buy_order_side(order_side)
+        limit_order_book.order_cancel(order_id)
+
+        # if order_side == 'BUY':
+        #     limit_order_book_buy = self.double_limit_order_book['BUY']
+        #     limit_order_book_buy.order_cancel(order_id)
+        # elif order_side == 'SELL':
+        #     limit_order_book_sell = self.double_limit_order_book['SELL']    
+        #     limit_order_book_sell.order_cancel(order_id)
+        # else:
+        #     raise RuntimeError(f'cannot cancel order which exists in both buy and sell side book with order_id {order_id}')
+            
 
 
+def run_all_double_limit_order_book_tests():
+
+    def double_limit_order_book_test_1():
+        lob = DoubleLimitOrderBook()
+
+        lob.order_insert(order_id=1, ticker='PYTH', order_side='BUY', int_price=1000, volume=10)
+        assert lob.depth_aggregated() == 1, f'unexpected depth {lob.depth_aggregated()}, expected {1}'
+
+    double_limit_order_book_test_1()
 
 
 #  INSERT,<order_id>,<symbol>,<side>,<price>,<volume>
@@ -1147,7 +1324,7 @@ def run_all_tests():
     run_all_price_level_tests()
     run_all_limit_order_book_price_level_tests()
     run_all_limit_order_book_tests()
-    # run_all_double_limit_order_book_tests()
+    run_all_double_limit_order_book_tests()
 
 
 if __name__ == '__main__':
