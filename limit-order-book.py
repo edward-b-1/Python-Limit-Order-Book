@@ -247,10 +247,50 @@ class Order:
 
     def match(self, order) -> list[tuple]:
         '''
+            The Maker order must be self. The Taker order must be order.
+
+            If price levels cross through, the Maker recieves the bonus/premium, meaning
+            that the Taker price is used.
+
             Return a pair of trades: maker order converted to trade, taker order converted to trade
-            and a remaining order, or None.
+            #and a remaining order, or None.
+            self and order are modified if a trade occurs
         '''
+        if self.order_side == order.order_side:
+            return (None, None)
+
+        if self.order_side == 'BUY' and order.order_side == 'SELL':
+            if self.int_price < order.int_price:
+                return (None, None)
+            
+        if self.order_side == 'SELL' and order.order_side == 'BUY':
+            if self.int_price > order.int_price:
+                return (None, None)
+
+        match_int_price = order.int_price
+
+        match_volume = min(self.volume, order.volume)
+        maker_volume = self.volume - match_volume
+        taker_volume = order.volume - match_volume
+
+        trade = Trade(
+
+        )
+
+
+# TODO: write the tests for match and finish the match function
+# should test prices which do not match
+# prices which match
+# prices which cross through
+# same volume
+# asymetric volume (both ways)
+def run_all_order_tests():
+
+    def run_order_test_1():
         pass
+
+    run_order_test_1()
+
 
 
 class PartialOrder:
@@ -1254,11 +1294,46 @@ class DoubleLimitOrderBook:
 
 def run_all_double_limit_order_book_tests():
 
+    def check_depth_aggregated(lob: DoubleLimitOrderBook, depth: int):
+        assert lob.depth_aggregated() == depth, f'unexpected depth {lob.depth_aggregated()}, expected {depth}'
+
     def double_limit_order_book_test_1():
         lob = DoubleLimitOrderBook()
 
         lob.order_insert(order_id=1, ticker='PYTH', order_side='BUY', int_price=1000, volume=10)
-        assert lob.depth_aggregated() == 1, f'unexpected depth {lob.depth_aggregated()}, expected {1}'
+        # TODO: implement this
+        #priority = lob.priority(order_id=1) 
+        #assert priority == 0, f'unexpected priority {priority} for order {1}, expected {0}'
+        check_depth_aggregated(lob, 1)
+
+        lob.order_insert(order_id=2, ticker='PYTH', order_side='BUY', int_price=1000, volume=20)
+        check_depth_aggregated(lob, 2)
+
+        lob.order_insert(order_id=3, ticker='PYTH', order_side='BUY', int_price=1020, volume=10)
+        check_depth_aggregated(lob, 3)
+
+        lob.order_insert(order_id=4, ticker='PYTH', order_side='BUY', int_price=1020, volume=20)
+        check_depth_aggregated(lob, 4)
+
+        lob.order_insert(order_id=5, ticker='PYTH', order_side='SELL', int_price=1100, volume=10)
+        check_depth_aggregated(lob, 5)
+
+        lob.order_update(order_id=1, int_price=1000, volume=5)
+        check_depth_aggregated(lob, 5)
+
+        lob.order_update(order_id=1, int_price=1010, volume=5)
+        check_depth_aggregated(lob, 5)
+
+        lob.order_update(order_id=2, int_price=1010, volume=20)
+        check_depth_aggregated(lob, 5)
+
+        lob.order_cancel(5)
+        lob.order_cancel(4)
+        lob.order_cancel(3)
+        lob.order_cancel(2)
+        lob.order_cancel(1)
+        check_depth_aggregated(lob, 0)
+
 
     double_limit_order_book_test_1()
 
@@ -1319,7 +1394,7 @@ def runMatchingEngine(operations: list[str]) -> list[str]:
 
 def run_all_tests():
     run_all_parse_price_string_and_convert_to_int_price_tests()
-    #run_all_order_tests()
+    run_all_order_tests()
     run_all_partial_order_tests()
     run_all_price_level_tests()
     run_all_limit_order_book_price_level_tests()
