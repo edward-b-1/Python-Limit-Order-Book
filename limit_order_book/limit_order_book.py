@@ -1805,6 +1805,10 @@ def run_all_double_limit_order_book_tests():
     double_limit_order_book_test_1()
 
 
+def test_limit_order_book():
+    run_all_tests()
+
+
 def run_all_tests():
     run_all_parse_price_string_and_convert_to_int_price_tests()
     run_all_order_tests()
