@@ -1,6 +1,6 @@
 
-from limit_order_book import Order
-from limit_order_book import Trade
+from limit_order_book.order import Order
+from limit_order_book.trade import Trade
 from limit_order_book.limit_order_book import PartialOrder
 
 

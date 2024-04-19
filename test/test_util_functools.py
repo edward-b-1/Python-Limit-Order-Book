@@ -1,5 +1,5 @@
 
-from limit_order_book import Order
+from limit_order_book.order import Order
 from limit_order_book.util_functools import remove_order_by_order_id_from_list_of_orders
 
 

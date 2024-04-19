@@ -1,6 +1,6 @@
 
 from limit_order_book.limit_order_book import PartialOrder
-from limit_order_book.limit_order_book import PriceLevel
+from limit_order_book.price_level import PriceLevel
 
 
 def test_price_level():

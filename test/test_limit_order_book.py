@@ -1,6 +1,6 @@
 
-from limit_order_book import LimitOrderBook
-from limit_order_book.limit_order_book import PartialOrder
+from limit_order_book.limit_order_book import LimitOrderBook
+from limit_order_book.partial_order import PartialOrder
 
 from limit_order_book.util_parse import parse_price_string_and_convert_to_int_price
 

@@ -1,5 +1,5 @@
 
-from limit_order_book import DoubleLimitOrderBook
+from limit_order_book.double_limit_order_book import DoubleLimitOrderBook
 
 
 def test_run_all_double_limit_order_book_tests():
