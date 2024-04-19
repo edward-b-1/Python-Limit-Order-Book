@@ -60,12 +60,13 @@ def test_order_cancel():
     limit_order_book = LimitOrderBook()
     limit_order_book.order_insert(1, 'PYTH', 'BUY', 1000, 20)
     removed_order = limit_order_book.order_cancel(1)
-    expected_order = PartialOrder(
-        order_id=1,
-        ticker='PYTH',
-        order_side='BUY',
-        int_price=1000,
-        volume=20,
+    expected_order = (
+        PartialOrder()
+        .with_order_id(1)
+        .with_ticker('PYTH')
+        .with_order_side('BUY')
+        .with_int_price(1000)
+        .with_volume(20)
     )
     assert removed_order == expected_order, f'removed order data does not match expected order data'
 

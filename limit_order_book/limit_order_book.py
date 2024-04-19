@@ -109,9 +109,6 @@ from limit_order_book.limit_order_book_price_level import LimitOrderBookPriceLev
 
 
 
-
-
-
 class LimitOrderBook:
 
     def __init__(self):
@@ -131,19 +128,13 @@ class LimitOrderBook:
 
     # Note: will actually remove all orders with order_id
     def _remove_orders_by_order_id(self, order_id: int) -> list[Order]:
-        def filter_empty_list(list: list) -> bool:
-            return len(list) > 0
-
         removed_orders = (
             list(
                 reduce(
-                    list.append,
-                    filter(
-                        filter_empty_list,
-                        map(
-                            lambda limit_order_book_price_level: limit_order_book_price_level._remove_orders_by_order_id(order_id),
-                            self.limit_order_book.values(),
-                        ),
+                    list.__add__,
+                    map(
+                        lambda limit_order_book_price_level: limit_order_book_price_level._remove_orders_by_order_id(order_id),
+                        self.limit_order_book.values(),
                     ),
                     [],
                 )
@@ -190,15 +181,13 @@ class LimitOrderBook:
 
         matching_orders = (
             list(
-                map(
-                    extract_single_element_from_list,
-                    filter(
-                        filter_empty_list,
-                        map(
-                            lambda limit_order_book_price_level: limit_order_book_price_level._filter_orders_by_order_id(order_id),
-                            self.limit_order_book.values(),
-                        ),
+                reduce(
+                    list.__add__,
+                    map(
+                        lambda limit_order_book_price_level: limit_order_book_price_level._filter_orders_by_order_id(order_id),
+                        self.limit_order_book.values(),
                     ),
+                    [],
                 )
             )
         )

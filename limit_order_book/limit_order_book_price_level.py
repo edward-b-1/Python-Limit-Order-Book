@@ -25,35 +25,23 @@ class LimitOrderBookPriceLevel:
         int_price = partial_order.to_int_price()
         self.price_levels[int_price].order_insert(partial_order)
 
-    def _filter_orders_by_order_id(self, order_id: int):
-        def filter_empty_list(list: list) -> bool:
-            return len(list) > 0
-
-        def extract_single_element_from_list(list: list):
-            assert len(list) == 1, f'extract_single_element_from_list failed, length is {len(list)}'
-            return list[0]
-
+    def _filter_orders_by_order_id(self, order_id: int) -> list[Order]:
         return (
             list(
-                map(
-                    extract_single_element_from_list, # TODO: find better way to do this
-                    filter(
-                        filter_empty_list,
-                        map(
-                            lambda price_level: price_level._filter_orders_by_order_id(order_id),
-                            self.price_levels.values(),
-                        ),
+                reduce(
+                    list.__add__,
+                    map(
+                        lambda price_level: price_level._filter_orders_by_order_id(order_id),
+                        self.price_levels.values(),
                     ),
+                    [],
                 )
             )
         )
 
     # Note: will actually remove all orders with order_id
     def _remove_orders_by_order_id(self, order_id: int) -> list[Order]:
-        def filter_empty_list(list: list) -> bool:
-            return len(list) > 0
-
-        removed_orders = (
+        return (
             list(
                 reduce(
                     list.__add__,
@@ -65,10 +53,6 @@ class LimitOrderBookPriceLevel:
                 )
             )
         )
-        return removed_orders
-
-        # TODO
-        return remove_order_by_order_id_from_list_of_orders(self.price_levels.values())
 
     def _find_order_price_level_by_order_id(self, order_id: int) -> int:
 
