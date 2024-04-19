@@ -1,6 +1,4 @@
 
-
-
 def parse_price_string_and_convert_to_int_price(price_str: str) -> int:
     '''
         prices can have 4 decimal places!
