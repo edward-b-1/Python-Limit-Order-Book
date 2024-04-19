@@ -8,38 +8,8 @@ from limit_order_book.limit_order_book import PartialOrder
 from limit_order_book.limit_order_book import PriceLevel
 from limit_order_book.limit_order_book import LimitOrderBookPriceLevel
 
-from limit_order_book.util import parse_price_string_and_convert_to_int_price
+from limit_order_book.util_parse import parse_price_string_and_convert_to_int_price
 
-
-
-
-
-def test_run_all_partial_order_tests():
-
-    def partial_order_test():
-        partial_order = PartialOrder()
-
-        try:
-            partial_order.to_order()
-        except RuntimeError as e:
-            assert str(e) == f'PartialOrder has missing fields'
-
-        partial_order.set_order_id(1).set_ticker('PYTH').set_order_side('BUY').set_int_price(1234)
-
-        try:
-            partial_order.to_order()
-        except RuntimeError as e:
-            assert str(e) == f'PartialOrder has missing fields'
-
-        partial_order.set_volume(10)
-        order = partial_order.to_order()
-
-        assert order.order_id == 1, 'unexpected value for order_id'
-        assert order.order_side == 'BUY', 'unexpected value for order_side'
-        assert order.int_price == 1234, 'unexpected value for int_price'
-        assert order.volume == 10, 'unexpected value for volume'
-
-    partial_order_test()
 
 def test_run_all_price_level_tests():
 

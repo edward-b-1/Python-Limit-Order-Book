@@ -1,10 +1,8 @@
 
-
+from limit_order_book import DoubleLimitOrderBook
 
 
 def test_run_all_double_limit_order_book_tests():
-
-    from limit_order_book import DoubleLimitOrderBook
 
     def check_depth_aggregated(lob: DoubleLimitOrderBook, depth: int):
         assert lob.depth_aggregated() == depth, f'unexpected depth {lob.depth_aggregated()}, expected {depth}'
