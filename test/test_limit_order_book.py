@@ -8,7 +8,7 @@ from limit_order_book.limit_order_book import PartialOrder
 from limit_order_book.limit_order_book import PriceLevel
 from limit_order_book.limit_order_book import LimitOrderBookPriceLevel
 
-from limit_order_book.limit_order_book import parse_price_string_and_convert_to_int_price
+from limit_order_book.util import parse_price_string_and_convert_to_int_price
 
 
 def run_all_parse_price_string_and_convert_to_int_price_tests():
