@@ -83,6 +83,7 @@ import sys
       HackerRank)
     - Split into multiple modules, packages (again does not work with
       HackerRank)
+    - Add TTL for orders (time based order expiry)
 
 
     ****************************************************************************
@@ -232,6 +233,26 @@ class Order:
         self.int_price = int_price
         self.volume = volume
 
+    def __eq__(self, value: object) -> bool:
+        if not isinstance(value, Order): return False
+        if self.order_id != value.order_id: return False
+        if self.ticker != value.ticker: return False
+        if self.order_side != value.order_side: return False
+        if self.int_price != value.int_price: return False
+        if self.volume != value.volume: return False
+        return True
+
+    def __str__(self) -> str:
+        return (
+            f'PartialOrder('
+            f'{self.order_id}, '
+            f'{self.ticker}, '
+            f'{self.order_side}, '
+            f'price={self.int_price}, '
+            f'volume={self.volume}'
+            f')'
+        )
+
     def to_partial_order(self):
         return (
             PartialOrder()
@@ -245,37 +266,56 @@ class Order:
     def set_int_price(self, int_price: int) -> None:
         assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
 
-    def match(self, order) -> list[tuple]:
+    def match(self, taker_order) -> list[tuple]:
         '''
             The Maker order must be self. The Taker order must be order.
 
             If price levels cross through, the Maker recieves the bonus/premium, meaning
             that the Taker price is used.
 
-            Return a pair of trades: maker order converted to trade, taker order converted to trade
-            #and a remaining order, or None.
-            self and order are modified if a trade occurs
+            The Maker order (self) is modified if a Trade occurs.
+            The Taker order (`order`) is modified if a Trade occurs.
+
+            Return:
+                A Trade, if orders are compatiable, or None.
         '''
-        if self.order_side == order.order_side:
-            return (None, None)
+        maker_order = self
 
-        if self.order_side == 'BUY' and order.order_side == 'SELL':
-            if self.int_price < order.int_price:
-                return (None, None)
-            
-        if self.order_side == 'SELL' and order.order_side == 'BUY':
-            if self.int_price > order.int_price:
-                return (None, None)
+        if maker_order.ticker != taker_order.ticker:
+            return None
 
-        match_int_price = order.int_price
+        if maker_order.order_side == taker_order.order_side:
+            return None
 
-        match_volume = min(self.volume, order.volume)
-        maker_volume = self.volume - match_volume
-        taker_volume = order.volume - match_volume
+        if maker_order.order_side == 'BUY' and taker_order.order_side == 'SELL':
+            if maker_order.int_price < taker_order.int_price:
+                return None
+
+        if maker_order.order_side == 'SELL' and taker_order.order_side == 'BUY':
+            if maker_order.int_price > taker_order.int_price:
+                return None
+
+        match_int_price = taker_order.int_price
+
+        match_volume = min(maker_order.volume, taker_order.volume)
+        maker_volume = maker_order.volume - match_volume
+        taker_volume = taker_order.volume - match_volume
+
+        # TODO:
+        # NOTE: it is the responsibility of the managing data structure to
+        # filter orders which have zero remaining volume
+        maker_order.volume = maker_volume
+        taker_order.volume = taker_volume
 
         trade = Trade(
-
+            order_id_maker=maker_order.order_id,
+            order_id_taker=taker_order.order_id,
+            ticker=self.ticker,
+            int_price=match_int_price,
+            volume=match_volume,
         )
+
+        return trade
 
 
 # TODO: write the tests for match and finish the match function
@@ -286,10 +326,403 @@ class Order:
 # asymetric volume (both ways)
 def run_all_order_tests():
 
-    def run_order_test_1():
-        pass
+    # 1/1
+    # Test no matching order for different ticker
+    def run_order_test_no_match_different_ticker():
+        int_price = 1000
+        volume = 10
 
-    run_order_test_1()
+        order_1 = Order(
+            order_id=1,
+            ticker='PYTH',
+            order_side='BUY',
+            int_price=int_price,
+            volume=volume,
+        )
+
+        order_2 = Order(
+            order_id=2,
+            ticker='JAVA',
+            order_side='SELL',
+            int_price=int_price,
+            volume=volume,
+        )
+
+        trade = order_1.match(order_2)
+        assert trade == None, f'unexpected order match'
+
+    # 1/1
+    # Test no matching order for same order_side
+    def run_order_test_no_match_same_order_side():
+        ticker = 'PYTH'
+        order_side = 'BUY'
+        int_price = 1000
+        volume = 10
+
+        order_1 = Order(
+            order_id=1,
+            ticker=ticker,
+            order_side=order_side,
+            int_price=int_price,
+            volume=volume,
+        )
+
+        order_2 = Order(
+            order_id=2,
+            ticker=ticker,
+            order_side=order_side,
+            int_price=int_price,
+            volume=volume,
+        )
+
+        trade = order_1.match(order_2)
+        assert trade == None, f'unexpected order match'
+
+    # 1/1
+    # Test no matching order for incompatiable int_price
+    def run_order_test_no_match_no_match_price():
+        ticker = 'PYTH'
+        volume = 10
+
+        order_1 = Order(
+            order_id=1,
+            ticker=ticker,
+            order_side='BUY',
+            int_price=1000,
+            volume=volume,
+        )
+
+        order_2 = Order(
+            order_id=2,
+            ticker=ticker,
+            order_side='SELL',
+            int_price=1010,
+            volume=volume,
+        )
+
+        trade = order_1.match(order_2)
+        assert trade == None, f'unexpected order match'
+
+    # 1/3
+    # Test fully matched order for compatiable int_price
+    def run_order_test_full_match_same_price():
+        ticker = 'PYTH'
+        int_price = 1000
+        volume = 10
+
+        order_1 = Order(
+            order_id=1,
+            ticker=ticker,
+            order_side='BUY',
+            int_price=int_price,
+            volume=volume,
+        )
+
+        order_2 = Order(
+            order_id=2,
+            ticker=ticker,
+            order_side='SELL',
+            int_price=int_price,
+            volume=volume,
+        )
+
+        expected_trade = Trade(
+            order_id_maker=1,
+            order_id_taker=2,
+            ticker=ticker,
+            int_price=int_price,
+            volume=volume
+        )
+
+        trade = order_1.match(order_2)
+        assert trade == expected_trade, f'unexpected trade data or no trade'
+
+    # 2/3
+    # Test partially matched maker order for compatiable int_price
+    def run_order_test_partial_maker_match_same_price():
+        ticker = 'PYTH'
+        int_price = 1000
+
+        order_1 = Order(
+            order_id=1,
+            ticker=ticker,
+            order_side='BUY',
+            int_price=int_price,
+            volume=20,
+        )
+
+        order_2 = Order(
+            order_id=2,
+            ticker=ticker,
+            order_side='SELL',
+            int_price=int_price,
+            volume=10,
+        )
+
+        expected_trade = Trade(
+            order_id_maker=1,
+            order_id_taker=2,
+            ticker=ticker,
+            int_price=int_price,
+            volume=10
+        )
+
+        trade = order_1.match(order_2)
+        assert trade == expected_trade, f'unexpected trade data or no trade'
+        assert order_1.volume == 10, f'unexpected maker order volume'
+        assert order_2.volume == 0, f'unexpected taker order volume'
+
+    # 3/3
+    # Test partially matched taker order for compatiable int_price
+    def run_order_test_partial_taker_match_same_price():
+        ticker = 'PYTH'
+        int_price = 1000
+
+        order_1 = Order(
+            order_id=1,
+            ticker=ticker,
+            order_side='BUY',
+            int_price=int_price,
+            volume=10,
+        )
+
+        order_2 = Order(
+            order_id=2,
+            ticker=ticker,
+            order_side='SELL',
+            int_price=int_price,
+            volume=20,
+        )
+
+        expected_trade = Trade(
+            order_id_maker=1,
+            order_id_taker=2,
+            ticker=ticker,
+            int_price=int_price,
+            volume=10
+        )
+
+        trade = order_1.match(order_2)
+        assert trade == expected_trade, f'unexpected trade data or no trade'
+        assert order_1.volume == 0, f'unexpected maker order volume'
+        assert order_2.volume == 10, f'unexpected taker order volume'
+
+    # 1/3
+    # Test fully matched order for crossing taker price
+    def run_order_test_full_match_crossing_taker_price():
+        ticker = 'PYTH'
+        volume = 10
+
+        order_1 = Order(
+            order_id=1,
+            ticker=ticker,
+            order_side='BUY',
+            int_price=2000,
+            volume=volume,
+        )
+
+        order_2 = Order(
+            order_id=2,
+            ticker=ticker,
+            order_side='SELL',
+            int_price=1000,
+            volume=volume,
+        )
+
+        expected_trade = Trade(
+            order_id_maker=1,
+            order_id_taker=2,
+            ticker=ticker,
+            int_price=1000,
+            volume=volume
+        )
+
+        trade = order_1.match(order_2)
+        print(trade)
+        assert trade == expected_trade, f'unexpected trade data or no trade'
+
+    # 2/3
+    # Test partially matched maker order for crossing taker price
+    def run_order_test_partial_maker_match_crossing_taker_price():
+        ticker = 'PYTH'
+
+        order_1 = Order(
+            order_id=1,
+            ticker=ticker,
+            order_side='BUY',
+            int_price=2000,
+            volume=20,
+        )
+
+        order_2 = Order(
+            order_id=2,
+            ticker=ticker,
+            order_side='SELL',
+            int_price=1000,
+            volume=10,
+        )
+
+        expected_trade = Trade(
+            order_id_maker=1,
+            order_id_taker=2,
+            ticker=ticker,
+            int_price=1000,
+            volume=10
+        )
+
+        trade = order_1.match(order_2)
+        assert trade == expected_trade, f'unexpected trade data or no trade'
+        assert order_1.volume == 10, f'unexpected maker order volume'
+        assert order_2.volume == 0, f'unexpected taker order volume'
+
+    # 3/3
+    # Test partially matched taker order for crossing taker price
+    def run_order_test_partial_taker_match_crossing_taker_price():
+        ticker = 'PYTH'
+
+        order_1 = Order(
+            order_id=1,
+            ticker=ticker,
+            order_side='BUY',
+            int_price=2000,
+            volume=10,
+        )
+
+        order_2 = Order(
+            order_id=2,
+            ticker=ticker,
+            order_side='SELL',
+            int_price=1000,
+            volume=20,
+        )
+
+        expected_trade = Trade(
+            order_id_maker=1,
+            order_id_taker=2,
+            ticker=ticker,
+            int_price=1000,
+            volume=10
+        )
+
+        trade = order_1.match(order_2)
+        assert trade == expected_trade, f'unexpected trade data or no trade'
+        assert order_1.volume == 0, f'unexpected maker order volume'
+        assert order_2.volume == 10, f'unexpected taker order volume'
+
+    # 1/3
+    # Test fully matched order for crossing taker price (reversed)
+    def run_order_test_full_match_crossing_taker_price_reversed():
+        ticker = 'PYTH'
+        volume = 10
+
+        order_1 = Order(
+            order_id=1,
+            ticker=ticker,
+            order_side='SELL',
+            int_price=1000,
+            volume=volume,
+        )
+
+        order_2 = Order(
+            order_id=2,
+            ticker=ticker,
+            order_side='BUY',
+            int_price=2000,
+            volume=volume,
+        )
+
+        expected_trade = Trade(
+            order_id_maker=1,
+            order_id_taker=2,
+            ticker=ticker,
+            int_price=2000,
+            volume=volume
+        )
+
+        trade = order_1.match(order_2)
+        print(trade)
+        assert trade == expected_trade, f'unexpected trade data or no trade'
+
+    # 2/3
+    # Test partially matched maker order for crossing taker price (reversed)
+    def run_order_test_partial_maker_match_crossing_taker_price_reversed():
+        ticker = 'PYTH'
+
+        order_1 = Order(
+            order_id=1,
+            ticker=ticker,
+            order_side='SELL',
+            int_price=1000,
+            volume=20,
+        )
+
+        order_2 = Order(
+            order_id=2,
+            ticker=ticker,
+            order_side='BUY',
+            int_price=2000,
+            volume=10,
+        )
+
+        expected_trade = Trade(
+            order_id_maker=1,
+            order_id_taker=2,
+            ticker=ticker,
+            int_price=2000,
+            volume=10
+        )
+
+        trade = order_1.match(order_2)
+        assert trade == expected_trade, f'unexpected trade data or no trade'
+        assert order_1.volume == 10, f'unexpected maker order volume'
+        assert order_2.volume == 0, f'unexpected taker order volume'
+
+    # 3/3
+    # Test partially matched taker order for crossing taker price (reversed)
+    def run_order_test_partial_taker_match_crossing_taker_price_reversed():
+        ticker = 'PYTH'
+
+        order_1 = Order(
+            order_id=1,
+            ticker=ticker,
+            order_side='SELL',
+            int_price=1000,
+            volume=10,
+        )
+
+        order_2 = Order(
+            order_id=2,
+            ticker=ticker,
+            order_side='BUY',
+            int_price=2000,
+            volume=20,
+        )
+
+        expected_trade = Trade(
+            order_id_maker=1,
+            order_id_taker=2,
+            ticker=ticker,
+            int_price=2000,
+            volume=10
+        )
+
+        trade = order_1.match(order_2)
+        assert trade == expected_trade, f'unexpected trade data or no trade'
+        assert order_1.volume == 0, f'unexpected maker order volume'
+        assert order_2.volume == 10, f'unexpected taker order volume'
+
+    run_order_test_no_match_different_ticker() # 1/1
+    run_order_test_no_match_same_order_side() # 1/1
+    run_order_test_no_match_no_match_price() # 1/1
+    run_order_test_full_match_same_price() # 1/3
+    run_order_test_partial_maker_match_same_price() # 2/3
+    run_order_test_partial_taker_match_same_price() # 3/3
+    run_order_test_full_match_crossing_taker_price() # 1/3
+    run_order_test_partial_maker_match_crossing_taker_price() # 2/3
+    run_order_test_partial_taker_match_crossing_taker_price() # 3/3
+    run_order_test_full_match_crossing_taker_price_reversed() # 1/3
+    run_order_test_partial_maker_match_crossing_taker_price_reversed() # 2/3
+    run_order_test_partial_taker_match_crossing_taker_price_reversed() # 3/3
 
 
 
@@ -302,8 +735,25 @@ class PartialOrder:
         self.int_price = None
         self.volume = None
 
+    def __eq__(self, value: object) -> bool:
+        if not isinstance(value, PartialOrder): return False
+        if self.order_id != value.order_id: return False
+        if self.ticker != value.ticker: return False
+        if self.order_side != value.order_side: return False
+        if self.int_price != value.int_price: return False
+        if self.volume != value.volume: return False
+        return True
+
     def __str__(self) -> str:
-        return f'PartialOrder({self.order_id}, {self.ticker}, {self.order_side}, price={self.int_price}, volume={self.volume})'
+        return (
+            f'PartialOrder('
+            f'{self.order_id}, '
+            f'{self.ticker}, '
+            f'{self.order_side}, '
+            f'price={self.int_price}, '
+            f'volume={self.volume}'
+            f')'
+        )
 
     def copy(self):
         return (
@@ -426,16 +876,38 @@ def run_all_partial_order_tests():
 
 class Trade:
 
-    def __init__(self, ticker: str, int_price: int, volume: int, order_id_taker: int, order_id_maker: int):
+    def __init__(self, order_id_maker: int, order_id_taker: int, ticker: str, int_price: int, volume: int):
+        assert validate_order_id(order_id_maker), VALIDATE_ORDER_ID_ERROR_STR
+        assert validate_order_id(order_id_taker), VALIDATE_ORDER_ID_ERROR_STR
         assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
         assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
         assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
 
+        self.order_id_maker = order_id_maker
+        self.order_id_taker = order_id_taker
         self.ticker = ticker
         self.int_price = int_price
         self.volume = volume
-        self.order_id_taker = order_id_taker
-        self.order_id_maker = order_id_maker
+
+    def __eq__(self, value: object) -> bool:
+        if not isinstance(value, Trade): return False
+        if self.order_id_maker != value.order_id_maker: return False
+        if self.order_id_taker != value.order_id_taker: return False
+        if self.ticker != value.ticker: return False
+        if self.int_price != value.int_price: return False
+        if self.volume != value.volume: return False
+        return True
+
+    def __str__(self) -> str:
+        return (
+            f'Trade('
+            f'order_id_maker={self.order_id_maker}, '
+            f'order_id_taker={self.order_id_taker}, '
+            f'{self.ticker}, '
+            f'price={self.int_price}, '
+            f'volume={self.volume}'
+            f')'
+        )
 
 
 class PriceLevel:
@@ -511,29 +983,21 @@ class PriceLevel:
 
         existing_order: Order = matching_orders[0]
         return existing_order
-    
+
     def _query_priority(self, order_id: int) -> int:
-        _lambda_order_id_match = PriceLevel._lambda_order_id_match
         #matching_order = next(order for order in self.price_level if _lambda_order_id_match(order, order_id))
+        #priority = self.price_level.index(matching_order)
+        _lambda_order_id_match = PriceLevel._lambda_order_id_match
         index = (
             next(
                 index for (index, order) in enumerate(self.price_level)
                     if _lambda_order_id_match(order, order_id))
         )
-        #priority = self.price_level.index(matching_order)
         return index
 
     def depth(self) -> int:
         return len(self.price_level)
 
-    # OLD API, move to another class
-    # def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int):
-    #     assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
-    #     assert validate_order_side(order_side), VALIDATE_INT_PRICE_ERROR_STR
-    #     assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
-    #     assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
-
-    # TODO: change this to a partial order and call partial_order.to_order to create the order before calling _append_order
     def order_insert(self, partial_order: PartialOrder):
         order_id = partial_order.order_id
 
@@ -544,10 +1008,6 @@ class PriceLevel:
         #order = Order(order_id, ticker, order_side, int_price, volume)
         order = partial_order.to_order()
         self._insert_order(order)
-
-    # OLD API, move to another class
-    # def order_update(self, order_id: int, volume: int):
-    #     assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
 
     def order_update(self, order_id: int, volume: int):
         assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
@@ -569,9 +1029,6 @@ class PriceLevel:
             # reduce order priority if order volume is increased
             self._remove_order_by_order_id(order_id)
             self._insert_order(existing_order)
-
-    # OLD API, move to another class
-    # def order_cancel(self, order_id: int):
 
     # TODO: update semantics of others (return partialorder)
     def order_cancel(self, order_id: int):
@@ -614,7 +1071,10 @@ def run_all_price_level_tests():
         except RuntimeError as e:
             assert str(e) == f'cannot insert order with existing order_id {partial_order_2.order_id}'
 
-        price_level.order_cancel(order_id=2)
+        remaining_partial_order_2 = price_level.order_cancel(order_id=2)
+        assert remaining_partial_order_2 == partial_order_2, (
+            f'remaining PartialOrder {remaining_partial_order_2} does not match original PartialOrder {partial_order_2}'
+        )
 
         order_id = 2
         try:
@@ -622,12 +1082,19 @@ def run_all_price_level_tests():
         except RuntimeError as e:
             assert str(e) == f'cannot cancel order with missing order_id {order_id}'
 
-        price_level.order_cancel(order_id=1)
+        remaining_partial_order_1 = price_level.order_cancel(order_id=1)
+        assert remaining_partial_order_1 == partial_order_1, (
+            f'remaining PartialOrder {remaining_partial_order_1} does not match original PartialOrder {partial_order_1}'
+        )
 
         price_level.order_update(order_id=3, volume=50)
         assert price_level._get_order_by_order_id(order_id=3).volume == 50, f'unexpected order volume'
 
-        price_level.order_cancel(order_id=3)
+        remaining_partial_order_3 = price_level.order_cancel(order_id=3)
+        assert remaining_partial_order_3 == partial_order_3.with_volume(50), (
+            f'remaining PartialOrder {remaining_partial_order_3} does not match original PartialOrder {partial_order_3}'
+        )
+
         depth = price_level.depth()
         assert depth == 0, f'depth is not 0, depth = {depth}'
 
@@ -739,7 +1206,7 @@ class LimitOrderBookPriceLevel:
 
         existing_order: Order = matching_orders[0]
         return existing_order
-    
+
     def _query_priority(self, order_id: int) -> int:
         int_price = self._find_order_price_level_by_order_id(order_id)
         price_level = self.price_levels[int_price]
@@ -1201,7 +1668,7 @@ class DoubleLimitOrderBook:
             return 'BUY'
         elif not order_exists_in_buy_side and order_exists_in_sell_side:
             return 'SELL'
-        
+
     def _find_limit_order_book_buy_order_side(self, order_side: str) -> LimitOrderBook:
         # if order_side == 'BUY':
         #     return True
@@ -1211,7 +1678,7 @@ class DoubleLimitOrderBook:
         #     return False
 
         limit_order_book = None
-        
+
         if order_side == 'BUY':
             limit_order_book = self.double_limit_order_book['BUY']
         elif order_side == 'SELL':
@@ -1219,7 +1686,7 @@ class DoubleLimitOrderBook:
 
         if limit_order_book is None:
             raise RuntimeError(f'invalid order_side {order_side}')
-        
+
         return limit_order_book
 
     def depth(self, order_side: str) -> int:
@@ -1264,12 +1731,12 @@ class DoubleLimitOrderBook:
         # TODO: _find_limit_order_book_by_order_id
         limit_order_book = self._find_limit_order_book_buy_order_side(order_side)
         limit_order_book.order_update(order_id, int_price, volume)
-        
+
         # if order_side == 'BUY':
         #     limit_order_book_buy = self.double_limit_order_book['BUY']
         #     limit_order_book_buy.order_update(order_id, int_price, volume)
         # elif order_side == 'SELL':
-        #     limit_order_book_sell = self.double_limit_order_book['SELL']    
+        #     limit_order_book_sell = self.double_limit_order_book['SELL']
         #     limit_order_book_sell.order_update(order_id, int_price, volume)
         # else:
         #     raise RuntimeError(f'cannot update order which exists in both buy and sell side book with order_id {order_id}')
@@ -1285,11 +1752,11 @@ class DoubleLimitOrderBook:
         #     limit_order_book_buy = self.double_limit_order_book['BUY']
         #     limit_order_book_buy.order_cancel(order_id)
         # elif order_side == 'SELL':
-        #     limit_order_book_sell = self.double_limit_order_book['SELL']    
+        #     limit_order_book_sell = self.double_limit_order_book['SELL']
         #     limit_order_book_sell.order_cancel(order_id)
         # else:
         #     raise RuntimeError(f'cannot cancel order which exists in both buy and sell side book with order_id {order_id}')
-            
+
 
 
 def run_all_double_limit_order_book_tests():
@@ -1302,7 +1769,7 @@ def run_all_double_limit_order_book_tests():
 
         lob.order_insert(order_id=1, ticker='PYTH', order_side='BUY', int_price=1000, volume=10)
         # TODO: implement this
-        #priority = lob.priority(order_id=1) 
+        #priority = lob.priority(order_id=1)
         #assert priority == 0, f'unexpected priority {priority} for order {1}, expected {0}'
         check_depth_aggregated(lob, 1)
 
