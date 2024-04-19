@@ -39,8 +39,13 @@ class LimitOrderBookPriceLevel:
             )
         )
 
-    # Note: will actually remove all orders with order_id
     def _remove_orders_by_order_id(self, order_id: int) -> list[Order]:
+        '''
+        Remove all orders with matching order_id
+
+        Return:
+            - list of removed orders
+        '''
         return (
             list(
                 reduce(
@@ -55,6 +60,12 @@ class LimitOrderBookPriceLevel:
         )
 
     def _find_order_price_level_by_order_id(self, order_id: int) -> int:
+        '''
+        Find price level containing an order with matching order_id
+
+        Return:
+            - price level (int)
+        '''
 
         def select_int_price_level(key_value: tuple[int, PriceLevel]) -> int:
             return key_value[0]
@@ -84,24 +95,21 @@ class LimitOrderBookPriceLevel:
         return int_price_level
 
     def _get_order_by_order_id(self, order_id: int) -> Order:
-        def filter_empty_list(list: list) -> bool:
-            return len(list) > 0
+        '''
+        Get Order by order id. Assumes that order id exists in this data structure
 
-        def extract_single_element_from_list(list: list):
-            assert len(list) == 1, f'extract_single_element_from_list failed'
-            return list[0]
-
+        Return:
+            - Order with order id = `order_id`
+        '''
         matching_orders = (
             list(
-                map(
-                    extract_single_element_from_list,
-                    filter(
-                        filter_empty_list,
-                        map(
-                            lambda price_level: price_level._filter_orders_by_order_id(order_id),
-                            self.price_levels.values(),
-                        ),
+                reduce(
+                    list.__add__,
+                    map(
+                        lambda price_level: price_level._filter_orders_by_order_id(order_id),
+                        self.price_levels.values(),
                     ),
+                    [],
                 )
             )
         )
