@@ -4,6 +4,31 @@ from functools import reduce
 from limit_order_book.limit_order_book import Order
 
 
+def consume(iterable):
+    for _ in iterable:
+        pass
+
+
+# a count functional like `filter`, `map`, `reduce`
+def count(iterable) -> int:
+    return sum(1 for _ in iterable)
+
+
+def count_matching_orders_by_order_id_from_list_of_orders(
+    list_of_orders: list[Order],
+    order_id: int,
+) -> int:
+    lambda_order_id_match = lambda order, order_id: order.order_id == order_id
+    return (
+        count(
+            filter(
+                lambda order: lambda_order_id_match(order, order_id),
+                list_of_orders,
+            )
+        )
+    )
+
+
 def filter_matching_orders_by_order_id_from_list_of_orders(
     list_of_orders: list[Order],
     order_id: int,
@@ -17,6 +42,7 @@ def filter_matching_orders_by_order_id_from_list_of_orders(
             )
         )
     )
+
 
 def filter_non_matching_orders_by_order_id_from_list_of_orders(
     list_of_orders: list[Order],
@@ -32,6 +58,7 @@ def filter_non_matching_orders_by_order_id_from_list_of_orders(
         )
     )
 
+
 def remove_order_by_order_id_from_list_of_orders(
     list_of_orders: list[Order],
     order_id: int,
@@ -40,6 +67,7 @@ def remove_order_by_order_id_from_list_of_orders(
     removed_orders = filter_matching_orders_by_order_id_from_list_of_orders(list_of_orders, order_id)
     list_of_orders = filter_non_matching_orders_by_order_id_from_list_of_orders(list_of_orders, order_id)
     return removed_orders
+
 
 def remove_order_by_order_id_from_list_of_orders_2(
     list_of_orders: list[Order],
@@ -66,3 +94,4 @@ def remove_order_by_order_id_from_list_of_orders_2(
         )
     )
     return removed_orders
+
