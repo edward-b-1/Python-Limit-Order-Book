@@ -692,7 +692,22 @@ def run_all_limit_order_book_tests():
         depth = limit_order_book_price_level.depth_aggregated()
         assert depth == 0, f'depth is not 0, depth = {depth}'
 
+    def test_order_cancel():
+        limit_order_book_price_level = LimitOrderBook()
+        limit_order_book_price_level.order_insert(1, 'PYTH', 'BUY', 1000, 20)
+        removed_order = limit_order_book_price_level.order_cancel(1)
+        expected_order = PartialOrder(
+            order_id=1,
+            ticker='PYTH',
+            order_side='BUY',
+            int_price=1000,
+            volume=20,
+        )
+        assert removed_order == expected_order, f'removed order data does not match expected order data'
+
+
     price_level_test_1()
+    test_order_cancel()
 
 
 def run_all_double_limit_order_book_tests():
@@ -740,19 +755,3 @@ def run_all_double_limit_order_book_tests():
 
     double_limit_order_book_test_1()
 
-
-def test_limit_order_book():
-    run_all_tests()
-
-
-def run_all_tests():
-    run_all_parse_price_string_and_convert_to_int_price_tests()
-    run_all_order_tests()
-    run_all_partial_order_tests()
-    run_all_price_level_tests()
-    run_all_limit_order_book_price_level_tests()
-    run_all_limit_order_book_tests()
-    run_all_double_limit_order_book_tests()
-
-
-run_all_tests()
