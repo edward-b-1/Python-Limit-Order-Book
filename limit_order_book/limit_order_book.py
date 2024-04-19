@@ -172,13 +172,6 @@ class LimitOrderBook:
         return ticker
 
     def _get_order_by_order_id(self, order_id: int) -> Order:
-        def filter_empty_list(list: list) -> bool:
-            return len(list) > 0
-
-        def extract_single_element_from_list(list: list):
-            assert len(list) == 1, f'extract_single_element_from_list failed'
-            return list[0]
-
         matching_orders = (
             list(
                 reduce(
