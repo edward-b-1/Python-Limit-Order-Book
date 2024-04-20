@@ -62,6 +62,20 @@ def filter_non_matching_orders_by_order_id_from_list_of_orders(
     )
 
 
+def filter_orders_with_zero_volume_from_list_of_orders(
+    list_of_orders: list[Order],
+) -> list[Order]:
+    lambda_order_volume_positive = lambda order: order.volume > 0
+    return (
+        list(
+            filter(
+                lambda order: lambda_order_volume_positive(order),
+                list_of_orders,
+            )
+        )
+    )
+
+
 def remove_order_by_order_id_from_list_of_orders(
     list_of_orders: list[Order],
     order_id: int,
