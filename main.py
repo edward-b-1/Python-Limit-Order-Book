@@ -1,10 +1,10 @@
 
 import os
 
-import limit_order_book
-from limit_order_book.limit_order_book import parse_price_string_and_convert_to_int_price
+from limit_order_book.trade import Trade
 from limit_order_book.double_limit_order_book import DoubleLimitOrderBook
 
+from util_io.util_parse import parse_price_string_and_convert_to_int_price
 
 #  INSERT,<order_id>,<symbol>,<side>,<price>,<volume>
 #  e.g. INSERT,4,FFLY,BUY,23.45,12
@@ -16,10 +16,15 @@ from limit_order_book.double_limit_order_book import DoubleLimitOrderBook
 #  e.g. CANCEL,4
 
 
+def encode_trades(trades: list[Trade]):
+    pass
+
+
 def runMatchingEngine(operations: list[str]) -> list[str]:
     # TODO ast parser
 
     lob = DoubleLimitOrderBook()
+    trades = []
 
     for operation in operations:
         split_operation = operation.split(',')
@@ -39,7 +44,9 @@ def runMatchingEngine(operations: list[str]) -> list[str]:
             volume = int(volume)
 
             # TODO: keep this API the same, PartialOrder should be an internal implementation detail
-            lob.order_insert(order_id, ticker, order_side, int_price, volume)
+            trades.append(
+                lob.order_insert(order_id, ticker, order_side, int_price, volume)
+            )
         elif operation_opcode == 'UPDATE':
             assert len(split_operation) == 4, 'invalid UPDATE syntax'
             price_str = split_operation[2]
@@ -56,7 +63,7 @@ def runMatchingEngine(operations: list[str]) -> list[str]:
         else:
             raise ValueError(f'invalid opcode: {operation_opcode}')
 
-    return []
+    return encode_trades(trades)
 
 
 if __name__ == '__main__':
