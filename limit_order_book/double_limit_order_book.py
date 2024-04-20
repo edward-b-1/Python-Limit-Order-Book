@@ -24,12 +24,29 @@ class DoubleLimitOrderBook:
 
         tickers = sorted(tickers)
 
-        order_book_str = ''
+        def format_order_book_ticker_str(ticker: str, include_buy_side: bool, include_sell_side: bool) -> str:
+            order_book_str = f'==={ticker}==='
+            if include_sell_side:
+                order_book_sell_side_str = self.double_limit_order_book['SELL'].to_str(ticker)
+                order_book_str += f'\n{order_book_sell_side_str}'
+            if include_buy_side:
+                order_book_buy_side_str = self.double_limit_order_book['BUY'].to_str(ticker)
+                order_book_str += f'\n{order_book_buy_side_str}'
+            #order_book_str += f'\n{order_book_sell_side_str}\n{order_book_buy_side_str}'
+            return order_book_str
+
+        order_book_strs = []
         for ticker in tickers:
-            order_book_str += f'==={ticker}==='
-            order_book_sell_side_str = self.double_limit_order_book['SELL'].to_str(ticker)
-            order_book_buy_side_str = self.double_limit_order_book['BUY'].to_str(ticker)
-            order_book_str += f'\n{order_book_sell_side_str}\n{order_book_buy_side_str}'
+            total_volume_sell_side = self.double_limit_order_book['SELL'].volume(ticker)
+            total_volume_buy_side = self.double_limit_order_book['BUY'].volume(ticker)
+            if total_volume_sell_side == 0 and total_volume_buy_side == 0:
+                continue
+            print(f'ticker={ticker}, volume: {total_volume_buy_side}, {total_volume_sell_side}')
+            order_book_strs.append(
+                format_order_book_ticker_str(ticker, total_volume_buy_side > 0, total_volume_sell_side > 0)
+            )
+        order_book_str = '\n'.join(order_book_strs)
+        return order_book_str
 
     def _find_order_side_by_order_id(self, order_id: int) -> str:
         limit_order_book_buy = self.double_limit_order_book['BUY']
@@ -117,6 +134,9 @@ class DoubleLimitOrderBook:
 
         # TODO: bug: trading does not reduce volume
         trade_list = limit_order_book_opposite.order_insert(order)
+        if order.volume == 0:
+            print(f'RETURN EARLY BECAUSE THE VOLUME IS ZERO <<<<<<<<<<<<<<<<')
+            return trade_list
 
         # if order_side == 'BUY':
         #     # search price levels from the lowest sell to int_price (asc)
