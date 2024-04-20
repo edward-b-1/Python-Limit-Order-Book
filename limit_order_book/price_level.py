@@ -32,8 +32,7 @@ class PriceLevel:
     def _remove_orders_with_zero_volume(self) -> None:
         self._price_level = self._filter_orders_with_zero_volume()
 
-    def _order_insert(self, order: Order) -> list[Trade]|None:
-        # TODO: self.order_side -> implement it in all functions
+    def _order_insert(self, order: Order) -> list[Trade]:
         if order.order_side != self._order_side:
             taker_order = order
             trade_list = []
@@ -48,7 +47,7 @@ class PriceLevel:
             return trade_list
         else:
             self._price_level.append(order)
-            return None
+            return []
 
     def _filter_orders_with_zero_volume(self) -> None:
         return filter_orders_with_zero_volume_from_list_of_orders(
@@ -119,7 +118,7 @@ class PriceLevel:
     def depth(self) -> int:
         return len(self._price_level)
 
-    def order_insert(self, order: Order) -> list[Trade]|None:
+    def order_insert(self, order: Order) -> list[Trade]:
         order_id = order.order_id
 
         # check the order id doesn't exist
@@ -149,7 +148,8 @@ class PriceLevel:
         else:
             # reduce order priority if order volume is increased
             self._remove_orders_by_order_id(order_id)
-            assert self._order_insert(existing_order) is None, f'unexpected order match'
+            trade_list = self._order_insert(existing_order)
+            assert len(trade_list), f'unexpected order match'
 
     # TODO: update semantics of others (return partialorder)
     def order_cancel(self, order_id: int) -> Order:

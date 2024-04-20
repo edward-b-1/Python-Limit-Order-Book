@@ -76,7 +76,7 @@ class DoubleLimitOrderBook:
             )
         )
 
-    def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int) -> list[Trade]|None:
+    def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int) -> list[Trade]:
         print(f'DoubleLimitOrderBook.order_insert: order_id={order_id}, ticker={ticker}, order_side={order_side}, int_price={int_price}, volume={volume}')
 
         # check the order id doesn't exist
@@ -125,14 +125,15 @@ class DoubleLimitOrderBook:
 
         # TODO: create Order here and set order side?
         no_trades = limit_order_book.order_insert(order)
-        assert no_trades is None, f'unexpected trade generated'
+        assert len(no_trades) == 0, f'unexpected trade generated'
 
         print(f'DoubleLimitOrderBook returning trades {trade_list}')
         return trade_list
 
-    def order_update(self, order_id: int, int_price: int, volume: int) -> list[Trade]|None:
+    def order_update(self, order_id: int, int_price: int, volume: int) -> list[Trade]:
         print(f'DoubleLimitOrderBook.order_update: order_id={order_id}, int_price={int_price}, volume={volume}')
         order_side = self._find_order_side_by_order_id(order_id)
+        print(f'found order_side={order_side}')
 
         # TODO: _find_limit_order_book_by_order_id
         limit_order_book = self._find_limit_order_book_buy_order_side(order_side)
@@ -148,8 +149,9 @@ class DoubleLimitOrderBook:
             trade_list = limit_order_book_opposite.order_insert(order)
             if order.volume > 0:
                 no_trade = limit_order_book.order_insert(order)
-                assert no_trade is None, f'unexpected trade'
+                assert len(no_trade) == 0, f'unexpected trade'
             return trade_list
+        return []
 
         # if order_side == 'BUY':
         #     limit_order_book_buy = self.double_limit_order_book['BUY']

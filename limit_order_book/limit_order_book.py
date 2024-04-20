@@ -123,7 +123,7 @@ class LimitOrderBook:
         if not ticker in self.limit_order_book:
             self.limit_order_book[ticker] = LimitOrderBookPriceLevel(self._order_side)
 
-    def _order_insert(self, order: Order) -> list[Trade]|None:
+    def _order_insert(self, order: Order) -> list[Trade]:
         ticker = order.to_ticker()
         return self.limit_order_book[ticker].order_insert(order)
 
@@ -226,7 +226,7 @@ class LimitOrderBook:
 
     # def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int):
     #def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int) -> list[Trade]|None:
-    def order_insert(self, order: Order) -> list[Trade]|None:
+    def order_insert(self, order: Order) -> list[Trade]:
         # TODO: what is the point of Order? can't we just combine with an order
         # TODO: elsewhere we are accessing members of partial_order directly which can
         # return None rather than calling `to_XXX`
@@ -299,6 +299,7 @@ class LimitOrderBook:
             raise RuntimeError(f'cannot update order with duplicate order_id {order_id}')
 
         ticker = self._find_order_ticker_by_order_id(order_id)
+        print(f'found ticker {ticker}')
         order = self.limit_order_book[ticker].order_update(order_id, int_price, volume)
         return order
 
