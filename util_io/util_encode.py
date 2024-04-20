@@ -29,6 +29,7 @@ def encode_trades(trades: list[Trade]) -> list[str]:
 
     trade_report = []
     for trade in trades:
+        print(f'next trade: {trade}')
         trade_report.append(
             _encode_trade(trade)
         )
