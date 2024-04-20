@@ -1,7 +1,5 @@
 
 
-from collections import deque
-
 from limit_order_book.util_functools import count_matching_orders_by_order_id_from_list_of_orders
 from limit_order_book.util_functools import filter_matching_orders_by_order_id_from_list_of_orders
 from limit_order_book.util_functools import filter_non_matching_orders_by_order_id_from_list_of_orders
@@ -11,14 +9,35 @@ from limit_order_book.validate import *
 from limit_order_book.order import Order
 from limit_order_book.trade import Trade
 
+from util_io.util_encode import convert_int_price_to_price_string
+
 
 class PriceLevel:
 
-    def __init__(self, order_side: str):
+    def __init__(self, order_side: str, int_price: int):
         assert validate_order_side(order_side), VALIDATE_ORDER_ID_ERROR_STR
-        self._order_side = order_side
+        self._order_side = order_side # TODO: validate orders inserted have correct values for order_side and int_price
+        self._int_price = int_price
         # PRICE_LEVEL: list of Order by priority
         self._price_level: list[Order] = []
+
+    def __str__(self) -> str:
+        def format_price_level_str(order_side: str, int_price: int, total_volume: int):
+            price = convert_int_price_to_price_string(int_price)
+            return f'{order_side},{price},{total_volume}'
+
+        total_volume = (
+            sum(
+                map(
+                    lambda order: order.volume,
+                    self._price_level,
+                )
+            )
+        )
+
+        int_price = self._int_price
+
+        return format_price_level_str(self._order_side, int_price, total_volume)
 
     def _lambda_order_id_match(order: Order, order_id: int) -> bool:
         return order.order_id == order_id
