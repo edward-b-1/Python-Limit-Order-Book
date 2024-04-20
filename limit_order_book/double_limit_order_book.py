@@ -13,6 +13,24 @@ class DoubleLimitOrderBook:
             'SELL': LimitOrderBook(order_side='SELL'),
         }
 
+    def __str__(self) -> str:
+        buy_side_tickers = self.double_limit_order_book['BUY'].tickers()
+        sell_side_tickers = self.double_limit_order_book['SELL'].tickers()
+
+        tickers = buy_side_tickers
+        for ticker in sell_side_tickers:
+            if not ticker in tickers:
+                tickers.append(ticker)
+
+        tickers = sorted(tickers)
+
+        order_book_str = ''
+        for ticker in tickers:
+            order_book_str += f'==={ticker}==='
+            order_book_sell_side_str = self.double_limit_order_book['SELL'].to_str(ticker)
+            order_book_buy_side_str = self.double_limit_order_book['BUY'].to_str(ticker)
+            order_book_str += f'\n{order_book_sell_side_str}\n{order_book_buy_side_str}'
+
     def _find_order_side_by_order_id(self, order_id: int) -> str:
         limit_order_book_buy = self.double_limit_order_book['BUY']
         limit_order_book_sell = self.double_limit_order_book['SELL']
