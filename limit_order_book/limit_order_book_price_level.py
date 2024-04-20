@@ -3,7 +3,6 @@ from functools import reduce
 
 from limit_order_book.validate import *
 from limit_order_book.order import Order
-from limit_order_book.partial_order import PartialOrder
 from limit_order_book.trade import Trade
 
 from limit_order_book.price_level import PriceLevel
@@ -254,11 +253,11 @@ class LimitOrderBookPriceLevel:
     #     assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
     #     assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
 
-    def order_insert(self, partial_order: PartialOrder) -> list[Trade]|None:
-        int_price = partial_order.to_int_price()
+    def order_insert(self, order: Order) -> list[Trade]|None:
+        int_price = order.to_int_price()
         self._initialize_price_level(int_price)
 
-        order_id = partial_order.order_id
+        order_id = order.order_id
 
         # check the order id doesn't exist
         # TODO: check this logic exists in LimitOrderBook and DoubleLimitOrderBook
@@ -267,12 +266,11 @@ class LimitOrderBookPriceLevel:
 
         # TODO: why was this here? does nothing
         #partial_order = partial_order.with_int_price(int_price)
-        order = partial_order.to_order()
         trades = self._order_insert(order)
         print(f'LimitOrderBookPriceLevel order_insert returning trades {trades}')
         return trades
 
-    def order_update(self, order_id: int, int_price: int, volume: int):
+    def order_update(self, order_id: int, int_price: int, volume: int) -> Order|None:
         assert validate_int_price(int_price) > 0, VALIDATE_INT_PRICE_ERROR_STR
         assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
 
@@ -284,6 +282,7 @@ class LimitOrderBookPriceLevel:
         elif self.order_id_count(order_id) > 1:
             raise RuntimeError(f'cannot update order with duplicate order_id {order_id}')
 
+        # TODO write a test for both of these cases
         existing_order_int_price = self._find_order_price_level_by_order_id(order_id)
         if existing_order_int_price == int_price:
             self._price_levels[existing_order_int_price].order_update(order_id, volume)
@@ -294,16 +293,21 @@ class LimitOrderBookPriceLevel:
             # TODO: add order_cancel_pop to return order or make order_cancel return the order
             # should it return a partial order with the int_price removed? (probably no?)
             order = self._price_levels[existing_order_int_price].order_cancel(order_id)
-            partial_order = order.to_partial_order()
-            partial_order.set_int_price(int_price)
-            order = partial_order.to_order()
-            assert self._price_levels[int_price].order_insert(order) is None, f'unexpected order match'
-                # TODO: there is a bug here, this should potentially match if the price is moved correctly
-                # TODO: which means order_update needs to return list[Trade]|None
-                # not quite: need to re-check other side of book
-            # TODO write a test for both of these cases
+            order.set_int_price(int_price)
+            if (
+                (order.order_side == 'BUY' and order.int_price < existing_order_int_price) or
+                (order.order_side == 'SELL' and order.int_price > existing_order_int_price)
+            ):
+                assert self._price_levels[int_price].order_insert(order) is None, f'unexpected order match'
+                    # TODO: there is a bug here, this should potentially match if the price is moved correctly
+                    # TODO: which means order_update needs to return list[Trade]|None
+                    # not quite: need to re-check other side of book
+            else:
+                return order
+                # TODO write a test for both of these cases
+                # TODO write a test for (there are now 3) of these cases
 
-    def order_cancel(self, order_id: int) -> PartialOrder:
+    def order_cancel(self, order_id: int) -> Order:
         # check the order id exists, and only once
         if self.order_id_count(order_id) == 0:
             raise RuntimeError(f'cannot cancel order with missing order_id {order_id}')
@@ -314,4 +318,4 @@ class LimitOrderBookPriceLevel:
         removed_orders = self._remove_orders_by_order_id(order_id)
         assert len(removed_orders) == 1, f'unexpected number of orders removed in order_cancel'
         order: Order = removed_orders[0]
-        return order.to_partial_order()
+        return order

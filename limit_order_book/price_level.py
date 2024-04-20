@@ -2,8 +2,6 @@
 
 from collections import deque
 
-from limit_order_book.util_functools import consume
-from limit_order_book.util_functools import count
 from limit_order_book.util_functools import count_matching_orders_by_order_id_from_list_of_orders
 from limit_order_book.util_functools import filter_matching_orders_by_order_id_from_list_of_orders
 from limit_order_book.util_functools import filter_non_matching_orders_by_order_id_from_list_of_orders
@@ -11,7 +9,6 @@ from limit_order_book.util_functools import filter_orders_with_zero_volume_from_
 
 from limit_order_book.validate import *
 from limit_order_book.order import Order
-from limit_order_book.partial_order import PartialOrder
 from limit_order_book.trade import Trade
 
 

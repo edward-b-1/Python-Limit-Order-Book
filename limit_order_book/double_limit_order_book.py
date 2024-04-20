@@ -1,5 +1,6 @@
 
 from limit_order_book.limit_order_book import LimitOrderBook
+from limit_order_book.order import Order
 from limit_order_book.trade import Trade
 
 
@@ -82,13 +83,22 @@ class DoubleLimitOrderBook:
         if self.order_id_exists(order_id):
             raise RuntimeError(f'cannot insert order with existing order_id {order_id}')
 
+        order = Order(
+            order_id=order_id,
+            ticker=ticker,
+            order_side=order_side,
+            int_price=int_price,
+            volume=volume,
+        )
+
         # on new order arrival, test if there are any matches in the opposite side book
         order_side_opposite = DoubleLimitOrderBook._order_side_opposite(order_side)
         limit_order_book_opposite = self._find_limit_order_book_buy_order_side(order_side_opposite)
         # there are multiple price levels in limit_order_book_opposite
         # search ??? TODO
 
-        trades = limit_order_book_opposite.order_insert(order_id, ticker, order_side, int_price, volume)
+        # TODO: bug: trading does not reduce volume
+        trade_list = limit_order_book_opposite.order_insert(order)
 
         # if order_side == 'BUY':
         #     # search price levels from the lowest sell to int_price (asc)
@@ -113,20 +123,14 @@ class DoubleLimitOrderBook:
         # TODO: _find_limit_order_book_by_order_id
         limit_order_book = self._find_limit_order_book_buy_order_side(order_side)   # TODO: use this kind of semantics in other structures
 
-        # TODO: create PartialOrder here and set order side?
-        no_trades = limit_order_book.order_insert(
-            order_id=order_id,
-            ticker=ticker,
-            order_side=order_side,
-            int_price=int_price,
-            volume=volume,
-        )
+        # TODO: create Order here and set order side?
+        no_trades = limit_order_book.order_insert(order)
         assert no_trades is None, f'unexpected trade generated'
 
-        print(f'DoubleLimitOrderBook returning trades {trades}')
-        return trades
+        print(f'DoubleLimitOrderBook returning trades {trade_list}')
+        return trade_list
 
-    def order_update(self, order_id: int, int_price: int, volume: int):
+    def order_update(self, order_id: int, int_price: int, volume: int) -> list[Trade]|None:
         print(f'DoubleLimitOrderBook.order_update: order_id={order_id}, int_price={int_price}, volume={volume}')
         order_side = self._find_order_side_by_order_id(order_id)
 
@@ -136,7 +140,16 @@ class DoubleLimitOrderBook:
         # TODO: bug here - need to check to see if price is being changed
         # if the price is changed, cancel the order from here and then
         # insert from here to trigger matching algorithm
-        limit_order_book.order_update(order_id, int_price, volume)
+        order = limit_order_book.order_update(order_id, int_price, volume)
+
+        if order is not None:
+            order_side_opposite = DoubleLimitOrderBook._order_side_opposite(order_side)
+            limit_order_book_opposite = self._find_limit_order_book_buy_order_side(order_side_opposite)
+            trade_list = limit_order_book_opposite.order_insert(order)
+            if order.volume > 0:
+                no_trade = limit_order_book.order_insert(order)
+                assert no_trade is None, f'unexpected trade'
+            return trade_list
 
         # if order_side == 'BUY':
         #     limit_order_book_buy = self.double_limit_order_book['BUY']

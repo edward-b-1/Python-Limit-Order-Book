@@ -9,7 +9,6 @@ from functools import reduce
 
 from limit_order_book.validate import *
 from limit_order_book.order import Order
-from limit_order_book.partial_order import PartialOrder
 from limit_order_book.trade import Trade
 
 from limit_order_book.limit_order_book_price_level import LimitOrderBookPriceLevel
@@ -124,9 +123,9 @@ class LimitOrderBook:
         if not ticker in self.limit_order_book:
             self.limit_order_book[ticker] = LimitOrderBookPriceLevel(self._order_side)
 
-    def _order_insert(self, partial_order: PartialOrder) -> list[Trade]|None:
-        ticker = partial_order.to_ticker()
-        return self.limit_order_book[ticker].order_insert(partial_order)
+    def _order_insert(self, order: Order) -> list[Trade]|None:
+        ticker = order.to_ticker()
+        return self.limit_order_book[ticker].order_insert(order)
 
     # Note: will actually remove all orders with order_id
     def _remove_orders_by_order_id(self, order_id: int) -> list[Order]:
@@ -226,7 +225,13 @@ class LimitOrderBook:
         )
 
     # def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int):
-    def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int) -> list[Trade]|None:
+    #def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int) -> list[Trade]|None:
+    def order_insert(self, order: Order) -> list[Trade]|None:
+        # TODO: what is the point of Order? can't we just combine with an order
+        # TODO: elsewhere we are accessing members of partial_order directly which can
+        # return None rather than calling `to_XXX`
+        order_id = order.to_order_id()
+        ticker = order.to_ticker()
         self._initialize_ticker(ticker)
 
         # check the order id doesn't exist
@@ -236,20 +241,13 @@ class LimitOrderBook:
         # if order_side != self.order_side:
         #     # TODO
 
-        trades = self._order_insert(
-            PartialOrder()
-            .with_order_id(order_id)
-            .with_ticker(ticker)
-            .with_order_side(order_side)
-            .with_int_price(int_price)
-            .with_volume(volume)
-        )
-        return trades
+        trade_list = self._order_insert(order)
+        return trade_list
     # def order_insert(self, order_id: int, ticker: str, int_price: int, volume: int):
     #     # assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
     #     # assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
     #     # assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
-    #     # ^ removed, done by PartialOrder
+    #     # ^ removed, done by Order
 
     #     self._initialize_ticker(ticker)
 
@@ -260,7 +258,7 @@ class LimitOrderBook:
     #     # TODO: might make more sense to just construct this in a single place (here) and then
     #     # extract values from it rather than passing all the values down the call stack
     #     # or just duplicate them
-    #     partial_order = PartialOrder().with_order_id(order_id).with_ticker(ticker).with_volume(volume)
+    #     partial_order = Order().with_order_id(order_id).with_ticker(ticker).with_volume(volume)
     #     self._insert_order(partial_order)
 
         # TODO:
@@ -287,10 +285,10 @@ class LimitOrderBook:
 
         # insert the order into the lob
 
-    def order_update(self, order_id: int, int_price: int, volume: int):
+    def order_update(self, order_id: int, int_price: int, volume: int) -> Order|None:
         # assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
         # assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
-        # ^ removed, done by PartialOrder
+        # ^ removed, done by Order
 
         # TODO: implement the below, copied from above
 
@@ -301,7 +299,8 @@ class LimitOrderBook:
             raise RuntimeError(f'cannot update order with duplicate order_id {order_id}')
 
         ticker = self._find_order_ticker_by_order_id(order_id)
-        self.limit_order_book[ticker].order_update(order_id, int_price, volume)
+        order = self.limit_order_book[ticker].order_update(order_id, int_price, volume)
+        return order
 
     def order_cancel(self, order_id: int):
         # check the order id exists, and only once
@@ -314,7 +313,7 @@ class LimitOrderBook:
         removed_orders = self._remove_orders_by_order_id(order_id)
         assert len(removed_orders) == 1, f'unexpected number of orders removed in order_cancel'
         order: Order = removed_orders[0]
-        return order.to_partial_order()
+        return order
 
 
 
