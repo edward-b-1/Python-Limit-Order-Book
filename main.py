@@ -61,7 +61,14 @@ def runMatchingEngine(operations: list[str]) -> list[str]:
 
     print(trades)
     order_book_str = str(lob)
-    return f'{encode_trades(trades)}\n{order_book_str}'
+    s = None
+    if len(trades) > 0:
+        encoded_trades = '\n'.join(encode_trades(trades))
+        s = f'{encoded_trades}\n{order_book_str}'
+    else:
+        s = f'{order_book_str}'
+    parts = s.split('\n')
+    return parts
 
 
 if __name__ == '__main__':
