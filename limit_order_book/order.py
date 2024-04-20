@@ -1,20 +1,31 @@
 
 from limit_order_book.validate import *
-# from limit_order_book.partial_order import PartialOrder
 from limit_order_book.trade import Trade
 
 
-class PartialOrder:
+class Order:
 
-    def __init__(self):
-        self.order_id = None
-        self.ticker = None
-        self.order_side = None
-        self.int_price = None
-        self.volume = None
+    def __init__(
+        self,
+        order_id: int,
+        ticker: str,
+        order_side: str,
+        int_price: int,
+        volume: int,
+    ) -> None:
+        assert validate_order_id(order_id), VALIDATE_ORDER_ID_ERROR_STR
+        assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
+        assert validate_order_side(order_side), VALIDATE_ORDER_SIDE_ERROR_STR
+        assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
+        assert validate_volume(volume), VALIDATE_VOLUME_ERROR_STR
+        self.order_id = order_id
+        self.ticker = ticker
+        self.order_side = order_side
+        self.int_price = int_price
+        self.volume = volume
 
     def __eq__(self, value: object) -> bool:
-        if not isinstance(value, PartialOrder): return False
+        if not isinstance(value, Order): return False
         if self.order_id != value.order_id: return False
         if self.ticker != value.ticker: return False
         if self.order_side != value.order_side: return False
@@ -24,7 +35,7 @@ class PartialOrder:
 
     def __str__(self) -> str:
         return (
-            f'PartialOrder('
+            f'Order('
             f'{self.order_id}, '
             f'{self.ticker}, '
             f'{self.order_side}, '
@@ -34,17 +45,19 @@ class PartialOrder:
         )
 
     def copy(self):
-        return (
-            PartialOrder()
-            .set_order_id(self.order_id)
-            .set_ticker(self.ticker)
-            .set_order_side(self.order_side)
-            .set_int_price(self.int_price)
-            .set_volume(self.volume)
+        return Order(
+            order_id=self.order_id,
+            ticker=self.ticker,
+            order_side=self.order_side,
+            int_price=self.int_price,
+            volume=self.volume,
         )
+
+    ############################################################################
 
     def set_order_id(self, order_id: int):
         if order_id is None: return self
+        assert validate_order_id(order_id), VALIDATE_ORDER_ID_ERROR_STR
         self.order_id = order_id
         return self
 
@@ -72,6 +85,8 @@ class PartialOrder:
         self.volume = volume
         return self
 
+    ############################################################################
+
     def with_order_id(self, order_id: int):
         return self.copy().set_order_id(order_id)
 
@@ -90,6 +105,8 @@ class PartialOrder:
     def with_volume(self, volume: int):
         assert validate_volume(volume), VALIDATE_VOLUME_ERROR_STR
         return self.copy().set_volume(volume)
+
+    ############################################################################
 
     def to_order_id(self) -> int:
         assert validate_order_id(self.order_id), VALIDATE_ORDER_ID_ERROR_STR
@@ -111,71 +128,7 @@ class PartialOrder:
         assert validate_volume(self.volume), VALIDATE_VOLUME_ERROR_STR
         return self.volume
 
-    def to_order(self):
-        if None in [self.order_id, self.ticker, self.order_side, self.int_price, self.volume]:
-            raise RuntimeError(f'PartialOrder has missing fields')
-
-        return Order(
-            order_id=self.order_id,
-            ticker=self.ticker,
-            order_side=self.order_side,
-            int_price=self.int_price,
-            volume=self.volume,
-        )
-
-
-class Order:
-
-    def __init__(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int):
-        assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
-        assert validate_order_side(order_side), VALIDATE_ORDER_SIDE_ERROR_STR
-        assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
-        assert validate_volume(volume), VALIDATE_VOLUME_ERROR_STR
-
-        self.order_id = order_id
-        self.ticker = ticker
-        self.order_side = order_side
-        self.int_price = int_price
-        self.volume = volume
-
-    def __eq__(self, value: object) -> bool:
-        if not isinstance(value, Order): return False
-        if self.order_id != value.order_id: return False
-        if self.ticker != value.ticker: return False
-        if self.order_side != value.order_side: return False
-        if self.int_price != value.int_price: return False
-        if self.volume != value.volume: return False
-        return True
-
-    def __str__(self) -> str:
-        return (
-            f'Order('
-            f'{self.order_id}, '
-            f'{self.ticker}, '
-            f'{self.order_side}, '
-            f'price={self.int_price}, '
-            f'volume={self.volume}'
-            f')'
-        )
-
-    def to_partial_order(self):
-        return (
-            PartialOrder()
-            .with_order_id(self.order_id)
-            .with_ticker(self.ticker)
-            .with_order_side(self.order_side)
-            .with_int_price(self.int_price)
-            .with_volume(self.volume)
-        )
-
-    def to_int_price(self) -> int:
-        return self.int_price
-
-    def to_order_side(self) -> str:
-        return self.order_side
-
-    def set_int_price(self, int_price: int) -> None:
-        assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
+    ############################################################################
 
     def match(self, taker_order) -> Trade|None:
         print(f'match: {self}, {taker_order}')
