@@ -24,14 +24,11 @@ class LimitOrderBookPriceLevel:
         if not int_price in self._price_levels:
             self._price_levels[int_price] = PriceLevel(self._order_side)
 
-    def _order_insert(self, partial_order: PartialOrder) -> list[Trade]|None:
-        order_side = partial_order.to_order_side()
-        int_price = partial_order.to_int_price()
+    def _order_insert(self, order: Order) -> list[Trade]|None:
+        order_side = order.to_order_side()
+        int_price = order.to_int_price()
 
-        #if order_side != self.order_side:
         if order_side == 'BUY' and self._order_side == 'SELL':
-            # price_level_min = min(self._price_levels.keys())
-            # price_level_max = max(self._price_levels.keys())
             price_levels = sorted(self._price_levels.keys())
 
             matching_price_levels = (
@@ -45,12 +42,21 @@ class LimitOrderBookPriceLevel:
 
             trades = []
             for price_level in matching_price_levels:
-                # if partial_order.volume > 0:
-                trades.append(
-                    self._price_levels[price_level].order_insert(partial_order)
-                )
-                # else:
-                #     break
+                print(f'checking for match at price level {price_level}')
+                for trade in self._price_levels[price_level].order_insert(order):
+                    print(f'next trade: {trade}')
+                    print(f'remaining order volume: {order.volume}')
+                    trades.append(trade)
+                # trades.append(
+                #     [
+                #         trade for trade in
+                #         filter(
+                #             lambda trade_list: len(trade_list) > 0,
+                #             self._price_levels[price_level].order_insert(partial_order),
+                #         )
+                #     ]
+                # )
+            print(f'LimitOrderBookPriceLevel _order_insert: returning trades {trades} order_side={order_side}')
             return trades
         elif order_side == 'SELL' and self._order_side == 'BUY':
             price_levels = (
@@ -74,12 +80,27 @@ class LimitOrderBookPriceLevel:
 
             trades = []
             for price_level in matching_price_levels:
-                trades.append(
-                    self._price_levels[price_level].order_insert(partial_order)
-                )
+                print(f'checking for match at price level {price_level}')
+                for trade in self._price_levels[price_level].order_insert(order):
+                    print(f'next trade: {trade}')
+                    print(f'remaining order volume: {order.volume}')
+                    trades.append(trade)
+                # trades.append(
+                #     trade for trade in
+                #     [
+                #         filter(
+                #             lambda trade_list: len(trade_list) > 0,
+                #             self._price_levels[price_level].order_insert(partial_order),
+                #         )
+                #     ]
+                # )
+            print(f'LimitOrderBookPriceLevel _order_insert: returning trades {trades} order_side={order_side}')
             return trades
         else:
-            return self._price_levels[int_price].order_insert(partial_order)
+            trades = self._price_levels[int_price].order_insert(order)
+            assert trades is None, 'unexpected trade generated'
+            print(f'LimitOrderBookPriceLevel _order_insert: returning trades {trades} (same order side)')
+            return trades
 
         # it does not matter if order_side is the same or different,
         # call the same logic (NOTE: can't be done remove this comment)
@@ -246,7 +267,10 @@ class LimitOrderBookPriceLevel:
 
         # TODO: why was this here? does nothing
         #partial_order = partial_order.with_int_price(int_price)
-        return self._order_insert(partial_order)
+        order = partial_order.to_order()
+        trades = self._order_insert(order)
+        print(f'LimitOrderBookPriceLevel order_insert returning trades {trades}')
+        return trades
 
     def order_update(self, order_id: int, int_price: int, volume: int):
         assert validate_int_price(int_price) > 0, VALIDATE_INT_PRICE_ERROR_STR
@@ -264,16 +288,22 @@ class LimitOrderBookPriceLevel:
         if existing_order_int_price == int_price:
             self._price_levels[existing_order_int_price].order_update(order_id, volume)
         else:
+            print(f'******** MOVING PRICE FROM {existing_order_int_price} TO {int_price} ********')
             ##existing_order: Order = self._get_order_by_order_id(order_id)
             ##existing_order.set_int_price(int_price)
             # TODO: add order_cancel_pop to return order or make order_cancel return the order
             # should it return a partial order with the int_price removed? (probably no?)
-            partial_order = self._price_levels[existing_order_int_price].order_cancel(order_id)
+            order = self._price_levels[existing_order_int_price].order_cancel(order_id)
+            partial_order = order.to_partial_order()
             partial_order.set_int_price(int_price)
-            assert self._price_levels[int_price].order_insert(partial_order) is None, f'unexpected order match'
+            order = partial_order.to_order()
+            assert self._price_levels[int_price].order_insert(order) is None, f'unexpected order match'
+                # TODO: there is a bug here, this should potentially match if the price is moved correctly
+                # TODO: which means order_update needs to return list[Trade]|None
+                # not quite: need to re-check other side of book
             # TODO write a test for both of these cases
 
-    def order_cancel(self, order_id: int):
+    def order_cancel(self, order_id: int) -> PartialOrder:
         # check the order id exists, and only once
         if self.order_id_count(order_id) == 0:
             raise RuntimeError(f'cannot cancel order with missing order_id {order_id}')
