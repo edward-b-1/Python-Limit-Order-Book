@@ -116,6 +116,17 @@ class LimitOrderBook:
         # TICKER -> PRICE_LEVEL -> list of orders and volumes
         self.limit_order_book: dict[str, LimitOrderBookPriceLevel] = {}
 
+    def __str__(self) -> str:
+        raise NotImplementedError(f'__str__ not implemented')
+
+    def to_str(self, ticker: str) -> str:
+        assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
+
+        if not ticker in self.limit_order_book:
+            return ''
+
+        return str(self.limit_order_book[ticker])
+
     def _initialize_ticker(self, ticker: str):
         if not validate_ticker(ticker):
             raise ValueError(f'ticker \'{ticker}\' is not a valid ticker')
