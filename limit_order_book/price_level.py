@@ -9,13 +9,16 @@ from limit_order_book.util_functools import filter_non_matching_orders_by_order_
 from limit_order_book.validate import *
 from limit_order_book.order import Order
 from limit_order_book.partial_order import PartialOrder
+from limit_order_book.trade import Trade
 
 
 class PriceLevel:
 
-    def __init__(self):
+    def __init__(self, order_side: str):
+        assert validate_order_side(order_side), VALIDATE_ORDER_ID_ERROR_STR
+        self._order_side = order_side
         # PRICE_LEVEL: list of Order by priority
-        self.price_level: list[Order] = []
+        self._price_level: list[Order] = []
 
     def _lambda_order_id_match(order: Order, order_id: int) -> bool:
         return order.order_id == order_id
@@ -23,27 +26,38 @@ class PriceLevel:
     def _remove_orders_by_order_id(self, order_id: int) -> list[Order]:
         # TODO: use remove_orders_by_order_id_from_list_of_orders
         removed_orders = self._filter_orders_by_order_id(order_id)
-        self.price_level = self._filter_orders_by_order_id_inverse(order_id)
+        self._price_level = self._filter_orders_by_order_id_inverse(order_id)
         return removed_orders
 
-    def _insert_order(self, order: Order):
-        self.price_level.append(order)
+    def _order_insert(self, order: Order) -> list[Trade]|None:
+        # TODO: self.order_side -> implement it in all functions
+        if order.order_side != self._order_side:
+            trade_list = []
+            while order.volume > 0 and len(self._price_level) > 0:
+                maker_order = self._price_level[0]
+                trade = maker_order.match(taker_order=order)
+                if trade is not None:
+                    trade_list.append(trade)
+            return trade_list
+        else:
+            self._price_level.append(order)
+            return None
 
     def _filter_orders_by_order_id(self, order_id: int) -> list[Order]:
         return filter_matching_orders_by_order_id_from_list_of_orders(
-            self.price_level,
+            self._price_level,
             order_id,
         )
 
     def _filter_orders_by_order_id_inverse(self, order_id: int) -> list[Order]:
         return filter_non_matching_orders_by_order_id_from_list_of_orders(
-            self.price_level,
+            self._price_level,
             order_id,
         )
 
     def _count_orders_by_order_id(self, order_id: int):
         return count_matching_orders_by_order_id_from_list_of_orders(
-            self.price_level,
+            self._price_level,
             order_id,
         )
 
@@ -85,13 +99,13 @@ class PriceLevel:
         _lambda_order_id_match = PriceLevel._lambda_order_id_match
         index = (
             next(
-                index for (index, order) in enumerate(self.price_level)
+                index for (index, order) in enumerate(self._price_level)
                     if _lambda_order_id_match(order, order_id))
         )
         return index
 
     def depth(self) -> int:
-        return len(self.price_level)
+        return len(self._price_level)
 
     def order_insert(self, partial_order: PartialOrder):
         order_id = partial_order.order_id
@@ -102,7 +116,7 @@ class PriceLevel:
 
         #order = Order(order_id, ticker, order_side, int_price, volume)
         order = partial_order.to_order()
-        self._insert_order(order)
+        return self._order_insert(order)
 
     def order_update(self, order_id: int, volume: int):
         assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
@@ -123,7 +137,7 @@ class PriceLevel:
         else:
             # reduce order priority if order volume is increased
             self._remove_orders_by_order_id(order_id)
-            self._insert_order(existing_order)
+            assert self._order_insert(existing_order) is None, f'unexpected order match'
 
     # TODO: update semantics of others (return partialorder)
     def order_cancel(self, order_id: int) -> PartialOrder:

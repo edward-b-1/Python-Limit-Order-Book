@@ -122,9 +122,9 @@ class LimitOrderBook:
         if not ticker in self.limit_order_book:
             self.limit_order_book[ticker] = LimitOrderBookPriceLevel()
 
-    def _insert_order(self, partial_order: PartialOrder):
+    def _order_insert(self, partial_order: PartialOrder) -> list[Trade]|None:
         ticker = partial_order.to_ticker()
-        self.limit_order_book[ticker].order_insert(partial_order)
+        return self.limit_order_book[ticker].order_insert(partial_order)
 
     # Note: will actually remove all orders with order_id
     def _remove_orders_by_order_id(self, order_id: int) -> list[Order]:
@@ -224,14 +224,17 @@ class LimitOrderBook:
         )
 
     # def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int):
-    def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int):
+    def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int) -> list[Trade]|None:
         self._initialize_ticker(ticker)
 
         # check the order id doesn't exist
         if self.order_id_exists(order_id):
             raise RuntimeError(f'cannot insert order with existing order_id {order_id}')
 
-        self._insert_order(
+        # if order_side != self.order_side:
+        #     # TODO
+
+        return self._order_insert(
             PartialOrder()
             .with_order_id(order_id)
             .with_ticker(ticker)

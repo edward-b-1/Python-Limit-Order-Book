@@ -171,7 +171,7 @@ class Order:
     def set_int_price(self, int_price: int) -> None:
         assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
 
-    def match(self, taker_order) -> list[tuple]:
+    def match(self, taker_order) -> Trade|None:
         '''
             The Maker order must be self. The Taker order must be order.
 
