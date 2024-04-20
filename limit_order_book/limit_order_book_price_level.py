@@ -288,6 +288,7 @@ class LimitOrderBookPriceLevel:
         print(f'new int_price={int_price}')
         if existing_order_int_price == int_price:
             self._price_levels[existing_order_int_price].order_update(order_id, volume)
+            return None
         else:
             print(f'******** MOVING PRICE FROM {existing_order_int_price} TO {int_price} ********')
             ##existing_order: Order = self._get_order_by_order_id(order_id)

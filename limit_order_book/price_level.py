@@ -129,7 +129,7 @@ class PriceLevel:
         trade_list = self._order_insert(order)
         return trade_list
 
-    def order_update(self, order_id: int, volume: int):
+    def order_update(self, order_id: int, volume: int) -> None:
         assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
 
         # check the order id exists, and only once
@@ -147,9 +147,10 @@ class PriceLevel:
             pass
         else:
             # reduce order priority if order volume is increased
+            print(f'volume increased, reduce priority')
             self._remove_orders_by_order_id(order_id)
             trade_list = self._order_insert(existing_order)
-            assert len(trade_list), f'unexpected order match'
+            assert len(trade_list) == 0, f'unexpected order match'
 
     # TODO: update semantics of others (return partialorder)
     def order_cancel(self, order_id: int) -> Order:
