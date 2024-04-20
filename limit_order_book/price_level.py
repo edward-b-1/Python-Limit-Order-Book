@@ -1,10 +1,13 @@
 
 
+from collections import deque
+
 from limit_order_book.util_functools import consume
 from limit_order_book.util_functools import count
 from limit_order_book.util_functools import count_matching_orders_by_order_id_from_list_of_orders
 from limit_order_book.util_functools import filter_matching_orders_by_order_id_from_list_of_orders
 from limit_order_book.util_functools import filter_non_matching_orders_by_order_id_from_list_of_orders
+from limit_order_book.util_functools import filter_orders_with_zero_volume_from_list_of_orders
 
 from limit_order_book.validate import *
 from limit_order_book.order import Order
@@ -29,19 +32,31 @@ class PriceLevel:
         self._price_level = self._filter_orders_by_order_id_inverse(order_id)
         return removed_orders
 
+    def _remove_orders_with_zero_volume(self) -> None:
+        self._price_level = self._filter_orders_with_zero_volume()
+
     def _order_insert(self, order: Order) -> list[Trade]|None:
         # TODO: self.order_side -> implement it in all functions
         if order.order_side != self._order_side:
+            taker_order = order
             trade_list = []
-            while order.volume > 0 and len(self._price_level) > 0:
+            while taker_order.volume > 0 and len(self._price_level) > 0:
                 maker_order = self._price_level[0]
-                trade = maker_order.match(taker_order=order)
+                trade = maker_order.match(taker_order)
+                print(f'trade: {trade}')
                 if trade is not None:
                     trade_list.append(trade)
+                    self._remove_orders_with_zero_volume()
+            print(f'price_level _order_insert: trade_list={trade_list}')
             return trade_list
         else:
             self._price_level.append(order)
             return None
+
+    def _filter_orders_with_zero_volume(self) -> None:
+        return filter_orders_with_zero_volume_from_list_of_orders(
+            self._price_level,
+        )
 
     def _filter_orders_by_order_id(self, order_id: int) -> list[Order]:
         return filter_matching_orders_by_order_id_from_list_of_orders(
@@ -107,16 +122,16 @@ class PriceLevel:
     def depth(self) -> int:
         return len(self._price_level)
 
-    def order_insert(self, partial_order: PartialOrder):
-        order_id = partial_order.order_id
+    def order_insert(self, order: Order) -> list[Trade]|None:
+        order_id = order.order_id
 
         # check the order id doesn't exist
         if self.order_id_exists(order_id):
             raise RuntimeError(f'cannot insert order with existing order_id {order_id}')
 
         #order = Order(order_id, ticker, order_side, int_price, volume)
-        order = partial_order.to_order()
-        return self._order_insert(order)
+        trade_list = self._order_insert(order)
+        return trade_list
 
     def order_update(self, order_id: int, volume: int):
         assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
@@ -140,7 +155,7 @@ class PriceLevel:
             assert self._order_insert(existing_order) is None, f'unexpected order match'
 
     # TODO: update semantics of others (return partialorder)
-    def order_cancel(self, order_id: int) -> PartialOrder:
+    def order_cancel(self, order_id: int) -> Order:
 
         # check the order id exists, and only once
         if self.order_id_count(order_id) == 0:
@@ -153,4 +168,4 @@ class PriceLevel:
         removed_orders = self._remove_orders_by_order_id(order_id)
         assert len(removed_orders) == 1, f'unexpected number of orders removed in order_cancel'
         order: Order = removed_orders[0]
-        return order.to_partial_order()
+        return order
