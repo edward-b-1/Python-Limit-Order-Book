@@ -29,7 +29,3 @@ cat input4_2.txt | python3 main.py
 echo ''
 echo 'input5.txt'
 cat input5.txt | python3 main.py
-
-echo ''
-echo 'input6.txt'
-# #cat input6.txt | python3 main.py
