@@ -8,8 +8,8 @@ class DoubleLimitOrderBook:
     def __init__(self):
         # SIDE -> TICKER -> PRICE_LEVEL -> list of volumes
         self.double_limit_order_book = {
-            'BUY': LimitOrderBook(),
-            'SELL': LimitOrderBook(),
+            'BUY': LimitOrderBook(order_side='BUY'),
+            'SELL': LimitOrderBook(order_side='SELL'),
         }
 
     def _find_order_side_by_order_id(self, order_id: int) -> str:
@@ -76,13 +76,14 @@ class DoubleLimitOrderBook:
         )
 
     def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int) -> list[Trade]|None:
+        print(f'DoubleLimitOrderBook.order_insert: order_id={order_id}, ticker={ticker}, order_side={order_side}, int_price={int_price}, volume={volume}')
 
         # check the order id doesn't exist
         if self.order_id_exists(order_id):
             raise RuntimeError(f'cannot insert order with existing order_id {order_id}')
 
         # on new order arrival, test if there are any matches in the opposite side book
-        order_side_opposite = self._order_side_opposite(order_side)
+        order_side_opposite = DoubleLimitOrderBook._order_side_opposite(order_side)
         limit_order_book_opposite = self._find_limit_order_book_buy_order_side(order_side_opposite)
         # there are multiple price levels in limit_order_book_opposite
         # search ??? TODO
@@ -122,13 +123,19 @@ class DoubleLimitOrderBook:
         )
         assert no_trades is None, f'unexpected trade generated'
 
+        print(f'DoubleLimitOrderBook returning trades {trades}')
         return trades
 
     def order_update(self, order_id: int, int_price: int, volume: int):
+        print(f'DoubleLimitOrderBook.order_update: order_id={order_id}, int_price={int_price}, volume={volume}')
         order_side = self._find_order_side_by_order_id(order_id)
 
         # TODO: _find_limit_order_book_by_order_id
         limit_order_book = self._find_limit_order_book_buy_order_side(order_side)
+
+        # TODO: bug here - need to check to see if price is being changed
+        # if the price is changed, cancel the order from here and then
+        # insert from here to trigger matching algorithm
         limit_order_book.order_update(order_id, int_price, volume)
 
         # if order_side == 'BUY':
@@ -141,6 +148,7 @@ class DoubleLimitOrderBook:
         #     raise RuntimeError(f'cannot update order which exists in both buy and sell side book with order_id {order_id}')
 
     def order_cancel(self, order_id: int):
+        print(f'DoubleLimitOrderBook.order_cancel: order_id={order_id}')
         order_side = self._find_order_side_by_order_id(order_id)
 
         # TODO: _find_limit_order_book_by_order_id
