@@ -111,7 +111,9 @@ from limit_order_book.limit_order_book_price_level import LimitOrderBookPriceLev
 
 class LimitOrderBook:
 
-    def __init__(self):
+    def __init__(self, order_side: str):
+        assert validate_order_side(order_side), VALIDATE_ORDER_ID_ERROR_STR
+        self._order_side = order_side
         # TICKER -> PRICE_LEVEL -> list of orders and volumes
         self.limit_order_book: dict[str, LimitOrderBookPriceLevel] = {}
 
@@ -120,7 +122,7 @@ class LimitOrderBook:
             raise ValueError(f'ticker \'{ticker}\' is not a valid ticker')
 
         if not ticker in self.limit_order_book:
-            self.limit_order_book[ticker] = LimitOrderBookPriceLevel()
+            self.limit_order_book[ticker] = LimitOrderBookPriceLevel(self._order_side)
 
     def _order_insert(self, partial_order: PartialOrder) -> list[Trade]|None:
         ticker = partial_order.to_ticker()
@@ -234,7 +236,7 @@ class LimitOrderBook:
         # if order_side != self.order_side:
         #     # TODO
 
-        return self._order_insert(
+        trades = self._order_insert(
             PartialOrder()
             .with_order_id(order_id)
             .with_ticker(ticker)
@@ -242,6 +244,7 @@ class LimitOrderBook:
             .with_int_price(int_price)
             .with_volume(volume)
         )
+        return trades
     # def order_insert(self, order_id: int, ticker: str, int_price: int, volume: int):
     #     # assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
     #     # assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
