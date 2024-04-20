@@ -149,7 +149,7 @@ class Order:
 
     def __str__(self) -> str:
         return (
-            f'PartialOrder('
+            f'Order('
             f'{self.order_id}, '
             f'{self.ticker}, '
             f'{self.order_side}, '
@@ -168,10 +168,17 @@ class Order:
             .with_volume(self.volume)
         )
 
+    def to_int_price(self) -> int:
+        return self.int_price
+
+    def to_order_side(self) -> str:
+        return self.order_side
+
     def set_int_price(self, int_price: int) -> None:
         assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
 
     def match(self, taker_order) -> Trade|None:
+        print(f'match: {self}, {taker_order}')
         '''
             The Maker order must be self. The Taker order must be order.
 
@@ -203,6 +210,9 @@ class Order:
         match_int_price = taker_order.int_price
 
         match_volume = min(maker_order.volume, taker_order.volume)
+        if match_volume == 0:
+            return None
+
         maker_volume = maker_order.volume - match_volume
         taker_volume = taker_order.volume - match_volume
 
@@ -211,6 +221,8 @@ class Order:
         # filter orders which have zero remaining volume
         maker_order.volume = maker_volume
         taker_order.volume = taker_volume
+        print(f'remaining maker volume: {maker_order.volume}')
+        print(f'remaining taker volume: {taker_order.volume}')
 
         trade = Trade(
             order_id_maker=maker_order.order_id,
