@@ -282,6 +282,16 @@ class LimitOrderBookPriceLevel:
             )
         )
 
+    def volume(self) -> int:
+        return (
+            sum(
+                map(
+                    lambda price_level: price_level.volume(),
+                    self._price_levels.values(),
+                )
+            )
+        )
+
     # def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int):
     #     assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
     #     assert validate_order_side(order_side), VALIDATE_INT_PRICE_ERROR_STR

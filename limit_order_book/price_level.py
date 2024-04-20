@@ -137,6 +137,16 @@ class PriceLevel:
     def depth(self) -> int:
         return len(self._price_level)
 
+    def volume(self) -> int:
+        return (
+            sum(
+                map(
+                    lambda order: order.to_volume(),
+                    self._price_level,
+                )
+            )
+        )
+
     def order_insert(self, order: Order) -> list[Trade]:
         order_id = order.order_id
 

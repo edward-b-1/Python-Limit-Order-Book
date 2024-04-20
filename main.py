@@ -60,7 +60,8 @@ def runMatchingEngine(operations: list[str]) -> list[str]:
             raise ValueError(f'invalid opcode: {operation_opcode}')
 
     print(trades)
-    return encode_trades(trades)
+    order_book_str = str(lob)
+    return f'{encode_trades(trades)}\n{order_book_str}'
 
 
 if __name__ == '__main__':

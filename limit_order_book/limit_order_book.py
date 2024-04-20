@@ -119,6 +119,9 @@ class LimitOrderBook:
     def __str__(self) -> str:
         raise NotImplementedError(f'__str__ not implemented')
 
+    def tickers(self) -> list[str]:
+        return list(sorted(self.limit_order_book.keys()))
+
     def to_str(self, ticker: str) -> str:
         assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
 
@@ -234,6 +237,17 @@ class LimitOrderBook:
                 )
             )
         )
+
+    def volume(self, ticker: str) -> int:
+        return self.limit_order_book[ticker].volume()
+        # return (
+        #     sum(
+        #         map(
+        #             lambda limit_order_book_price_level: limit_order_book_price_level.volume(),
+        #             self.limit_order_book.values(),
+        #         )
+        #     )
+        # )
 
     # def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int):
     #def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int) -> list[Trade]|None:
