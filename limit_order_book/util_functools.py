@@ -5,6 +5,9 @@ from limit_order_book.order import Order
 
 
 def consume(iterable):
+    '''
+    Consume an iterable to end and discard the results
+    '''
     for _ in iterable:
         pass
 
