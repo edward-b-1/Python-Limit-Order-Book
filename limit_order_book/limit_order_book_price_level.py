@@ -16,12 +16,47 @@ class LimitOrderBookPriceLevel:
         # PRICE_LEVEL -> list of orders and volumes
         self._price_levels: dict[int, PriceLevel] = {}
 
+    # def __str__(self) -> str:
+    #     def format_order_str(order: Order):
+    #         price = convert_int_price_to_price_string(order.int_price)
+    #         return f'{order.order_side},{price},{order.volume}'
+
+    #     price_level_str = (
+    #         '\n'.join(
+    #             map(
+    #                 format_order_str,
+    #                 self._price_level,
+    #             )
+    #         )
+    #     )
+    #     return price_level_str
+    def __str__(self) -> str:
+        # price_levels = None
+        # if self._order_side == 'SELL':
+        #     price_levels = list(reversed(sorted(self._price_levels.keys())))
+        # elif self._order_side == 'BUY':
+        #     price_levels = list(reversed(sorted(self._price_levels.keys())))
+        price_levels = list(reversed(sorted(self._price_levels.keys())))
+
+        order_book_str = (
+            '\n'.join(
+                map(
+                    str,
+                    map(
+                        lambda price_level: self._price_levels[price_level],
+                        price_levels,
+                    )
+                )
+            )
+        )
+        return order_book_str
+
     def _initialize_price_level(self, int_price: int):
         if not validate_int_price(int_price):
             raise ValueError(f'price \'{int_price}\' is not a valid integer price')
 
         if not int_price in self._price_levels:
-            self._price_levels[int_price] = PriceLevel(self._order_side)
+            self._price_levels[int_price] = PriceLevel(self._order_side, int_price=int_price)
 
     def _order_insert(self, order: Order) -> list[Trade]:
         order_side = order.to_order_side()
