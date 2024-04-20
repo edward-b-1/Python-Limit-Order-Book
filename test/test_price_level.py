@@ -1,5 +1,5 @@
 
-from limit_order_book.limit_order_book import Order
+from limit_order_book.order import Order
 from limit_order_book.price_level import PriceLevel
 
 
@@ -32,7 +32,7 @@ def test_price_level():
         volume=30,
     )
 
-    price_level = PriceLevel(order_side=order_side)
+    price_level = PriceLevel(order_side=order_side, int_price=int_price)
 
     # price_level.order_insert(order_id=1, ticker=ticker, order_side=order_side, int_price=int_price, volume=10)
     # price_level.order_insert(order_id=2, ticker=ticker, order_side=order_side, int_price=int_price, volume=20)
