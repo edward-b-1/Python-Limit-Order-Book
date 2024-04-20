@@ -28,13 +28,12 @@ class LimitOrderBookPriceLevel:
         order_side = partial_order.to_order_side()
         int_price = partial_order.to_int_price()
 
-        trades = []
-
         #if order_side != self.order_side:
         if order_side == 'BUY' and self._order_side == 'SELL':
             # price_level_min = min(self._price_levels.keys())
             # price_level_max = max(self._price_levels.keys())
             price_levels = sorted(self._price_levels.keys())
+
             matching_price_levels = (
                 list(
                     filter(
@@ -43,6 +42,8 @@ class LimitOrderBookPriceLevel:
                     )
                 )
             )
+
+            trades = []
             for price_level in matching_price_levels:
                 # if partial_order.volume > 0:
                 trades.append(
@@ -61,6 +62,7 @@ class LimitOrderBookPriceLevel:
                     )
                 )
             )
+
             matching_price_levels = (
                 list(
                     filter(
@@ -69,6 +71,8 @@ class LimitOrderBookPriceLevel:
                     )
                 )
             )
+
+            trades = []
             for price_level in matching_price_levels:
                 trades.append(
                     self._price_levels[price_level].order_insert(partial_order)
