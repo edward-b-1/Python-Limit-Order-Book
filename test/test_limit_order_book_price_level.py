@@ -1,5 +1,5 @@
 
-from limit_order_book.limit_order_book import PartialOrder
+from limit_order_book.limit_order_book import Order
 from limit_order_book.limit_order_book import LimitOrderBookPriceLevel
 
 
@@ -8,30 +8,63 @@ def test_limit_order_book_price_level():
     order_side = 'BUY'
     int_price_1 = 1000
     int_price_2 = 1010
-    partial_order = PartialOrder().set_ticker(ticker).set_order_side(order_side)
 
-    partial_order_1 = partial_order.with_order_id(1).with_volume(10).with_int_price(int_price_1)
-    partial_order_2 = partial_order.with_order_id(2).with_volume(20).with_int_price(int_price_1)
-    partial_order_3 = partial_order.with_order_id(3).with_volume(30).with_int_price(int_price_1)
-    partial_order_4 = partial_order.with_order_id(4).with_volume(40).with_int_price(int_price_2)
-    partial_order_5 = partial_order.with_order_id(5).with_volume(50).with_int_price(int_price_2)
+    order_1 = Order(
+        order_id=1,
+        ticker=ticker,
+        order_side=order_side,
+        int_price=int_price_1,
+        volume=10,
+    )
 
-    limit_order_book_price_level = LimitOrderBookPriceLevel()
+    order_2 = Order(
+        order_id=2,
+        ticker=ticker,
+        order_side=order_side,
+        int_price=int_price_1,
+        volume=20,
+    )
 
-    limit_order_book_price_level.order_insert(partial_order_1)
-    limit_order_book_price_level.order_insert(partial_order_2)
-    limit_order_book_price_level.order_insert(partial_order_3)
-    limit_order_book_price_level.order_insert(partial_order_4)
-    limit_order_book_price_level.order_insert(partial_order_5)
+    order_3 = Order(
+        order_id=3,
+        ticker=ticker,
+        order_side=order_side,
+        int_price=int_price_1,
+        volume=30,
+    )
+
+    order_4 = Order(
+        order_id=4,
+        ticker=ticker,
+        order_side=order_side,
+        int_price=int_price_2,
+        volume=40,
+    )
+
+    order_5 = Order(
+        order_id=5,
+        ticker=ticker,
+        order_side=order_side,
+        int_price=int_price_2,
+        volume=50,
+    )
+
+    limit_order_book_price_level = LimitOrderBookPriceLevel(order_side=order_side)
+
+    limit_order_book_price_level.order_insert(order_1)
+    limit_order_book_price_level.order_insert(order_2)
+    limit_order_book_price_level.order_insert(order_3)
+    limit_order_book_price_level.order_insert(order_4)
+    limit_order_book_price_level.order_insert(order_5)
 
     depth = limit_order_book_price_level.depth_aggregated()
     assert depth == 5, f'depth is not 5, depth = {depth}'
 
     # inserting a duplicate fails
     try:
-        limit_order_book_price_level.order_insert(partial_order_2)
+        limit_order_book_price_level.order_insert(order_2)
     except RuntimeError as e:
-        assert str(e) == f'cannot insert order with existing order_id {partial_order_2.order_id}'
+        assert str(e) == f'cannot insert order with existing order_id {order_2.order_id}'
 
     limit_order_book_price_level.order_cancel(order_id=2)
 
@@ -58,31 +91,30 @@ def test_limit_order_book_price_level():
     assert depth == 0, f'depth is not 0, depth = {depth}'
 
 
+# TODO: finish this impl, and write tests for update in other contexts
 def test_limit_order_book_price_level_update():
-    partial_order_1 = (
-        PartialOrder()
-        .with_order_id(100)
-        .with_ticker('PYTH')
-        .with_order_side('BUY')
-        .with_int_price(1234)
-        .with_volume(10)
+    order_1 = Order(
+        order_id=100,
+        ticker='PYTH',
+        order_side='BUY',
+        int_price=1234,
+        volume=10,
     )
 
     # lower priority
-    partial_order_2 = (
-        PartialOrder()
-        .with_order_id(101)
-        .with_ticker('PYTH')
-        .with_order_side('BUY')
-        .with_int_price(1234)
-        .with_volume(20)
+    order_2 = Order(
+        order_id=101,
+        ticker='PYTH',
+        order_side='BUY',
+        int_price=1234,
+        volume=20,
     )
 
-    limit_order_book_price_level = LimitOrderBookPriceLevel()
+    limit_order_book_price_level = LimitOrderBookPriceLevel(order_side='BUY')
 
-    limit_order_book_price_level.order_insert(partial_order_1)
+    limit_order_book_price_level.order_insert(order_2)
 
     # todo add function to check priority
-    priority = limit_order_book_price_level._query_priority(partial_order_1.order_id)
+    priority = limit_order_book_price_level._query_priority(order_2.order_id)
     assert priority == 0, f'unexpected order priority {priority}, expected priority {0}'
 

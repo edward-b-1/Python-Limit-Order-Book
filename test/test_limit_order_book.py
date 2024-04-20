@@ -1,6 +1,6 @@
 
 from limit_order_book.limit_order_book import LimitOrderBook
-from limit_order_book.partial_order import PartialOrder
+from limit_order_book.order import Order
 
 
 def test_limit_order_book():
@@ -9,22 +9,30 @@ def test_limit_order_book():
     order_side = 'BUY'
     int_price_1 = 1000
 
-    limit_order_book = LimitOrderBook()
+    limit_order_book = LimitOrderBook(order_side=order_side)
 
-    limit_order_book.order_insert(1, ticker=ticker_pyth, order_side=order_side, int_price=int_price_1, volume=10)
-    limit_order_book.order_insert(2, ticker=ticker_pyth, order_side=order_side, int_price=int_price_1, volume=20)
-    limit_order_book.order_insert(3, ticker=ticker_pyth, order_side=order_side, int_price=int_price_1, volume=30)
+    order_1 = Order(1, ticker=ticker_pyth, order_side=order_side, int_price=int_price_1, volume=10)
+    order_2 = Order(2, ticker=ticker_pyth, order_side=order_side, int_price=int_price_1, volume=20)
+    order_3 = Order(3, ticker=ticker_pyth, order_side=order_side, int_price=int_price_1, volume=30)
 
-    limit_order_book.order_insert(4, ticker=ticker_cpp, order_side=order_side, int_price=int_price_1, volume=40)
-    limit_order_book.order_insert(5, ticker=ticker_cpp, order_side=order_side, int_price=int_price_1, volume=50)
-    limit_order_book.order_insert(6, ticker=ticker_cpp, order_side=order_side, int_price=int_price_1, volume=60)
+    order_4 = Order(4, ticker=ticker_cpp, order_side=order_side, int_price=int_price_1, volume=40)
+    order_5 = Order(5, ticker=ticker_cpp, order_side=order_side, int_price=int_price_1, volume=50)
+    order_6 = Order(6, ticker=ticker_cpp, order_side=order_side, int_price=int_price_1, volume=60)
+
+    limit_order_book.order_insert(order_1)
+    limit_order_book.order_insert(order_2)
+    limit_order_book.order_insert(order_3)
+
+    limit_order_book.order_insert(order_4)
+    limit_order_book.order_insert(order_5)
+    limit_order_book.order_insert(order_6)
 
     depth = limit_order_book.depth_aggregated()
     assert depth == 6, f'depth is not 6, depth = {depth}'
 
     # inserting a duplicate fails
     try:
-        limit_order_book.order_insert(3, ticker=ticker_pyth, order_side=order_side, int_price=int_price_1, volume=30)
+        limit_order_book.order_insert(order_3)
     except RuntimeError as e:
         assert str(e) == f'cannot insert order with existing order_id {3}'
 
@@ -55,16 +63,18 @@ def test_limit_order_book():
 
 
 def test_order_cancel():
-    limit_order_book = LimitOrderBook()
-    limit_order_book.order_insert(1, 'PYTH', 'BUY', 1000, 20)
-    removed_order = limit_order_book.order_cancel(1)
-    expected_order = (
-        PartialOrder()
-        .with_order_id(1)
-        .with_ticker('PYTH')
-        .with_order_side('BUY')
-        .with_int_price(1000)
-        .with_volume(20)
+    limit_order_book = LimitOrderBook(order_side='BUY')
+
+    order = Order(
+        order_id=1,
+        ticker='PYTH',
+        order_side='BUY',
+        int_price=1000,
+        volume=20,
     )
-    assert removed_order == expected_order, f'removed order data does not match expected order data'
+
+    limit_order_book.order_insert(order)
+    removed_order = limit_order_book.order_cancel(1)
+
+    assert removed_order == order, f'removed order data does not match expected order data'
 
