@@ -60,15 +60,17 @@ def runMatchingEngine(operations: list[str]) -> list[str]:
             raise ValueError(f'invalid opcode: {operation_opcode}')
 
     print(trades)
-    order_book_str = str(lob)
-    s = None
+
+    return_data = []
     if len(trades) > 0:
-        encoded_trades = '\n'.join(encode_trades(trades))
-        s = f'{encoded_trades}\n{order_book_str}'
-    else:
-        s = f'{order_book_str}'
-    parts = s.split('\n')
-    return parts
+        encoded_trades = encode_trades(trades)
+        return_data = encoded_trades
+
+    order_book_str = str(lob)
+    for order_book_str in order_book_str.split('\n'):
+        return_data.append(order_book_str)
+
+    return return_data
 
 
 if __name__ == '__main__':
