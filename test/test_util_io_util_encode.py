@@ -7,7 +7,10 @@ from util_io.util_encode import encode_trades
 
 
 def test_convert_int_price_to_price_string_1():
-    assert convert_int_price_to_price_string(1) == '0.0001', f'test_convert_int_price_to_price_string_1 failed'
+    result = convert_int_price_to_price_string(1)
+    assert result == '0.0001', (
+        f'test_convert_int_price_to_price_string_1 failed, expected 0.0001, got {result}'
+    )
 
 
 def test_encode_trade_1():
