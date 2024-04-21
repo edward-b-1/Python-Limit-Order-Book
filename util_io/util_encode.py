@@ -6,8 +6,11 @@ def convert_int_price_to_price_string(int_price: int) -> str:
     # TODO: throw error if len(remainder) > 4
     integer_price = int_price // 10000
     remainder_price = int_price % 10000
-    #float_format_price = f'{integer_price}.{remainder_price:04d}' if remainder_price != 0 else f'{integer_price}'
-    float_format_price = f'{integer_price}.{remainder_price}' if remainder_price != 0 else f'{integer_price}'
+    float_format_price = f'{integer_price}.{remainder_price:04d}' if remainder_price != 0 else f'{integer_price}'
+    #float_format_price = f'{integer_price}.{remainder_price}' if remainder_price != 0 else f'{integer_price}'
+    float_format_price = float_format_price.rstrip('0')
+    if float_format_price[-1] == '.':
+        float_format_price += '0'
     return float_format_price
 
 
