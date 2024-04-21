@@ -21,6 +21,9 @@ class PriceLevel:
         # PRICE_LEVEL: list of Order by priority
         self._price_level: list[Order] = []
 
+    def __repr__(self) -> str:
+        return str(self)
+
     def __str__(self) -> str:
         def format_price_level_str(order_side: str, int_price: int, total_volume: int):
             price = convert_int_price_to_price_string(int_price)

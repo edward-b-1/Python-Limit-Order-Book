@@ -13,6 +13,9 @@ class DoubleLimitOrderBook:
             'SELL': LimitOrderBook(order_side='SELL'),
         }
 
+    def __repr__(self) -> str:
+        return str(self)
+
     def __str__(self) -> str:
         buy_side_tickers = self.double_limit_order_book['BUY'].tickers()
         sell_side_tickers = self.double_limit_order_book['SELL'].tickers()

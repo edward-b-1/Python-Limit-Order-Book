@@ -16,6 +16,9 @@ class LimitOrderBookPriceLevel:
         # PRICE_LEVEL -> list of orders and volumes
         self._price_levels: dict[int, PriceLevel] = {}
 
+    def __repr__(self) -> str:
+        return str(self)
+
     # def __str__(self) -> str:
     #     def format_order_str(order: Order):
     #         price = convert_int_price_to_price_string(order.int_price)
@@ -44,7 +47,10 @@ class LimitOrderBookPriceLevel:
                     str,
                     map(
                         lambda price_level: self._price_levels[price_level],
-                        price_levels,
+                        filter(
+                            lambda price_level: self._price_levels[price_level].volume() > 0,
+                            price_levels,
+                        )
                     )
                 )
             )
@@ -340,7 +346,9 @@ class LimitOrderBookPriceLevel:
             ##existing_order.set_int_price(int_price)
             # TODO: add order_cancel_pop to return order or make order_cancel return the order
             # should it return a partial order with the int_price removed? (probably no?)
+            print(str(self._price_levels))
             order = self._price_levels[existing_order_int_price].order_cancel(order_id)
+            print(str(self._price_levels))
             order.set_int_price(int_price)
             order.set_volume(volume)
             if (
@@ -348,7 +356,7 @@ class LimitOrderBookPriceLevel:
                 (order.order_side == 'SELL' and order.int_price > existing_order_int_price)
             ):
                 trade_list = self._price_levels[int_price].order_insert(order)
-                assert len(trade_list), f'unexpected order match'
+                assert len(trade_list) == 0, f'unexpected order match'
                     # TODO: there is a bug here, this should potentially match if the price is moved correctly
                     # TODO: which means order_update needs to return list[Trade]|None
                     # not quite: need to re-check other side of book

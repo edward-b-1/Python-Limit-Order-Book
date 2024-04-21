@@ -116,6 +116,9 @@ class LimitOrderBook:
         # TICKER -> PRICE_LEVEL -> list of orders and volumes
         self.limit_order_book: dict[str, LimitOrderBookPriceLevel] = {}
 
+    def __repr__(self) -> str:
+        return str(self)
+
     def __str__(self) -> str:
         raise NotImplementedError(f'__str__ not implemented')
 
