@@ -44,6 +44,9 @@ class Order:
             f')'
         )
 
+    def debug_str(self) -> str:
+        return str(self)
+
     def copy(self):
         return Order(
             order_id=self.order_id,
