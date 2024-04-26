@@ -8,7 +8,7 @@ class DoubleLimitOrderBook:
 
     def __init__(self):
         # SIDE -> TICKER -> PRICE_LEVEL -> list of volumes
-        self.double_limit_order_book = {
+        self._double_limit_order_book = {
             'BUY': LimitOrderBook(order_side='BUY'),
             'SELL': LimitOrderBook(order_side='SELL'),
         }
@@ -17,8 +17,8 @@ class DoubleLimitOrderBook:
         return str(self)
 
     def __str__(self) -> str:
-        buy_side_tickers = self.double_limit_order_book['BUY'].tickers()
-        sell_side_tickers = self.double_limit_order_book['SELL'].tickers()
+        buy_side_tickers = self._double_limit_order_book['BUY'].tickers()
+        sell_side_tickers = self._double_limit_order_book['SELL'].tickers()
 
         tickers = buy_side_tickers
         for ticker in sell_side_tickers:
@@ -30,18 +30,18 @@ class DoubleLimitOrderBook:
         def format_order_book_ticker_str(ticker: str, include_buy_side: bool, include_sell_side: bool) -> str:
             order_book_str = f'==={ticker}==='
             if include_sell_side:
-                order_book_sell_side_str = self.double_limit_order_book['SELL'].to_str(ticker)
+                order_book_sell_side_str = self._double_limit_order_book['SELL'].to_str(ticker)
                 order_book_str += f'\n{order_book_sell_side_str}'
             if include_buy_side:
-                order_book_buy_side_str = self.double_limit_order_book['BUY'].to_str(ticker)
+                order_book_buy_side_str = self._double_limit_order_book['BUY'].to_str(ticker)
                 order_book_str += f'\n{order_book_buy_side_str}'
             #order_book_str += f'\n{order_book_sell_side_str}\n{order_book_buy_side_str}'
             return order_book_str
 
         order_book_strs = []
         for ticker in tickers:
-            total_volume_sell_side = self.double_limit_order_book['SELL'].volume(ticker)
-            total_volume_buy_side = self.double_limit_order_book['BUY'].volume(ticker)
+            total_volume_sell_side = self._double_limit_order_book['SELL'].volume(ticker)
+            total_volume_buy_side = self._double_limit_order_book['BUY'].volume(ticker)
             if total_volume_sell_side == 0 and total_volume_buy_side == 0:
                 continue
             print(f'ticker={ticker}, volume: {total_volume_buy_side}, {total_volume_sell_side}')
@@ -51,9 +51,18 @@ class DoubleLimitOrderBook:
         order_book_str = '\n'.join(order_book_strs)
         return order_book_str
 
+    def debug_str(self) -> str:
+        buy_side = self._double_limit_order_book['BUY']
+        sell_side = self._double_limit_order_book['SELL']
+
+        return (
+            f'{buy_side.debug_str()}\n'
+            f'{sell_side.debug_str()}'
+        )
+
     def _find_order_side_by_order_id(self, order_id: int) -> str:
-        limit_order_book_buy = self.double_limit_order_book['BUY']
-        limit_order_book_sell = self.double_limit_order_book['SELL']
+        limit_order_book_buy = self._double_limit_order_book['BUY']
+        limit_order_book_sell = self._double_limit_order_book['SELL']
 
         # TODO: consider using count here instead
         order_exists_in_buy_side = limit_order_book_buy.order_id_exists(order_id)
@@ -75,9 +84,9 @@ class DoubleLimitOrderBook:
         limit_order_book = None
 
         if order_side == 'BUY':
-            limit_order_book = self.double_limit_order_book['BUY']
+            limit_order_book = self._double_limit_order_book['BUY']
         elif order_side == 'SELL':
-            limit_order_book = self.double_limit_order_book['SELL']
+            limit_order_book = self._double_limit_order_book['SELL']
 
         if limit_order_book is None:
             raise RuntimeError(f'invalid order_side {order_side}')
@@ -85,14 +94,14 @@ class DoubleLimitOrderBook:
         return limit_order_book
 
     def depth(self, order_side: str) -> int:
-        return self.double_limit_order_book[order_side].depth()
+        return self._double_limit_order_book[order_side].depth()
 
     def depth_aggregated(self) -> int:
         return (
             sum(
                 map(
                     lambda limit_order_book: limit_order_book.depth_aggregated(),
-                    self.double_limit_order_book.values(),
+                    self._double_limit_order_book.values(),
                 )
             )
         )
@@ -109,7 +118,7 @@ class DoubleLimitOrderBook:
             any(
                 filter(
                     lambda limit_order_book: limit_order_book.order_id_exists(order_id),
-                    self.double_limit_order_book.values(),
+                    self._double_limit_order_book.values(),
                 )
             )
         )
