@@ -42,6 +42,16 @@ class PriceLevel:
 
         return format_price_level_str(self._order_side, int_price, total_volume)
 
+    def debug_str(self) -> str:
+        return (
+            ' '.join(
+                map(
+                    lambda order: order.debug_str(),
+                    self._price_level,
+                )
+            )
+        )
+
     def _lambda_order_id_match(order: Order, order_id: int) -> bool:
         return order.order_id == order_id
 
