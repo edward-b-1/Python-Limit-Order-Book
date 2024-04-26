@@ -114,7 +114,7 @@ class LimitOrderBook:
         assert validate_order_side(order_side), VALIDATE_ORDER_ID_ERROR_STR
         self._order_side = order_side
         # TICKER -> PRICE_LEVEL -> list of orders and volumes
-        self.limit_order_book: dict[str, LimitOrderBookPriceLevel] = {}
+        self._limit_order_book: dict[str, LimitOrderBookPriceLevel] = {}
 
     def __repr__(self) -> str:
         return str(self)
@@ -122,27 +122,35 @@ class LimitOrderBook:
     def __str__(self) -> str:
         raise NotImplementedError(f'__str__ not implemented')
 
+    def debug_str(self) -> str:
+        debug_strings = []
+        for ticker, price_level in self._limit_order_book.items():
+            debug_strings.append(
+                f'{ticker}: {price_level.debug_str()}\n'
+            )
+        return '\n'.join(debug_strings)
+
     def tickers(self) -> list[str]:
-        return list(sorted(self.limit_order_book.keys()))
+        return list(sorted(self._limit_order_book.keys()))
 
     def to_str(self, ticker: str) -> str:
         assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
 
-        if not ticker in self.limit_order_book:
+        if not ticker in self._limit_order_book:
             return ''
 
-        return str(self.limit_order_book[ticker])
+        return str(self._limit_order_book[ticker])
 
     def _initialize_ticker(self, ticker: str):
         if not validate_ticker(ticker):
             raise ValueError(f'ticker \'{ticker}\' is not a valid ticker')
 
-        if not ticker in self.limit_order_book:
-            self.limit_order_book[ticker] = LimitOrderBookPriceLevel(self._order_side)
+        if not ticker in self._limit_order_book:
+            self._limit_order_book[ticker] = LimitOrderBookPriceLevel(self._order_side)
 
     def _order_insert(self, order: Order) -> list[Trade]:
         ticker = order.to_ticker()
-        return self.limit_order_book[ticker].order_insert(order)
+        return self._limit_order_book[ticker].order_insert(order)
 
     # Note: will actually remove all orders with order_id
     def _remove_orders_by_order_id(self, order_id: int) -> list[Order]:
@@ -152,7 +160,7 @@ class LimitOrderBook:
                     list.__add__,
                     map(
                         lambda limit_order_book_price_level: limit_order_book_price_level._remove_orders_by_order_id(order_id),
-                        self.limit_order_book.values(),
+                        self._limit_order_book.values(),
                     ),
                     [],
                 )
@@ -175,7 +183,7 @@ class LimitOrderBook:
                     select_ticker,
                     filter(
                         filter_by_order_id,
-                        self.limit_order_book.items(),
+                        self._limit_order_book.items(),
                     )
                 )
             )
@@ -196,7 +204,7 @@ class LimitOrderBook:
                     list.__add__,
                     map(
                         lambda limit_order_book_price_level: limit_order_book_price_level._filter_orders_by_order_id(order_id),
-                        self.limit_order_book.values(),
+                        self._limit_order_book.values(),
                     ),
                     [],
                 )
@@ -212,7 +220,7 @@ class LimitOrderBook:
             any(
                 filter(
                     lambda limit_order_book_price_level: limit_order_book_price_level.order_id_exists(order_id),
-                    self.limit_order_book.values(),
+                    self._limit_order_book.values(),
                 )
             )
         )
@@ -222,27 +230,27 @@ class LimitOrderBook:
             sum(
                 map(
                     lambda limit_order_book_price_level: limit_order_book_price_level.order_id_count(order_id),
-                    self.limit_order_book.values(),
+                    self._limit_order_book.values(),
                 )
             )
         )
 
     def depth(self, ticker: str) -> int:
         self._initialize_ticker(ticker)
-        return self.limit_order_book[ticker].depth()
+        return self._limit_order_book[ticker].depth()
 
     def depth_aggregated(self) -> int:
         return (
             sum(
                 map(
                     lambda limit_order_book_price_level: limit_order_book_price_level.depth_aggregated(),
-                    self.limit_order_book.values(),
+                    self._limit_order_book.values(),
                 )
             )
         )
 
     def volume(self, ticker: str) -> int:
-        return self.limit_order_book[ticker].volume()
+        return self._limit_order_book[ticker].volume()
         # return (
         #     sum(
         #         map(
@@ -328,7 +336,7 @@ class LimitOrderBook:
 
         ticker = self._find_order_ticker_by_order_id(order_id)
         print(f'found ticker {ticker}')
-        order = self.limit_order_book[ticker].order_update(order_id, int_price, volume)
+        order = self._limit_order_book[ticker].order_update(order_id, int_price, volume)
         return order
 
     def order_cancel(self, order_id: int):
