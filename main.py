@@ -24,6 +24,10 @@ def runMatchingEngine(operations: list[str]) -> list[str]:
     trades = []
 
     for operation in operations:
+        print(f'>>>> CURRENT STATE')
+        print(trades)
+        print(lob.debug_str())
+
         split_operation = operation.split(',')
         assert len(split_operation) > 1, 'invalid operation'
 
@@ -51,7 +55,8 @@ def runMatchingEngine(operations: list[str]) -> list[str]:
 
             int_price = parse_price_string_and_convert_to_int_price(price_str)
 
-            lob.order_update(order_id, int_price, volume)
+            trade_list = lob.order_update(order_id, int_price, volume)
+            trades += trade_list
         elif operation_opcode == 'CANCEL':
             assert len(split_operation) == 2, 'invalid CANCEL syntax'
 
