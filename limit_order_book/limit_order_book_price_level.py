@@ -57,6 +57,14 @@ class LimitOrderBookPriceLevel:
         )
         return order_book_str
 
+    def debug_str(self) -> str:
+        debug_strings = []
+        for price_level, orders in self._price_levels.items():
+            debug_strings.append(
+                f'({price_level}) | {orders.debug_str()}'
+            )
+        return '\n'.join(debug_strings)
+
     def _initialize_price_level(self, int_price: int):
         if not validate_int_price(int_price):
             raise ValueError(f'price \'{int_price}\' is not a valid integer price')
