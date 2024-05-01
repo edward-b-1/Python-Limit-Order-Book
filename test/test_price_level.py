@@ -1,11 +1,12 @@
 
+from limit_order_book.order_side import OrderSide
 from limit_order_book.order import Order
 from limit_order_book.price_level import PriceLevel
 
 
 def test_price_level():
     ticker = 'PYTH'
-    order_side = 'BUY'
+    order_side = OrderSide.BUY
     int_price = 1000
 
     order_1 = Order(

@@ -1,4 +1,5 @@
 
+from limit_order_book.order_side import OrderSide
 from limit_order_book.validate import *
 from limit_order_book.trade import Trade
 
@@ -155,11 +156,11 @@ class Order:
         if maker_order.order_side == taker_order.order_side:
             return None
 
-        if maker_order.order_side == 'BUY' and taker_order.order_side == 'SELL':
+        if maker_order.order_side == OrderSide.BUY and taker_order.order_side == OrderSide.SELL:
             if maker_order.int_price < taker_order.int_price:
                 return None
 
-        if maker_order.order_side == 'SELL' and taker_order.order_side == 'BUY':
+        if maker_order.order_side == OrderSide.SELL and taker_order.order_side == OrderSide.BUY:
             if maker_order.int_price > taker_order.int_price:
                 return None
 

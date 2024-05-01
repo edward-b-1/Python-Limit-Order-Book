@@ -6,12 +6,15 @@ def convert_int_price_to_price_string(int_price: int) -> str:
     # TODO: throw error if len(remainder) > 4
     integer_price = int_price // 10000
     remainder_price = int_price % 10000
-    float_format_price = f'{integer_price}.{remainder_price:04d}' if remainder_price != 0 else f'{integer_price}'
-    #float_format_price = f'{integer_price}.{remainder_price}' if remainder_price != 0 else f'{integer_price}'
-    float_format_price = float_format_price.rstrip('0')
-    if float_format_price[-1] == '.':
-        float_format_price += '0'
-    return float_format_price
+    if remainder_price == 0:
+        float_format_price = f'{integer_price}'
+        return float_format_price
+    else:
+        float_format_price = f'{integer_price}.{remainder_price:04d}'
+        float_format_price = float_format_price.rstrip('0')
+        if float_format_price[-1] == '.':
+            float_format_price += '0'
+        return float_format_price
 
 
 def _encode_trade(trade: Trade) -> str:
@@ -33,7 +36,6 @@ def encode_trades(trades: list[Trade]) -> list[str]:
 
     trade_report = []
     for trade in trades:
-        print(f'next trade: {trade}')
         trade_report.append(
             _encode_trade(trade)
         )

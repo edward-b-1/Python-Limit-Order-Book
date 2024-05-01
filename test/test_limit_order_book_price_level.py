@@ -1,11 +1,12 @@
 
+from limit_order_book.order_side import OrderSide
 from limit_order_book.limit_order_book import Order
 from limit_order_book.limit_order_book import LimitOrderBookPriceLevel
 
 
 def test_limit_order_book_price_level():
     ticker = 'PYTH'
-    order_side = 'BUY'
+    order_side = OrderSide.BUY
     int_price_1 = 1000
     int_price_2 = 1010
 
@@ -96,7 +97,7 @@ def test_limit_order_book_price_level_update():
     order_1 = Order(
         order_id=100,
         ticker='PYTH',
-        order_side='BUY',
+        order_side=OrderSide.BUY,
         int_price=1234,
         volume=10,
     )
@@ -105,12 +106,12 @@ def test_limit_order_book_price_level_update():
     order_2 = Order(
         order_id=101,
         ticker='PYTH',
-        order_side='BUY',
+        order_side=OrderSide.BUY,
         int_price=1234,
         volume=20,
     )
 
-    limit_order_book_price_level = LimitOrderBookPriceLevel(order_side='BUY')
+    limit_order_book_price_level = LimitOrderBookPriceLevel(order_side=OrderSide.BUY)
 
     limit_order_book_price_level.order_insert(order_2)
 

@@ -1,11 +1,12 @@
 
+from limit_order_book.order_side import OrderSide
 from limit_order_book.order import Order
 from limit_order_book.util_functools import remove_order_by_order_id_from_list_of_orders
 
 
 def test_remove_order_by_order_id_from_list_of_orders():
     ticker = 'PYTH'
-    order_side = 'BUY'
+    order_side = OrderSide.BUY
     int_price = 1000
     volume = 20
 
@@ -38,7 +39,7 @@ def test_remove_order_by_order_id_from_list_of_orders():
 
 def test_remove_order_by_order_id_from_list_of_orders_2():
     ticker = 'PYTH'
-    order_side = 'BUY'
+    order_side = OrderSide.BUY
     int_price = 1000
     volume = 20
 

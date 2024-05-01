@@ -1,4 +1,5 @@
 
+from limit_order_book.order_side import OrderSide
 from limit_order_book.double_limit_order_book import DoubleLimitOrderBook
 from limit_order_book.trade import Trade
 
@@ -13,25 +14,25 @@ def test_double_limit_order_book_1():
 
     lob = DoubleLimitOrderBook()
 
-    lob.order_insert(order_id=1, ticker='PYTH', order_side='BUY', int_price=1000, volume=10)
+    lob.order_insert(order_id=1, ticker='PYTH', order_side=OrderSide.BUY, int_price=1000, volume=10)
     # TODO: implement this
     #priority = lob.priority(order_id=1)
     #assert priority == 0, f'unexpected priority {priority} for order {1}, expected {0}'
     check_depth_aggregated(lob, 1)
 
-    trades = lob.order_insert(order_id=2, ticker='PYTH', order_side='BUY', int_price=1000, volume=20)
+    trades = lob.order_insert(order_id=2, ticker='PYTH', order_side=OrderSide.BUY, int_price=1000, volume=20)
     assert len(trades) == 0, f'unexpected trade'
     check_depth_aggregated(lob, 2)
 
-    trades = lob.order_insert(order_id=3, ticker='PYTH', order_side='BUY', int_price=1020, volume=10)
+    trades = lob.order_insert(order_id=3, ticker='PYTH', order_side=OrderSide.BUY, int_price=1020, volume=10)
     assert len(trades) == 0, f'unexpected trade'
     check_depth_aggregated(lob, 3)
 
-    trades = lob.order_insert(order_id=4, ticker='PYTH', order_side='BUY', int_price=1020, volume=20)
+    trades = lob.order_insert(order_id=4, ticker='PYTH', order_side=OrderSide.BUY, int_price=1020, volume=20)
     assert len(trades) == 0, f'unexpected trade'
     check_depth_aggregated(lob, 4)
 
-    trades = lob.order_insert(order_id=5, ticker='PYTH', order_side='SELL', int_price=1100, volume=10)
+    trades = lob.order_insert(order_id=5, ticker='PYTH', order_side=OrderSide.SELL, int_price=1100, volume=10)
     assert len(trades) == 0, f'unexpected trade'
     check_depth_aggregated(lob, 5)
 
@@ -63,11 +64,11 @@ def test_double_limit_order_book_update_1():
 
     lob = DoubleLimitOrderBook()
 
-    trades = lob.order_insert(order_id=1, ticker='PYTH', order_side='BUY', int_price=999, volume=5)
+    trades = lob.order_insert(order_id=1, ticker='PYTH', order_side=OrderSide.BUY, int_price=999, volume=5)
     #assert trades is None, 'trades'
     assert len(trades) == 0, 'trades'
 
-    trades = lob.order_insert(order_id=2, ticker='PYTH', order_side='SELL', int_price=1000, volume=10)
+    trades = lob.order_insert(order_id=2, ticker='PYTH', order_side=OrderSide.SELL, int_price=1000, volume=10)
     #assert trades is None, 'trades'
     assert len(trades) == 0, 'trades'
 
@@ -93,11 +94,11 @@ def test_double_limit_order_book_update_2():
 
     lob = DoubleLimitOrderBook()
 
-    trades = lob.order_insert(order_id=1, ticker='PYTH', order_side='BUY', int_price=999, volume=5)
+    trades = lob.order_insert(order_id=1, ticker='PYTH', order_side=OrderSide.BUY, int_price=999, volume=5)
     assert len(trades) == 0, 'trades'
 
-    trades = lob.order_insert(order_id=2, ticker='PYTH', order_side='SELL', int_price=1000, volume=10)
-    trades = lob.order_insert(order_id=3, ticker='PYTH', order_side='SELL', int_price=1000, volume=10)
+    trades = lob.order_insert(order_id=2, ticker='PYTH', order_side=OrderSide.SELL, int_price=1000, volume=10)
+    trades = lob.order_insert(order_id=3, ticker='PYTH', order_side=OrderSide.SELL, int_price=1000, volume=10)
     assert len(trades) == 0, 'trades'
 
     trades = lob.order_update(order_id=1, int_price=1000, volume=15)
@@ -134,11 +135,11 @@ def test_double_limit_order_book_update_3():
 
     lob = DoubleLimitOrderBook()
 
-    trades = lob.order_insert(order_id=1, ticker='PYTH', order_side='BUY', int_price=999, volume=5)
+    trades = lob.order_insert(order_id=1, ticker='PYTH', order_side=OrderSide.BUY, int_price=999, volume=5)
     assert len(trades) == 0, 'trades'
 
-    trades = lob.order_insert(order_id=2, ticker='PYTH', order_side='SELL', int_price=1000, volume=10)
-    trades = lob.order_insert(order_id=3, ticker='PYTH', order_side='SELL', int_price=1000, volume=10)
+    trades = lob.order_insert(order_id=2, ticker='PYTH', order_side=OrderSide.SELL, int_price=1000, volume=10)
+    trades = lob.order_insert(order_id=3, ticker='PYTH', order_side=OrderSide.SELL, int_price=1000, volume=10)
     assert len(trades) == 0, 'trades'
 
     trades = lob.order_update(order_id=1, int_price=1010, volume=15)

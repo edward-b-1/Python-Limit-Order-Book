@@ -1,4 +1,5 @@
 
+from limit_order_book.order_side import OrderSide
 from limit_order_book.validate import *
 
 

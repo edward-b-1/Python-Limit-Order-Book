@@ -1,4 +1,5 @@
 
+from limit_order_book.order_side import OrderSide
 from limit_order_book.trade import Trade
 from limit_order_book.limit_order_book import Order
 
@@ -19,7 +20,7 @@ def test_order_no_match_different_ticker():
     order_1 = Order(
         order_id=1,
         ticker='PYTH',
-        order_side='BUY',
+        order_side=OrderSide.BUY,
         int_price=int_price,
         volume=volume,
     )
@@ -27,7 +28,7 @@ def test_order_no_match_different_ticker():
     order_2 = Order(
         order_id=2,
         ticker='JAVA',
-        order_side='SELL',
+        order_side=OrderSide.SELL,
         int_price=int_price,
         volume=volume,
     )
@@ -39,7 +40,7 @@ def test_order_no_match_different_ticker():
 # Test no matching order for same order_side
 def test_order_no_match_same_order_side():
     ticker = 'PYTH'
-    order_side = 'BUY'
+    order_side = OrderSide.BUY
     int_price = 1000
     volume = 10
 
@@ -71,7 +72,7 @@ def test_order_no_match_no_match_price():
     order_1 = Order(
         order_id=1,
         ticker=ticker,
-        order_side='BUY',
+        order_side=OrderSide.BUY,
         int_price=1000,
         volume=volume,
     )
@@ -79,7 +80,7 @@ def test_order_no_match_no_match_price():
     order_2 = Order(
         order_id=2,
         ticker=ticker,
-        order_side='SELL',
+        order_side=OrderSide.SELL,
         int_price=1010,
         volume=volume,
     )
@@ -97,7 +98,7 @@ def test_order_full_match_same_price():
     order_1 = Order(
         order_id=1,
         ticker=ticker,
-        order_side='BUY',
+        order_side=OrderSide.BUY,
         int_price=int_price,
         volume=volume,
     )
@@ -105,7 +106,7 @@ def test_order_full_match_same_price():
     order_2 = Order(
         order_id=2,
         ticker=ticker,
-        order_side='SELL',
+        order_side=OrderSide.SELL,
         int_price=int_price,
         volume=volume,
     )
@@ -130,7 +131,7 @@ def test_order_partial_maker_match_same_price():
     order_1 = Order(
         order_id=1,
         ticker=ticker,
-        order_side='BUY',
+        order_side=OrderSide.BUY,
         int_price=int_price,
         volume=20,
     )
@@ -138,7 +139,7 @@ def test_order_partial_maker_match_same_price():
     order_2 = Order(
         order_id=2,
         ticker=ticker,
-        order_side='SELL',
+        order_side=OrderSide.SELL,
         int_price=int_price,
         volume=10,
     )
@@ -165,7 +166,7 @@ def test_order_partial_taker_match_same_price():
     order_1 = Order(
         order_id=1,
         ticker=ticker,
-        order_side='BUY',
+        order_side=OrderSide.BUY,
         int_price=int_price,
         volume=10,
     )
@@ -173,7 +174,7 @@ def test_order_partial_taker_match_same_price():
     order_2 = Order(
         order_id=2,
         ticker=ticker,
-        order_side='SELL',
+        order_side=OrderSide.SELL,
         int_price=int_price,
         volume=20,
     )
@@ -200,7 +201,7 @@ def test_order_full_match_crossing_taker_price():
     order_1 = Order(
         order_id=1,
         ticker=ticker,
-        order_side='BUY',
+        order_side=OrderSide.BUY,
         int_price=2000,
         volume=volume,
     )
@@ -208,7 +209,7 @@ def test_order_full_match_crossing_taker_price():
     order_2 = Order(
         order_id=2,
         ticker=ticker,
-        order_side='SELL',
+        order_side=OrderSide.SELL,
         int_price=1000,
         volume=volume,
     )
@@ -233,7 +234,7 @@ def test_order_partial_maker_match_crossing_taker_price():
     order_1 = Order(
         order_id=1,
         ticker=ticker,
-        order_side='BUY',
+        order_side=OrderSide.BUY,
         int_price=2000,
         volume=20,
     )
@@ -241,7 +242,7 @@ def test_order_partial_maker_match_crossing_taker_price():
     order_2 = Order(
         order_id=2,
         ticker=ticker,
-        order_side='SELL',
+        order_side=OrderSide.SELL,
         int_price=1000,
         volume=10,
     )
@@ -267,7 +268,7 @@ def test_order_partial_taker_match_crossing_taker_price():
     order_1 = Order(
         order_id=1,
         ticker=ticker,
-        order_side='BUY',
+        order_side=OrderSide.BUY,
         int_price=2000,
         volume=10,
     )
@@ -275,7 +276,7 @@ def test_order_partial_taker_match_crossing_taker_price():
     order_2 = Order(
         order_id=2,
         ticker=ticker,
-        order_side='SELL',
+        order_side=OrderSide.SELL,
         int_price=1000,
         volume=20,
     )
@@ -302,7 +303,7 @@ def test_order_full_match_crossing_taker_price_reversed():
     order_1 = Order(
         order_id=1,
         ticker=ticker,
-        order_side='SELL',
+        order_side=OrderSide.SELL,
         int_price=1000,
         volume=volume,
     )
@@ -310,7 +311,7 @@ def test_order_full_match_crossing_taker_price_reversed():
     order_2 = Order(
         order_id=2,
         ticker=ticker,
-        order_side='BUY',
+        order_side=OrderSide.BUY,
         int_price=2000,
         volume=volume,
     )
@@ -335,7 +336,7 @@ def test_order_partial_maker_match_crossing_taker_price_reversed():
     order_1 = Order(
         order_id=1,
         ticker=ticker,
-        order_side='SELL',
+        order_side=OrderSide.SELL,
         int_price=1000,
         volume=20,
     )
@@ -343,7 +344,7 @@ def test_order_partial_maker_match_crossing_taker_price_reversed():
     order_2 = Order(
         order_id=2,
         ticker=ticker,
-        order_side='BUY',
+        order_side=OrderSide.BUY,
         int_price=2000,
         volume=10,
     )
@@ -369,7 +370,7 @@ def test_order_partial_taker_match_crossing_taker_price_reversed():
     order_1 = Order(
         order_id=1,
         ticker=ticker,
-        order_side='SELL',
+        order_side=OrderSide.SELL,
         int_price=1000,
         volume=10,
     )
@@ -377,7 +378,7 @@ def test_order_partial_taker_match_crossing_taker_price_reversed():
     order_2 = Order(
         order_id=2,
         ticker=ticker,
-        order_side='BUY',
+        order_side=OrderSide.BUY,
         int_price=2000,
         volume=20,
     )

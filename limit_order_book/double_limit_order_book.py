@@ -1,4 +1,5 @@
 
+from limit_order_book.order_side import OrderSide
 from limit_order_book.limit_order_book import LimitOrderBook
 from limit_order_book.order import Order
 from limit_order_book.trade import Trade
@@ -9,16 +10,16 @@ class DoubleLimitOrderBook:
     def __init__(self):
         # SIDE -> TICKER -> PRICE_LEVEL -> list of volumes
         self._double_limit_order_book = {
-            'BUY': LimitOrderBook(order_side='BUY'),
-            'SELL': LimitOrderBook(order_side='SELL'),
+            OrderSide.BUY: LimitOrderBook(order_side=OrderSide.BUY),
+            OrderSide.SELL: LimitOrderBook(order_side=OrderSide.SELL),
         }
 
     def __repr__(self) -> str:
         return str(self)
 
     def __str__(self) -> str:
-        buy_side_tickers = self._double_limit_order_book['BUY'].tickers()
-        sell_side_tickers = self._double_limit_order_book['SELL'].tickers()
+        buy_side_tickers = self._double_limit_order_book[OrderSide.BUY].tickers()
+        sell_side_tickers = self._double_limit_order_book[OrderSide.SELL].tickers()
 
         tickers = buy_side_tickers
         for ticker in sell_side_tickers:
@@ -30,18 +31,18 @@ class DoubleLimitOrderBook:
         def format_order_book_ticker_str(ticker: str, include_buy_side: bool, include_sell_side: bool) -> str:
             order_book_str = f'==={ticker}==='
             if include_sell_side:
-                order_book_sell_side_str = self._double_limit_order_book['SELL'].to_str(ticker)
+                order_book_sell_side_str = self._double_limit_order_book[OrderSide.SELL].to_str(ticker)
                 order_book_str += f'\n{order_book_sell_side_str}'
             if include_buy_side:
-                order_book_buy_side_str = self._double_limit_order_book['BUY'].to_str(ticker)
+                order_book_buy_side_str = self._double_limit_order_book[OrderSide.BUY].to_str(ticker)
                 order_book_str += f'\n{order_book_buy_side_str}'
             #order_book_str += f'\n{order_book_sell_side_str}\n{order_book_buy_side_str}'
             return order_book_str
 
         order_book_strs = []
         for ticker in tickers:
-            total_volume_sell_side = self._double_limit_order_book['SELL'].volume(ticker)
-            total_volume_buy_side = self._double_limit_order_book['BUY'].volume(ticker)
+            total_volume_sell_side = self._double_limit_order_book[OrderSide.SELL].volume(ticker)
+            total_volume_buy_side = self._double_limit_order_book[OrderSide.BUY].volume(ticker)
             if total_volume_sell_side == 0 and total_volume_buy_side == 0:
                 continue
             print(f'ticker={ticker}, volume: {total_volume_buy_side}, {total_volume_sell_side}')
@@ -52,8 +53,8 @@ class DoubleLimitOrderBook:
         return order_book_str
 
     def debug_str(self) -> str:
-        buy_side = self._double_limit_order_book['BUY']
-        sell_side = self._double_limit_order_book['SELL']
+        buy_side = self._double_limit_order_book[OrderSide.BUY]
+        sell_side = self._double_limit_order_book[OrderSide.SELL]
 
         return (
             f'{buy_side.debug_str()}\n'
@@ -61,32 +62,32 @@ class DoubleLimitOrderBook:
         )
 
     def _find_order_side_by_order_id(self, order_id: int) -> str:
-        limit_order_book_buy = self._double_limit_order_book['BUY']
-        limit_order_book_sell = self._double_limit_order_book['SELL']
+        limit_order_book_buy = self._double_limit_order_book[OrderSide.BUY]
+        limit_order_book_sell = self._double_limit_order_book[OrderSide.SELL]
 
         # TODO: consider using count here instead
         order_exists_in_buy_side = limit_order_book_buy.order_id_exists(order_id)
         order_exists_in_sell_side = limit_order_book_sell.order_id_exists(order_id)
 
         if order_exists_in_buy_side and not order_exists_in_sell_side:
-            return 'BUY'
+            return OrderSide.BUY
         elif not order_exists_in_buy_side and order_exists_in_sell_side:
-            return 'SELL'
+            return OrderSide.SELL
 
     def _find_limit_order_book_buy_order_side(self, order_side: str) -> LimitOrderBook:
-        # if order_side == 'BUY':
+        # if order_side == OrderSide.BUY:
         #     return True
-        # elif order_side == 'SELL':
+        # elif order_side == OrderSide.SELL:
         #     return True
         # else:
         #     return False
 
         limit_order_book = None
 
-        if order_side == 'BUY':
-            limit_order_book = self._double_limit_order_book['BUY']
-        elif order_side == 'SELL':
-            limit_order_book = self._double_limit_order_book['SELL']
+        if order_side == OrderSide.BUY:
+            limit_order_book = self._double_limit_order_book[OrderSide.BUY]
+        elif order_side == OrderSide.SELL:
+            limit_order_book = self._double_limit_order_book[OrderSide.SELL]
 
         if limit_order_book is None:
             raise RuntimeError(f'invalid order_side {order_side}')
@@ -107,10 +108,10 @@ class DoubleLimitOrderBook:
         )
 
     def _order_side_opposite(order_side: str) -> str:
-        if order_side == 'BUY':
-            return 'SELL'
-        elif order_side == 'SELL':
-            return 'BUY'
+        if order_side == OrderSide.BUY:
+            return OrderSide.SELL
+        elif order_side == OrderSide.SELL:
+            return OrderSide.BUY
         raise ValueError(f'invalid order_side {order_side}')
 
     def order_id_exists(self, order_id: int):
@@ -150,22 +151,22 @@ class DoubleLimitOrderBook:
             print(f'RETURN EARLY BECAUSE THE VOLUME IS ZERO <<<<<<<<<<<<<<<<')
             return trade_list
 
-        # if order_side == 'BUY':
+        # if order_side == OrderSide.BUY:
         #     # search price levels from the lowest sell to int_price (asc)
         #     # if lowest sell > int_price do nothing
         #     trades = limit_order_book_opposite.order_insert(order_id, ticker, order_side, int_price, volume)
 
-        # elif order_side == 'SELL':
+        # elif order_side == OrderSide.SELL:
         #     trades = limit_order_book_opposite.order_insert(order_id, ticker, order_side, int_price, volume)
         #     # search price levels from the highest buy to int_price (desc)
         #     # if highest buy < int_price do nothign
 
         # limit_order_book = None
 
-        # if order_side == 'BUY':
-        #     limit_order_book = self.double_limit_order_book['BUY']
-        # elif order_side == 'SELL':
-        #     limit_order_book = self.double_limit_order_book['SELL']
+        # if order_side == OrderSide.BUY:
+        #     limit_order_book = self.double_limit_order_book[OrderSide.BUY]
+        # elif order_side == OrderSide.SELL:
+        #     limit_order_book = self.double_limit_order_book[OrderSide.SELL]
 
         # if limit_order_book is None:
         #     raise RuntimeError(f'invalid order_side {order_side}')
@@ -203,11 +204,11 @@ class DoubleLimitOrderBook:
             return trade_list
         return []
 
-        # if order_side == 'BUY':
-        #     limit_order_book_buy = self.double_limit_order_book['BUY']
+        # if order_side == OrderSide.BUY:
+        #     limit_order_book_buy = self.double_limit_order_book[OrderSide.BUY]
         #     limit_order_book_buy.order_update(order_id, int_price, volume)
-        # elif order_side == 'SELL':
-        #     limit_order_book_sell = self.double_limit_order_book['SELL']
+        # elif order_side == OrderSide.SELL:
+        #     limit_order_book_sell = self.double_limit_order_book[OrderSide.SELL]
         #     limit_order_book_sell.order_update(order_id, int_price, volume)
         # else:
         #     raise RuntimeError(f'cannot update order which exists in both buy and sell side book with order_id {order_id}')
@@ -220,11 +221,11 @@ class DoubleLimitOrderBook:
         limit_order_book = self._find_limit_order_book_buy_order_side(order_side)
         limit_order_book.order_cancel(order_id)
 
-        # if order_side == 'BUY':
-        #     limit_order_book_buy = self.double_limit_order_book['BUY']
+        # if order_side == OrderSide.BUY:
+        #     limit_order_book_buy = self.double_limit_order_book[OrderSide.BUY]
         #     limit_order_book_buy.order_cancel(order_id)
-        # elif order_side == 'SELL':
-        #     limit_order_book_sell = self.double_limit_order_book['SELL']
+        # elif order_side == OrderSide.SELL:
+        #     limit_order_book_sell = self.double_limit_order_book[OrderSide.SELL]
         #     limit_order_book_sell.order_cancel(order_id)
         # else:
         #     raise RuntimeError(f'cannot cancel order which exists in both buy and sell side book with order_id {order_id}')

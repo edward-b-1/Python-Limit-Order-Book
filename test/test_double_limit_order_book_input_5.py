@@ -1,4 +1,5 @@
 
+from limit_order_book.order_side import OrderSide
 from limit_order_book.double_limit_order_book import DoubleLimitOrderBook
 from limit_order_book.trade import Trade
 
@@ -26,19 +27,19 @@ def test_double_limit_order_book_input_5():
     lob = DoubleLimitOrderBook()
 
     # INSERT,1,FFLY,BUY,45.95,5
-    trades = lob.order_insert(order_id=1, ticker='FFLY', order_side='BUY', int_price=459500, volume=5)
+    trades = lob.order_insert(order_id=1, ticker='FFLY', order_side=OrderSide.BUY, int_price=459500, volume=5)
     assert len(trades) == 0, 'trades'
 
     # INSERT,2,FFLY,BUY,45.95,6
-    trades = lob.order_insert(order_id=2, ticker='FFLY', order_side='BUY', int_price=459500, volume=6)
+    trades = lob.order_insert(order_id=2, ticker='FFLY', order_side=OrderSide.BUY, int_price=459500, volume=6)
     assert len(trades) == 0, 'trades'
 
     # INSERT,3,FFLY,BUY,45.95,12
-    trades = lob.order_insert(order_id=3, ticker='FFLY', order_side='BUY', int_price=459500, volume=12)
+    trades = lob.order_insert(order_id=3, ticker='FFLY', order_side=OrderSide.BUY, int_price=459500, volume=12)
     assert len(trades) == 0, 'trades'
 
     # INSERT,4,FFLY,SELL,46,8
-    trades = lob.order_insert(order_id=4, ticker='FFLY', order_side='SELL', int_price=460000, volume=8)
+    trades = lob.order_insert(order_id=4, ticker='FFLY', order_side=OrderSide.SELL, int_price=460000, volume=8)
     assert len(trades) == 0, 'trades'
 
     # UPDATE,2,46,3
@@ -49,7 +50,7 @@ def test_double_limit_order_book_input_5():
     assert trade == expected_trade, f'{trade} != {expected_trade}'
 
     # INSERT,5,FFLY,SELL,45.95,1
-    trades = lob.order_insert(order_id=5, ticker='FFLY', order_side='SELL', int_price=459500, volume=1)
+    trades = lob.order_insert(order_id=5, ticker='FFLY', order_side=OrderSide.SELL, int_price=459500, volume=1)
     assert len(trades) == 1, f'unexpected trades'
     trade = trades[0]
     expected_trade = Trade(ticker='FFLY', int_price=459500, volume=1, order_id_maker=1, order_id_taker=5)
@@ -60,7 +61,7 @@ def test_double_limit_order_book_input_5():
     assert len(trades) == 0, 'trades'
 
     # INSERT,6,FFLY,SELL,45.95,1
-    trades = lob.order_insert(order_id=6, ticker='FFLY', order_side='SELL', int_price=459500, volume=1)
+    trades = lob.order_insert(order_id=6, ticker='FFLY', order_side=OrderSide.SELL, int_price=459500, volume=1)
     assert len(trades) == 1, f'unexpected trades'
     trade = trades[0]
     expected_trade = Trade(ticker='FFLY', int_price=459500, volume=1, order_id_maker=1, order_id_taker=6)
@@ -71,7 +72,7 @@ def test_double_limit_order_book_input_5():
     assert len(trades) == 0, 'trades'
 
     # INSERT,7,FFLY,SELL,45.95,1
-    trades = lob.order_insert(order_id=7, ticker='FFLY', order_side='SELL', int_price=459500, volume=1)
+    trades = lob.order_insert(order_id=7, ticker='FFLY', order_side=OrderSide.SELL, int_price=459500, volume=1)
     assert len(trades) == 1, f'unexpected trades'
     trade = trades[0]
     expected_trade = Trade(ticker='FFLY', int_price=459500, volume=1, order_id_maker=3, order_id_taker=7)

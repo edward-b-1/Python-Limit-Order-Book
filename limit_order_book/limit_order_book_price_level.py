@@ -1,6 +1,7 @@
 
 from functools import reduce
 
+from limit_order_book.order_side import OrderSide
 from limit_order_book.validate import *
 from limit_order_book.order import Order
 from limit_order_book.trade import Trade
@@ -35,9 +36,9 @@ class LimitOrderBookPriceLevel:
     #     return price_level_str
     def __str__(self) -> str:
         # price_levels = None
-        # if self._order_side == 'SELL':
+        # if self._order_side == OrderSide.SELL:
         #     price_levels = list(reversed(sorted(self._price_levels.keys())))
-        # elif self._order_side == 'BUY':
+        # elif self._order_side == OrderSide.BUY:
         #     price_levels = list(reversed(sorted(self._price_levels.keys())))
         price_levels = list(reversed(sorted(self._price_levels.keys())))
 
@@ -76,7 +77,7 @@ class LimitOrderBookPriceLevel:
         order_side = order.to_order_side()
         int_price = order.to_int_price()
 
-        if order_side == 'BUY' and self._order_side == 'SELL':
+        if order_side == OrderSide.BUY and self._order_side == OrderSide.SELL:
             price_levels = sorted(self._price_levels.keys())
 
             matching_price_levels = (
@@ -106,7 +107,7 @@ class LimitOrderBookPriceLevel:
                 # )
             print(f'LimitOrderBookPriceLevel _order_insert: returning trades {trade_list} order_side={order_side}')
             return trade_list
-        elif order_side == 'SELL' and self._order_side == 'BUY':
+        elif order_side == OrderSide.SELL and self._order_side == OrderSide.BUY:
             price_levels = (
                 list(
                     reversed(
@@ -153,12 +154,12 @@ class LimitOrderBookPriceLevel:
         # it does not matter if order_side is the same or different,
         # call the same logic (NOTE: can't be done remove this comment)
         # trades = None
-        # if order_side == 'BUY':
+        # if order_side == OrderSide.BUY:
         #     # search price levels from the lowest sell to int_price (asc)
         #     # if lowest sell > int_price do nothing
         #     trades = limit_order_book_opposite.order_insert(order_id, ticker, order_side, int_price, volume)
 
-        # elif order_side == 'SELL':
+        # elif order_side == OrderSide.SELL:
         #     trades = limit_order_book_opposite.order_insert(order_id, ticker, order_side, int_price, volume)
         #     # search price levels from the highest buy to int_price (desc)
         #     # if highest buy < int_price do nothing
@@ -360,8 +361,8 @@ class LimitOrderBookPriceLevel:
             order.set_int_price(int_price)
             order.set_volume(volume)
             if (
-                (order.order_side == 'BUY' and order.int_price < existing_order_int_price) or
-                (order.order_side == 'SELL' and order.int_price > existing_order_int_price)
+                (order.order_side == OrderSide.BUY and order.int_price < existing_order_int_price) or
+                (order.order_side == OrderSide.SELL and order.int_price > existing_order_int_price)
             ):
                 trade_list = self._price_levels[int_price].order_insert(order)
                 assert len(trade_list) == 0, f'unexpected order match'

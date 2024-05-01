@@ -1,5 +1,7 @@
 
 
+from limit_order_book.order_side import OrderSide
+
 VALIDATE_ORDER_ID_ERROR_STR = 'order_id cannot be negative'
 VALIDATE_TICKER_ERROR_STR = 'ticker cannot be empty string'
 VALIDATE_ORDER_SIDE_ERROR_STR = 'invalid order side'
@@ -13,7 +15,7 @@ def validate_ticker(ticker: str) -> bool:
     return len(ticker) > 0
 
 def validate_order_side(order_side: str) -> bool:
-    return order_side == 'BUY' or order_side == 'SELL'
+    return order_side == OrderSide.BUY or order_side == OrderSide.SELL
 
 def validate_int_price(int_price: int) -> bool:
     return int_price >= 0

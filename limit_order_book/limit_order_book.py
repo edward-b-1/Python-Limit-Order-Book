@@ -7,6 +7,7 @@ import re
 import sys
 from functools import reduce
 
+from limit_order_book.order_side import OrderSide
 from limit_order_book.validate import *
 from limit_order_book.order import Order
 from limit_order_book.trade import Trade

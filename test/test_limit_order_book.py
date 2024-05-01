@@ -1,4 +1,5 @@
 
+from limit_order_book.order_side import OrderSide
 from limit_order_book.limit_order_book import LimitOrderBook
 from limit_order_book.order import Order
 
@@ -6,7 +7,7 @@ from limit_order_book.order import Order
 def test_limit_order_book():
     ticker_pyth = 'PYTH'
     ticker_cpp = 'CPP'
-    order_side = 'BUY'
+    order_side = OrderSide.BUY
     int_price_1 = 1000
 
     limit_order_book = LimitOrderBook(order_side=order_side)
@@ -63,12 +64,12 @@ def test_limit_order_book():
 
 
 def test_order_cancel():
-    limit_order_book = LimitOrderBook(order_side='BUY')
+    limit_order_book = LimitOrderBook(order_side=OrderSide.BUY)
 
     order = Order(
         order_id=1,
         ticker='PYTH',
-        order_side='BUY',
+        order_side=OrderSide.BUY,
         int_price=1000,
         volume=20,
     )
