@@ -45,7 +45,6 @@ class DoubleLimitOrderBook:
             total_volume_buy_side = self._double_limit_order_book[OrderSide.BUY].volume(ticker)
             if total_volume_sell_side == 0 and total_volume_buy_side == 0:
                 continue
-            print(f'ticker={ticker}, volume: {total_volume_buy_side}, {total_volume_sell_side}')
             order_book_strs.append(
                 format_order_book_ticker_str(ticker, total_volume_buy_side > 0, total_volume_sell_side > 0)
             )
@@ -75,13 +74,6 @@ class DoubleLimitOrderBook:
             return OrderSide.SELL
 
     def _find_limit_order_book_buy_order_side(self, order_side: str) -> LimitOrderBook:
-        # if order_side == OrderSide.BUY:
-        #     return True
-        # elif order_side == OrderSide.SELL:
-        #     return True
-        # else:
-        #     return False
-
         limit_order_book = None
 
         if order_side == OrderSide.BUY:
@@ -125,7 +117,6 @@ class DoubleLimitOrderBook:
         )
 
     def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int) -> list[Trade]:
-        print(f'DoubleLimitOrderBook.order_insert: order_id={order_id}, ticker={ticker}, order_side={order_side}, int_price={int_price}, volume={volume}')
 
         # check the order id doesn't exist
         if self.order_id_exists(order_id):
@@ -148,7 +139,6 @@ class DoubleLimitOrderBook:
         # TODO: bug: trading does not reduce volume
         trade_list = limit_order_book_opposite.order_insert(order)
         if order.volume == 0:
-            print(f'RETURN EARLY BECAUSE THE VOLUME IS ZERO <<<<<<<<<<<<<<<<')
             return trade_list
 
         # if order_side == OrderSide.BUY:
@@ -178,13 +168,10 @@ class DoubleLimitOrderBook:
         no_trades = limit_order_book.order_insert(order)
         assert len(no_trades) == 0, f'unexpected trade generated'
 
-        print(f'DoubleLimitOrderBook returning trades {trade_list}')
         return trade_list
 
     def order_update(self, order_id: int, int_price: int, volume: int) -> list[Trade]:
-        print(f'DoubleLimitOrderBook.order_update: order_id={order_id}, int_price={int_price}, volume={volume}')
         order_side = self._find_order_side_by_order_id(order_id)
-        print(f'found order_side={order_side}')
 
         # TODO: _find_limit_order_book_by_order_id
         limit_order_book = self._find_limit_order_book_buy_order_side(order_side)
@@ -214,7 +201,6 @@ class DoubleLimitOrderBook:
         #     raise RuntimeError(f'cannot update order which exists in both buy and sell side book with order_id {order_id}')
 
     def order_cancel(self, order_id: int):
-        print(f'DoubleLimitOrderBook.order_cancel: order_id={order_id}')
         order_side = self._find_order_side_by_order_id(order_id)
 
         # TODO: _find_limit_order_book_by_order_id

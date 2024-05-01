@@ -72,11 +72,9 @@ class PriceLevel:
             while taker_order.volume > 0 and len(self._price_level) > 0:
                 maker_order = self._price_level[0]
                 trade = maker_order.match(taker_order)
-                print(f'trade: {trade}')
                 if trade is not None:
                     trade_list.append(trade)
                     self._remove_orders_with_zero_volume()
-            print(f'price_level _order_insert: trade_list={trade_list}')
             return trade_list
         else:
             self._price_level.append(order)
@@ -190,7 +188,6 @@ class PriceLevel:
             pass
         else:
             # reduce order priority if order volume is increased
-            print(f'volume increased, reduce priority')
             self._remove_orders_by_order_id(order_id)
             trade_list = self._order_insert(existing_order)
             assert len(trade_list) == 0, f'unexpected order match'

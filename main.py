@@ -1,3 +1,91 @@
+#!/bin/python3
+
+'''
+    Hashmap like operations:
+
+    - insert
+    - update (special operation) (can change price and volume)
+    - delete
+    - _get (for testing)
+    - _find/_filter (for validation/logic consistency checking)
+
+    - _find (is always by order_id)
+    - _get (is always by order_id)
+
+    Note: Changing price or volume causes order to lose priority, unless the only change
+    is to decrease the volume.
+'''
+
+'''
+ Run the matching engine for a list of input operations and returns the trades and orderbooks in a
+ csv-like format. Every command starts with either "INSERT", "UPDATE" or "CANCEL" with additional
+ data in the columns after the command.
+
+ In case of insert the line will have the format:
+ INSERT,<order_id>,<symbol>,<side>,<price>,<volume>
+ e.g. INSERT,4,FFLY,BUY,23.45,12
+
+ In case of update the line will have the format:
+ UPDATE,<order_id>,<price>,<volume>
+ e.g. UPDATE,4,23.12,11
+
+ In case of cancel the line will have the format:
+ CANCEL,<order_id>
+ e.g. CANCEL,4
+
+ Side will always be "BUY" or "SELL".
+ A price is a string with a maximum of 4 digits behind the ".", so "2.1427" and "33.42" would be
+ valid prices but "2.14275" would not be a valid price since it has more than 4 digits behind the
+ comma.
+ A volume will be an integer
+
+ The expected output is:
+ - List of trades in chronological order with the format:
+   <symbol>,<price>,<volume>,<taker_order_id>,<maker_order_id>
+   e.g. FFLY,23.55,11,4,7
+   The maker order is the one being removed from the order book, the taker order is the incoming one nmatching it.
+ - Then, per symbol (in alphabetical order):
+   - separator "===<symbol>==="
+   - bid and ask price levels (sorted best to worst by price) for that symbol in the format:
+     SELL,<ask_price>,<ask_volume>
+     SELL,<ask_price>,<ask_volume>
+     BUY,<bid_price>,<bid_volume>
+     BUY,<bid_price>,<bid_volume>
+     e.g. SELL,25.67,102
+          SELL,25.56,34
+          BUY,25.52,23
+          BUY,25.51,11
+          BUY,25.43,4
+'''
+
+
+
+'''
+    ****************************************************************************
+
+    IMPROVEMENTS:
+
+    - Use typeguard
+    - Implement an AST + Parser to handle incoming stream of text based
+      instructions for order book
+    - Use pytest or other testing framework (obviously doesn't work with
+      HackerRank)
+    - Split into multiple modules, packages (again does not work with
+      HackerRank)
+    - Add TTL for orders (time based order expiry)
+
+
+    ****************************************************************************
+'''
+
+# TODO:
+# decide on the set of operations which are common (public and private) to all data structures
+# there should be some common operations between DoubleSidedLimitOrderBook, LimitOrderBook,
+# LimitOrderBookPriceLevel and PriceLevel
+# TODO: for DoubleSidedLimitOrderBook write complex logic to test the depth
+# by inserting sequences of orders and checking after every insert,
+# this logic should test all code paths
+
 
 import os
 
@@ -7,27 +95,35 @@ from limit_order_book.double_limit_order_book import DoubleLimitOrderBook
 from util_io.util_parse import parse_price_string_and_convert_to_int_price
 from util_io.util_encode import encode_trades
 
+# Examples:
+#
 #  INSERT,<order_id>,<symbol>,<side>,<price>,<volume>
 #  e.g. INSERT,4,FFLY,BUY,23.45,12
-
+#
 #  UPDATE,<order_id>,<price>,<volume>
 #  e.g. UPDATE,4,23.12,11
-
+#
 #  CANCEL,<order_id>
 #  e.g. CANCEL,4
 
 
 def runMatchingEngine(operations: list[str]) -> list[str]:
+    '''
+    Parameters:
+
+        - operations: list of string operations
+
+    Returns:
+
+        - list representing trades and order book state
+    '''
+
     # TODO ast parser
 
     lob = DoubleLimitOrderBook()
     trades = []
 
     for operation in operations:
-        print(f'>>>> CURRENT STATE')
-        print(trades)
-        print(lob.debug_str())
-
         split_operation = operation.split(',')
         assert len(split_operation) > 1, 'invalid operation'
 
@@ -64,8 +160,6 @@ def runMatchingEngine(operations: list[str]) -> list[str]:
         else:
             raise ValueError(f'invalid opcode: {operation_opcode}')
 
-    print(trades)
-
     return_data = []
     if len(trades) > 0:
         encoded_trades = encode_trades(trades)
@@ -83,8 +177,6 @@ if __name__ == '__main__':
     fptr = open(os.environ['OUTPUT_PATH'], 'w')
 
     operations_count = int(input().strip())
-    print(f'operations_count={operations_count}')
-
     operations = []
 
     for _ in range(operations_count):

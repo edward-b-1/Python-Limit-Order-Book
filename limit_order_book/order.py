@@ -112,6 +112,10 @@ class Order:
 
     ############################################################################
 
+    # These methods are intended to be used when missing data should result
+    # in an error. If the data is intended to be optional, then access the
+    # member data directly.
+
     def to_order_id(self) -> int:
         assert validate_order_id(self.order_id), VALIDATE_ORDER_ID_ERROR_STR
         return self.order_id
@@ -135,7 +139,6 @@ class Order:
     ############################################################################
 
     def match(self, taker_order) -> Trade|None:
-        print(f'match: {self}, {taker_order}')
         '''
             The Maker order must be self. The Taker order must be order.
 
@@ -173,13 +176,10 @@ class Order:
         maker_volume = maker_order.volume - match_volume
         taker_volume = taker_order.volume - match_volume
 
-        # TODO:
         # NOTE: it is the responsibility of the managing data structure to
         # filter orders which have zero remaining volume
         maker_order.volume = maker_volume
         taker_order.volume = taker_volume
-        print(f'remaining maker volume: {maker_order.volume}')
-        print(f'remaining taker volume: {taker_order.volume}')
 
         trade = Trade(
             order_id_maker=maker_order.order_id,

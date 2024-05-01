@@ -91,10 +91,7 @@ class LimitOrderBookPriceLevel:
 
             trade_list = []
             for price_level in matching_price_levels:
-                print(f'checking for match at price level {price_level}')
                 for trade in self._price_levels[price_level].order_insert(order):
-                    print(f'next trade: {trade}')
-                    print(f'remaining order volume: {order.volume}')
                     trade_list.append(trade)
                 # trades.append(
                 #     [
@@ -105,7 +102,6 @@ class LimitOrderBookPriceLevel:
                 #         )
                 #     ]
                 # )
-            print(f'LimitOrderBookPriceLevel _order_insert: returning trades {trade_list} order_side={order_side}')
             return trade_list
         elif order_side == OrderSide.SELL and self._order_side == OrderSide.BUY:
             price_levels = (
@@ -129,10 +125,7 @@ class LimitOrderBookPriceLevel:
 
             trade_list = []
             for price_level in matching_price_levels:
-                print(f'checking for match at price level {price_level}')
                 for trade in self._price_levels[price_level].order_insert(order):
-                    print(f'next trade: {trade}')
-                    print(f'remaining order volume: {order.volume}')
                     trade_list.append(trade)
                 # trades.append(
                 #     trade for trade in
@@ -143,12 +136,10 @@ class LimitOrderBookPriceLevel:
                 #         )
                 #     ]
                 # )
-            print(f'LimitOrderBookPriceLevel _order_insert: returning trades {trade_list} order_side={order_side}')
             return trade_list
         else:
             trade_list = self._price_levels[int_price].order_insert(order)
             assert len(trade_list) == 0, 'unexpected trade generated'
-            print(f'LimitOrderBookPriceLevel _order_insert: returning trades {trade_list} (same order side)')
             return trade_list
 
         # it does not matter if order_side is the same or different,
@@ -307,12 +298,6 @@ class LimitOrderBookPriceLevel:
             )
         )
 
-    # def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int):
-    #     assert validate_ticker(ticker), VALIDATE_TICKER_ERROR_STR
-    #     assert validate_order_side(order_side), VALIDATE_INT_PRICE_ERROR_STR
-    #     assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
-    #     assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
-
     def order_insert(self, order: Order) -> list[Trade]:
         int_price = order.to_int_price()
         self._initialize_price_level(int_price)
@@ -320,14 +305,10 @@ class LimitOrderBookPriceLevel:
         order_id = order.order_id
 
         # check the order id doesn't exist
-        # TODO: check this logic exists in LimitOrderBook and DoubleLimitOrderBook
         if self.order_id_exists(order_id):
             raise RuntimeError(f'cannot insert order with existing order_id {order_id}')
 
-        # TODO: why was this here? does nothing
-        #partial_order = partial_order.with_int_price(int_price)
         trade_list = self._order_insert(order)
-        print(f'LimitOrderBookPriceLevel order_insert returning trades {trade_list}')
         return trade_list
 
     def order_update(self, order_id: int, int_price: int, volume: int) -> Order|None:
@@ -344,20 +325,15 @@ class LimitOrderBookPriceLevel:
 
         # TODO write a test for both of these cases
         existing_order_int_price = self._find_order_price_level_by_order_id(order_id)
-        print(f'found existing int_price={existing_order_int_price}')
-        print(f'new int_price={int_price}')
         if existing_order_int_price == int_price:
             self._price_levels[existing_order_int_price].order_update(order_id, volume)
             return None
         else:
-            print(f'******** MOVING PRICE FROM {existing_order_int_price} TO {int_price} ********')
             ##existing_order: Order = self._get_order_by_order_id(order_id)
             ##existing_order.set_int_price(int_price)
             # TODO: add order_cancel_pop to return order or make order_cancel return the order
             # should it return a partial order with the int_price removed? (probably no?)
-            print(str(self._price_levels))
             order = self._price_levels[existing_order_int_price].order_cancel(order_id)
-            print(str(self._price_levels))
             order.set_int_price(int_price)
             order.set_volume(volume)
             if (

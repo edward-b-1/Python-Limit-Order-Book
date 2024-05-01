@@ -1,10 +1,4 @@
-#!/bin/python3
 
-import math
-import os
-import random
-import re
-import sys
 from functools import reduce
 
 from limit_order_book.order_side import OrderSide
@@ -13,101 +7,6 @@ from limit_order_book.order import Order
 from limit_order_book.trade import Trade
 
 from limit_order_book.limit_order_book_price_level import LimitOrderBookPriceLevel
-
-
-
-'''
-    Hashmap like operations:
-
-    - insert
-    - update (special operation) (can change price and volume)
-    - delete
-    - _get (for testing)
-    - _find/_filter (for validation/logic consistency checking)
-
-    - _find (is always by order_id)
-    - _get (is always by order_id)
-
-    Note: Changing price or volume causes order to lose priority, unless the only change
-    is to decrease the volume.
-'''
-
-'''
- Run the matching engine for a list of input operations and returns the trades and orderbooks in a
- csv-like format. Every command starts with either "INSERT", "UPDATE" or "CANCEL" with additional
- data in the columns after the command.
-
- In case of insert the line will have the format:
- INSERT,<order_id>,<symbol>,<side>,<price>,<volume>
- e.g. INSERT,4,FFLY,BUY,23.45,12
-
- In case of update the line will have the format:
- UPDATE,<order_id>,<price>,<volume>
- e.g. UPDATE,4,23.12,11
-
- In case of cancel the line will have the format:
- CANCEL,<order_id>
- e.g. CANCEL,4
-
- Side will always be "BUY" or "SELL".
- A price is a string with a maximum of 4 digits behind the ".", so "2.1427" and "33.42" would be
- valid prices but "2.14275" would not be a valid price since it has more than 4 digits behind the
- comma.
- A volume will be an integer
-
- The expected output is:
- - List of trades in chronological order with the format:
-   <symbol>,<price>,<volume>,<taker_order_id>,<maker_order_id>
-   e.g. FFLY,23.55,11,4,7
-   The maker order is the one being removed from the order book, the taker order is the incoming one nmatching it.
- - Then, per symbol (in alphabetical order):
-   - separator "===<symbol>==="
-   - bid and ask price levels (sorted best to worst by price) for that symbol in the format:
-     SELL,<ask_price>,<ask_volume>
-     SELL,<ask_price>,<ask_volume>
-     BUY,<bid_price>,<bid_volume>
-     BUY,<bid_price>,<bid_volume>
-     e.g. SELL,25.67,102
-          SELL,25.56,34
-          BUY,25.52,23
-          BUY,25.51,11
-          BUY,25.43,4
-'''
-
-#
-# Complete the 'runMatchingEngine' function below.
-#
-# The function is expected to return a STRING_ARRAY.
-# The function accepts STRING_ARRAY operations as parameter.
-#
-
-'''
-    ****************************************************************************
-
-    IMPROVEMENTS:
-
-    - Use typeguard
-    - Implement an AST + Parser to handle incoming stream of text based
-      instructions for order book
-    - Use pytest or other testing framework (obviously doesn't work with
-      HackerRank)
-    - Split into multiple modules, packages (again does not work with
-      HackerRank)
-    - Add TTL for orders (time based order expiry)
-
-
-    ****************************************************************************
-'''
-
-# TODO:
-# decide on the set of operations which are common (public and private) to all data structures
-# there should be some common operations between DoubleSidedLimitOrderBook, LimitOrderBook,
-# LimitOrderBookPriceLevel and PriceLevel
-# TODO: for DoubleSidedLimitOrderBook write complex logic to test the depth
-# by inserting sequences of orders and checking after every insert,
-# this logic should test all code paths
-
-
 
 class LimitOrderBook:
 
@@ -252,21 +151,8 @@ class LimitOrderBook:
 
     def volume(self, ticker: str) -> int:
         return self._limit_order_book[ticker].volume()
-        # return (
-        #     sum(
-        #         map(
-        #             lambda limit_order_book_price_level: limit_order_book_price_level.volume(),
-        #             self.limit_order_book.values(),
-        #         )
-        #     )
-        # )
 
-    # def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int):
-    #def order_insert(self, order_id: int, ticker: str, order_side: str, int_price: int, volume: int) -> list[Trade]|None:
     def order_insert(self, order: Order) -> list[Trade]:
-        # TODO: what is the point of Order? can't we just combine with an order
-        # TODO: elsewhere we are accessing members of partial_order directly which can
-        # return None rather than calling `to_XXX`
         order_id = order.to_order_id()
         ticker = order.to_ticker()
         self._initialize_ticker(ticker)
@@ -323,12 +209,6 @@ class LimitOrderBook:
         # insert the order into the lob
 
     def order_update(self, order_id: int, int_price: int, volume: int) -> Order|None:
-        # assert validate_int_price(int_price), VALIDATE_INT_PRICE_ERROR_STR
-        # assert validate_volume(volume) > 0, VALIDATE_VOLUME_ERROR_STR
-        # ^ removed, done by Order
-
-        # TODO: implement the below, copied from above
-
         # check the order id exists, and only once
         if self.order_id_count(order_id) == 0:
             raise RuntimeError(f'cannot update order with missing order_id {order_id}')
@@ -336,7 +216,6 @@ class LimitOrderBook:
             raise RuntimeError(f'cannot update order with duplicate order_id {order_id}')
 
         ticker = self._find_order_ticker_by_order_id(order_id)
-        print(f'found ticker {ticker}')
         order = self._limit_order_book[ticker].order_update(order_id, int_price, volume)
         return order
 
@@ -352,9 +231,3 @@ class LimitOrderBook:
         assert len(removed_orders) == 1, f'unexpected number of orders removed in order_cancel'
         order: Order = removed_orders[0]
         return order
-
-
-
-# TODO
-#if __name__ == '__main__':
-#    run_all_tests()

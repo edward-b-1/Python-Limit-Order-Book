@@ -90,8 +90,6 @@ def remove_order_by_order_id_from_list_of_orders_2(
     list_of_orders: list[Order],
     order_id: int,
 ) -> list[Order]:
-    # def filter_empty_list(list: list) -> bool:
-    #     return len(list) > 0
 
     filter_empty_list = lambda list: len(list) > 0
 
