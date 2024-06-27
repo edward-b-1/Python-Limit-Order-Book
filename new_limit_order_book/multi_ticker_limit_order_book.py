@@ -17,7 +17,7 @@ from new_limit_order_book.double_limit_order_book import DoubleLimitOrderBook
 class MultiTickerLimitOrderBook:
 
     def __init__(self):
-        self._limit_order_books = dict()
+        self._limit_order_books: dict[Ticker, DoubleLimitOrderBook] = {}
 
     def __repr__(self) -> str:
         pass
@@ -60,7 +60,7 @@ class MultiTickerLimitOrderBook:
             return price_level_changed_orders[0]
         return None
 
-    def cancel(self, order_id: OrderId) -> Order:
+    def cancel(self, order_id: OrderId) -> Order|None:
         cancelled_orders = (
             list(
                 filter(
