@@ -72,6 +72,8 @@ class DoubleLimitOrderBook:
             return OrderSide.BUY
         elif not order_exists_in_buy_side and order_exists_in_sell_side:
             return OrderSide.SELL
+        else:
+            raise RuntimeError(f'order id {order_id} not found')
 
     def _find_limit_order_book_buy_order_side(self, order_side: str) -> LimitOrderBook:
         limit_order_book = None
