@@ -25,6 +25,17 @@ class SingleSideLimitOrderBook():
         self._price_levels: dict[IntPrice, OrderPriorityQueue] = {}
 
 
+    def number_of_orders(self) -> int:
+        return (
+            sum(
+                map(
+                    lambda order_priority_queue: order_priority_queue.number_of_orders(),
+                    self._price_levels.values(),
+                )
+            )
+        )
+
+
     def trade(self, taker_order: Order) -> list[Trade]:
         assert taker_order.to_ticker() == self._ticker, f'SingleSideLimitOrderBook.trade ticker mismatch'
         assert taker_order.to_order_side().other_side() == self._order_side, f'SingleSideLimitOrderBook.trade order side mismatch'
@@ -162,7 +173,7 @@ class SingleSideLimitOrderBook():
         # return None
 
 
-    def cancel(self, order_id: OrderId) -> Order:
+    def cancel(self, order_id: OrderId) -> Order|None:
         cancelled_orders = (
             list(
                 filter(
@@ -198,23 +209,23 @@ class SingleSideLimitOrderBook():
         return len(matching_price_levels) == 1
 
 
-    def find_order_int_price_by_order_id(self, order_id: OrderId) -> OrderId|None:
-        matching_price_levels = (
-            list(
-                map(
-                    lambda price_level_key_value: price_level_key_value[0],
-                    filter(
-                        lambda price_level_key_value: price_level_key_value[1].order_id_exists(),
-                        self._price_levels.items(),
-                    )
-                )
-            )
-        )
+    # def find_order_int_price_by_order_id(self, order_id: OrderId) -> OrderId|None:
+    #     matching_price_levels = (
+    #         list(
+    #             map(
+    #                 lambda price_level_key_value: price_level_key_value[0],
+    #                 filter(
+    #                     lambda price_level_key_value: price_level_key_value[1].order_id_exists(),
+    #                     self._price_levels.items(),
+    #                 )
+    #             )
+    #         )
+    #     )
 
-        assert len(matching_price_levels) <= 1, f'SingleSideLimitOrderBook.find_order_int_price_by_order_id invalid number of order ids found'
-        if len(matching_price_levels) == 1:
-            return matching_price_levels[0]
-        return None
+    #     assert len(matching_price_levels) <= 1, f'SingleSideLimitOrderBook.find_order_int_price_by_order_id invalid number of order ids found'
+    #     if len(matching_price_levels) == 1:
+    #         return matching_price_levels[0]
+    #     return None
 
 
     # def find_order_by_order_id(self, order_id: OrderId) -> Order|None:
@@ -246,3 +257,23 @@ class SingleSideLimitOrderBook():
                     int_price=int_price,
                 )
             )
+
+
+    def top_of_book(self) -> tuple[IntPrice|None, Volume|None]:
+        if self._order_side == OrderSide.BUY:
+            if len(self._price_levels) > 0:
+                price_level = max(self._price_levels.keys())
+                volume = self._price_levels[price_level].total_volume()
+                return (price_level, volume)
+            else:
+                print(f'no price levels, buy side')
+                return (None, None)
+        elif self._order_side == OrderSide.SELL:
+            if len(self._price_levels) > 0:
+                price_level = min(self._price_levels.keys())
+                volume = self._price_levels[price_level].total_volume()
+                return (price_level, volume)
+            else:
+                print(f'no price levels, sell side')
+                return (None, None)
+
