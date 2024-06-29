@@ -6,6 +6,7 @@ from new_limit_order_book.types.volume import Volume
 from new_limit_order_book.order_side import OrderSide
 from new_limit_order_book.trade import Trade
 from new_limit_order_book.order import Order
+from new_limit_order_book.top_of_book import TopOfBook
 
 from new_limit_order_book.single_side_limit_order_book import SingleSideLimitOrderBook
 
@@ -32,6 +33,17 @@ class DoubleLimitOrderBook():
             OrderSide.BUY: self._buy_side_limit_order_book,
             OrderSide.SELL: self._sell_side_limit_order_book,
         }
+
+
+    def number_of_orders(self) -> int:
+        return (
+            sum(
+                map(
+                    lambda single_side_limit_order_book: single_side_limit_order_book.number_of_orders(),
+                    self._limit_order_book.values(),
+                )
+            )
+        )
 
 
     def trade(self, taker_order: Order) -> list[Trade]:
@@ -61,26 +73,29 @@ class DoubleLimitOrderBook():
     def update(self, order: Order) -> Order|None:
         assert order.to_ticker() == self._ticker, f'DoubleLimitOrderBook.update ticker mismatch'
 
-        price_level_changed_orders = (
-            list(
-                filter(
-                    lambda order: order is not None,
-                    map(
-                        lambda single_side_limit_order_book: single_side_limit_order_book.update(order),
-                        self._limit_order_book.values(),
-                    )
-                )
-            )
-        )
+        order_side = order.to_order_side()
+        price_level_changed_order = self._limit_order_book[order_side].update(order)
+        return price_level_changed_order
+        # price_level_changed_orders = (
+        #     list(
+        #         filter(
+        #             lambda order: order is not None,
+        #             map(
+        #                 lambda single_side_limit_order_book: single_side_limit_order_book.update(order),
+        #                 self._limit_order_book.values(),
+        #             )
+        #         )
+        #     )
+        # )
 
-        # the above filter logic means that this is actually not possible
-        assert len(price_level_changed_orders) <= 1, f'DoubleLimitOrderBook.update invalid number of modified price level orders'
-        if len(price_level_changed_orders) == 1:
-            return price_level_changed_orders[0]
-        return None
+        # # the above filter logic means that this is actually not possible
+        # assert len(price_level_changed_orders) <= 1, f'DoubleLimitOrderBook.update invalid number of modified price level orders'
+        # if len(price_level_changed_orders) == 1:
+        #     return price_level_changed_orders[0]
+        # return None
 
 
-    def cancel(self, order_id: OrderId) -> Order:
+    def cancel(self, order_id: OrderId) -> Order|None:
         cancelled_orders = (
             list(
                 filter(
@@ -115,3 +130,17 @@ class DoubleLimitOrderBook():
         assert len(matching_order_sides) <= 1, f'DoubleLimitOrderBook.order_id_exists invalid number of matching order sides'
         return len(matching_order_sides) == 1
 
+
+    def top_of_book(self) -> TopOfBook:
+
+        (int_price_buy, volume_buy) = self._buy_side_limit_order_book.top_of_book()
+        (int_price_sell, volume_sell) = self._sell_side_limit_order_book.top_of_book()
+
+        top_of_book = TopOfBook(
+            ticker=self._ticker,
+            int_price_buy=int_price_buy,
+            volume_buy=volume_buy,
+            int_price_sell=int_price_sell,
+            volume_sell=volume_sell,
+        )
+        return top_of_book

@@ -25,6 +25,10 @@ class OrderPriorityQueue():
         self._queue: list[Order] = []
 
 
+    def number_of_orders(self) -> int:
+        return len(self._queue)
+
+
     def trade(self, taker_order: Order) -> list[Trade]:
         assert taker_order.to_ticker() == self._ticker, f'OrderPriorityQueue.trade ticker mismatch'
         assert taker_order.to_order_side().other_side() == self._order_side, f'OrderPriorityQueue.trade order side mismatch'
@@ -73,7 +77,7 @@ class OrderPriorityQueue():
         assert len(existing_orders) <= 1, f'OrderPriorityQueue.update invalid number of orders found'
 
         if len(existing_orders) < 1:
-            return existing_orders
+            return None
         else:
             existing_order = existing_orders[0]
 
@@ -210,4 +214,15 @@ class OrderPriorityQueue():
         matched_orders = self._filter_orders_matching_order_id(order_id)
         self._queue = self._filter_orders_not_matching_order_id(order_id)
         return matched_orders
+
+    def total_volume(self) -> Volume:
+        total_volume = (
+            sum(
+                map(
+                    lambda order: order.to_volume()._volume,
+                    self._queue,
+                )
+            )
+        )
+        return Volume(total_volume)
 
