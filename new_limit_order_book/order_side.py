@@ -1,12 +1,12 @@
 
-from enum import Enum
+from enum import StrEnum
 
-class OrderSide(Enum):
-    BUY = 1
-    SELL = 2
+class OrderSide(StrEnum):
+    BUY = "BUY"
+    SELL = "SELL"
 
-    def __str__(self) -> str:
-        return str(self.name)
+    # def __str__(self) -> str:
+    #     return str(self.name)
 
     def other_side(self) :
         if self == OrderSide.BUY:
