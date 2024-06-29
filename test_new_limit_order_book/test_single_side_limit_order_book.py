@@ -46,3 +46,14 @@ def test_single_side_limit_order_book():
     assert lob.cancel(OrderId(1)) == order_1
     assert lob.cancel(OrderId(2)) == order_2
 
+
+def test_single_side_limit_order_book_cancel_without_previous_order():
+
+    ticker = Ticker('AAPL')
+    order_side = OrderSide.BUY
+
+    lob = SingleSideLimitOrderBook(
+        ticker=ticker,
+        order_side=order_side,
+    )
+    lob.cancel(order_id=OrderId(1))
