@@ -20,3 +20,14 @@ class IntPrice():
         if isinstance(other, IntPrice):
             return self._int_price < other._int_price
         raise NotImplementedError(f'not implemented')
+
+    def __ge__(self, other: object) -> bool:
+        return not self.__lt__(other)
+
+    def __gt__(self, other: object) -> bool:
+        if isinstance(other, IntPrice):
+            return self._int_price > other._int_price
+        raise NotImplementedError(f'not implemented')
+
+    def __le__(self, other: object) -> bool:
+        return not self.__gt__(other)
