@@ -9,7 +9,7 @@ from typeguard import typechecked
 
 
 @typechecked
-class Trade:
+class Trade():
 
     def __init__(
         self,
@@ -18,7 +18,7 @@ class Trade:
         ticker: Ticker,
         int_price: IntPrice,
         volume: Volume,
-    ):
+    ) -> None:
         self._order_id_maker = order_id_maker
         self._order_id_taker = order_id_taker
         self._ticker = ticker
