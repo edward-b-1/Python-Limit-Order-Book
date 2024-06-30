@@ -20,7 +20,7 @@ The webserver is running on a Linode. It has the IP address `176.58.122.148 (/24
 The following bash commands show how to run the CLI on Linux. You need to be in the root directory, such that the `limit_order_book_cli` directory is accessable from the current working directory. See the section on Setup Instructions for more information.
 
 ```
-$ cd new_limit_order_book_project
+$ cd Python-Limit-Order-Book
 $ python3 -m venv .venv
 $ source .venv/bin/activate
 $ pip3 install -r requirements.txt
