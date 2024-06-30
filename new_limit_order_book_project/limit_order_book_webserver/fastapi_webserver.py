@@ -99,13 +99,19 @@ def send_order(fastapi_order: FastAPI_Order):
         int_price=IntPrice(fastapi_order.price),
         volume=Volume(fastapi_order.volume),
     )
-    trades = limit_order_book.order_insert(order)
-    fastapi_trades = convert_trades_to_fastapi_trades(trades)
-    return FastAPI_ReturnStatusWithTrades(
-        status='success',
-        message=None,
-        trades=fastapi_trades,
-    )
+    try:
+        trades = limit_order_book.order_insert(order)
+        fastapi_trades = convert_trades_to_fastapi_trades(trades)
+        return FastAPI_ReturnStatusWithTrades(
+            status='success',
+            message=None,
+            trades=fastapi_trades,
+        )
+    except RuntimeError as error:
+        return FastAPI_ReturnStatus(
+            status='error',
+            message=str(error), # TODO: is this error good enough?
+        )
 
 @app.post('/cancel_order')
 def cancel_order(fastapi_order_id: FastAPI_OrderId):
@@ -193,6 +199,15 @@ def top_of_book(fastapi_ticker: FastAPI_Ticker):
     )
     print(r)
     return r
+
+@app.get('/ping')
+def ping():
+    return {
+        'status': 'success',
+        'message': None,
+        'ping': 'pong',
+    }
+
 
 shared_data = None
 
