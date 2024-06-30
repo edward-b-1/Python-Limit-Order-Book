@@ -69,7 +69,7 @@ The FastAPI wrapper package contains a minimal code to connect the Limit Order B
 
 The CLI package contains the Command Line Interface which can be used to send messages to the Limit Order Book webserver. The CLI is contained in the folder `limit_order_book_cli`.
 
-The Limit Orde Book and Webserver implementations are quite minimal. This isn't designed to be as robust as real production software. You could probably find a way to break it relatively easily. (One obvious example is sending so many orders that the system runs out of memory.) If you do break it, please let me know that it is broken and ideally tell me what you did to break it. That way I can fix it. (But please don't deliberatly run it out of memory as this is an obvious failure mode which I already know about.)
+The Limit Order Book and Webserver implementations are quite minimal. This isn't designed to be as robust as real production software. You could probably find a way to break it relatively easily. (One obvious example is sending so many orders that the system runs out of memory.) If you do break it, please let me know that it is broken and ideally tell me what you did to break it. That way I can fix it. (But please don't deliberatly run it out of memory as this is an obvious failure mode which I already know about.)
 
 Another fairly obvious shortcoming is that the CLI currently requires the user to supply an Order Id, but it does not provide a way to ask for a valid Order Id. The Order Id shouldn't be something the user has to supply. The Limit Order Book should generate a unique one for every order it receives. I will probably change this if I have time to do so.
 
@@ -78,7 +78,7 @@ Another fairly obvious shortcoming is that the CLI currently requires the user t
 Change directory to the root directory.
 
 ```
-$ cd Python-Limit-Order_book
+$ cd Python-Limit-Order-Book
 ```
 
 Setup a virtual environment with pip. You will need the appropriate Linux package to be installed for this to work. On Debian based systems `sudo apt install python3.XX-venv` should install it. `3.XX` is the version number. It must match with the output of `python3 --version`.
