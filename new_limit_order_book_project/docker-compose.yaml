@@ -1,0 +1,5 @@
+services:
+    python-limit-order-book:
+        build: .
+        ports:
+            - "80:80"
