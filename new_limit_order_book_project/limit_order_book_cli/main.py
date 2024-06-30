@@ -14,7 +14,9 @@ import json
 
 app = typer.Typer()
 
-base_url = f'http://127.0.0.1:5000'
+base_url = f'http://127.0.0.1:80'
+base_url = f'http://172.17.0.1:80'
+# 172.17.0.1
 
 def get_url(endpoint):
     return f'{base_url}{endpoint}'
