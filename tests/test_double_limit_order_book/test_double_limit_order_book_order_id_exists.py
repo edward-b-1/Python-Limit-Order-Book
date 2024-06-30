@@ -1,4 +1,8 @@
 
+# import os
+# with open('pythonpath.txt', 'w') as ofile:
+#     ofile.write(os.environ['PYTHONPATH'])
+
 import pytest
 
 from limit_order_book.types.order_id import OrderId

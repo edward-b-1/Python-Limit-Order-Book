@@ -44,13 +44,14 @@ class SingleSideLimitOrderBook():
         # but it should be filled at the lowest price possible if it is a buy
         # or the highest price possible if it is a sell
 
-        if taker_order.to_order_side() == OrderSide.BUY:
+        #if taker_order.to_order_side() == OrderSide.BUY:
+        if self._order_side == OrderSide.SELL:
             # search price levels from lowest sell price to highest sell price
             # where sell price is less than or equal to buy price
 
             buy_price = taker_order.to_int_price()
 
-            price_levels = (
+            sell_price_levels = (
                 list(
                     filter(
                         lambda key: key <= buy_price,
@@ -59,15 +60,17 @@ class SingleSideLimitOrderBook():
                 )
             )
 
-            price_levels = sorted(price_levels, reverse=False) # small/low/cheap price comes first
+            price_levels = sorted(sell_price_levels, reverse=False) # small/low/cheap price comes first
+            # lowest sell prices matched first, but matched at buy (bid) price
 
-        elif taker_order.to_order_side() == OrderSide.SELL:
+        #elif taker_order.to_order_side() == OrderSide.SELL:
+        elif self._order_side == OrderSide.BUY:
             # search price levels from highest buy price to lowest buy price
             # where buy price is greater than or equal to sell price
 
             sell_price = taker_order.to_int_price()
 
-            price_levels = (
+            buy_price_levels = (
                 list(
                     filter(
                         lambda key: key >= sell_price,
@@ -76,7 +79,8 @@ class SingleSideLimitOrderBook():
                 )
             )
 
-            price_levels = sorted(price_levels, reverse=True) # large/high/expensive price comes first
+            price_levels = sorted(buy_price_levels, reverse=True) # large/high/expensive price comes first
+            # highest buy prices matched first, but matched at sell (offer) price
 
         trade_list = []
         for price_level in price_levels:
@@ -84,7 +88,8 @@ class SingleSideLimitOrderBook():
                 # nothing further to match, quit
                 break
 
-            trades = price_level.trade(taker_order)
+            order_priority_queue = self._price_levels[price_level]
+            trades = order_priority_queue.trade(taker_order)
             if trades is not None:
                 trade_list += trades
             else:
