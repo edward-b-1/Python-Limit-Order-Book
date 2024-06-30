@@ -12,3 +12,6 @@ class OrderId():
         if isinstance(value, OrderId):
             return self._order_id == value._order_id
         return False
+
+    def to_int(self) -> int:
+        return self._order_id

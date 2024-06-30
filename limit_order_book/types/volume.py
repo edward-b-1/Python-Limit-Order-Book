@@ -30,3 +30,5 @@ class Volume():
     def is_not_zero(self) -> bool:
         return not self.is_zero()
 
+    def to_int(self) -> int:
+        return self._volume

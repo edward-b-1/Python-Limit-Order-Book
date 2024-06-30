@@ -31,3 +31,6 @@ class IntPrice():
 
     def __le__(self, other: object) -> bool:
         return not self.__gt__(other)
+
+    def to_int(self) -> int:
+        return self._int_price

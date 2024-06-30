@@ -1,5 +1,5 @@
-import os
-print(os.environ['PYTHONPATH'])
+# import os
+# print(os.environ['PYTHONPATH'])
 
 from limit_order_book.types.order_id import OrderId
 from limit_order_book.ticker import Ticker
