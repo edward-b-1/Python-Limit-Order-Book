@@ -114,3 +114,15 @@ Finally, run the CLI and print the help message. You can probably figure out the
 ```
 $ python3 -m limit_order_book_cli --help
 ```
+
+# Technology Stack and How Does It Work?
+
+The Limit Order Book is implemented with vanila Python. The only Python package used is `typeguard`. The Limit Order Book is a collection of containers (mostly dictionaries). It is designed to facilitate fast lookup and matching of orders. The code is written with an emphasis on functional style, and the general design philosophy used throughout is that functions should work in all contexts rather than raising exceptions. This leads to a fluid, rather than rigid, style of programming.
+
+- For example: The update function takes an Order with an Order Id, Ticker and Order Side. These values do not change. An Order also has a Price value and a Volume. These can be changed by the call to `update()`. Since this function updates an order, a previous order should already exist in the Limit Order Book. Rather than performing a search to find the existing price and volume values, the logic just calls the `update()` function on *all* price levels. If a price level does not contain the order which we want to update, then the code simply does nothing. But the point is the function succeeds rather than fails.
+
+The Webserver makes uses of the `FastAPI` web framework package. It provides a way to build robust and fast REST APIs quickly.
+
+The CLI uses a Python package which is a close relative of `FastAPI`. It makes writing CLIs relatively straightforward. The CLI uses the Python `requests` package to talk to the Webserver.
+
+The Webserver is Dockerized, meaning that there is a `Dockerfile` which is used to build a Docker container. This Docker container is used to run the Webserver in the cloud. There is also a `docker-compose.yaml` which makes building and running the container even more easy.
