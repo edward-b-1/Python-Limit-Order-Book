@@ -14,8 +14,10 @@ import json
 
 app = typer.Typer()
 
-base_url = f'http://127.0.0.1:80'
-base_url = f'http://172.17.0.1:80'
+#base_url = f'http://127.0.0.1:5000'
+#base_url = f'http://127.0.0.1:80'
+#base_url = f'http://172.17.0.1:80'
+base_url = f'http://176.58.122.148:80'
 # 172.17.0.1
 
 def get_url(endpoint):
@@ -143,9 +145,23 @@ def put(value: str):
     response_dict_json = json.dumps(response_dict, indent=4)
     print(f'{response_dict_json}')
 
+
 @app.command()
 def get():
     url = get_url('/get')
+    headers = {
+        'accept': 'application/json',
+    }
+    response = requests.get(url, headers=headers)
+    print(f'Status: {response.status_code}')
+    response_dict = response.json()
+    response_dict_json = json.dumps(response_dict, indent=4)
+    print(f'{response_dict_json}')
+
+
+@app.command()
+def ping():
+    url = get_url('/ping')
     headers = {
         'accept': 'application/json',
     }
