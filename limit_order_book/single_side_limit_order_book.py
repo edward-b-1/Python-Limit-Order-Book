@@ -271,7 +271,6 @@ class SingleSideLimitOrderBook():
                 volume = self._price_levels[price_level].total_volume()
                 return (price_level, volume)
             else:
-                print(f'no price levels, buy side')
                 return (None, None)
         elif self._order_side == OrderSide.SELL:
             if len(self._price_levels) > 0:
@@ -279,6 +278,5 @@ class SingleSideLimitOrderBook():
                 volume = self._price_levels[price_level].total_volume()
                 return (price_level, volume)
             else:
-                print(f'no price levels, sell side')
                 return (None, None)
 

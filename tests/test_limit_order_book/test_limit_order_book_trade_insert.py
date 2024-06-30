@@ -71,8 +71,6 @@ def test_multi_limit_order_book_top_of_book_buy_and_sell():
         volume=Volume(100),
     )
     trades = lob.order_insert(order_3)
-    for trade in trades:
-        print(trade)
 
     assert trades == [
         Trade(order_id_maker=OrderId(2), order_id_taker=OrderId(3), ticker=ticker, int_price=IntPrice(990), volume=Volume(20)),

@@ -328,8 +328,6 @@ def test_order_full_match_crossing_taker_price_reversed():
     )
 
     trade = order_maker.match(order_taker)
-    print(expected_trade)
-    print(trade)
     assert trade == expected_trade, f'unexpected trade data or no trade'
 
 # 2/3

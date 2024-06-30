@@ -54,8 +54,6 @@ class MultiTickerLimitOrderBook:
 
         self._limit_order_books[ticker].insert(order)
 
-        print(self._limit_order_books[ticker].top_of_book())
-
     def update(self, order: Order) -> Order|None:
         ticker = order.to_ticker()
         self._initialize_ticker(ticker)

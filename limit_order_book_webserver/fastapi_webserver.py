@@ -90,8 +90,8 @@ def root():
 
 @app.post('/send_order')
 def send_order(fastapi_order: FastAPI_Order):
-    print(os.getpid())
-    print(threading.get_native_id())
+    print(f'pid={os.getpid()}')
+    print(f'threading.native_id={threading.get_native_id()}')
     order = Order(
         order_id=OrderId(fastapi_order.order_id),
         ticker=Ticker(fastapi_order.ticker),
@@ -115,8 +115,8 @@ def send_order(fastapi_order: FastAPI_Order):
 
 @app.post('/cancel_order')
 def cancel_order(fastapi_order_id: FastAPI_OrderId):
-    print(os.getpid())
-    print(threading.get_native_id())
+    print(f'pid={os.getpid()}')
+    print(f'threading.native_id={threading.get_native_id()}')
     order_id = OrderId(fastapi_order_id.order_id)
     order = limit_order_book.order_cancel(order_id)
 
@@ -141,8 +141,8 @@ def cancel_order(fastapi_order_id: FastAPI_OrderId):
 
 @app.post('/modify_order')
 def modify_order(fastapi_order: FastAPI_Order):
-    print(os.getpid())
-    print(threading.get_native_id())
+    print(f'pid={os.getpid()}')
+    print(f'threading.native_id={threading.get_native_id()}')
     order = Order(
         order_id=OrderId(fastapi_order.order_id),
         ticker=Ticker(fastapi_order.ticker),
@@ -160,8 +160,8 @@ def modify_order(fastapi_order: FastAPI_Order):
 
 @app.get('/top_of_book')
 def top_of_book(fastapi_ticker: FastAPI_Ticker):
-    print(os.getpid())
-    print(threading.get_native_id())
+    print(f'pid={os.getpid()}')
+    print(f'threading.native_id={threading.get_native_id()}')
     ticker = Ticker(
         ticker=fastapi_ticker.ticker,
     )
@@ -197,7 +197,6 @@ def top_of_book(fastapi_ticker: FastAPI_Ticker):
         message=None,
         top_of_book=fastapi_top_of_book,
     )
-    print(r)
     return r
 
 @app.get('/ping')
@@ -209,22 +208,22 @@ def ping():
     }
 
 
-shared_data = None
+# shared_data = None
 
-class FastAPI_Value(BaseModel):
-    value: str
+# class FastAPI_Value(BaseModel):
+#     value: str
 
-@app.post('/put')
-def put(value: FastAPI_Value):
-    print(f'value={value.value}')
-    global shared_data
-    shared_data = value
-    return {
-        'status': 'success',
-    }
+# @app.post('/put')
+# def put(value: FastAPI_Value):
+#     print(f'value={value.value}')
+#     global shared_data
+#     shared_data = value
+#     return {
+#         'status': 'success',
+#     }
 
-@app.get('/get')
-def get():
-    return {
-        'shared_data': shared_data,
-    }
+# @app.get('/get')
+# def get():
+#     return {
+#         'shared_data': shared_data,
+#     }
