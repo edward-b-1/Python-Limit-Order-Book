@@ -17,7 +17,7 @@ The webserver is running on a Linode. It has the IP address `176.58.122.148 (/24
 
 ## How to use the CLI
 
-The following bash commands show how to run the CLI on Linux. You need to be in the directory `new_limit_order_book_project`, such that the `limit_order_book_cli` directory is accessable from the current working directory. `python3 -m venv .venv` creates a Python virtual environment. You will need the appropriate Linux package to be installed for this to work. On Debian based systems `sudo apt install python3.XX-venv` should install it. `3.XX` is the version number. It must match with the output of `python3 --version`.
+The following bash commands show how to run the CLI on Linux. You need to be in the root directory, such that the `limit_order_book_cli` directory is accessable from the current working directory. See the section on Setup Instructions for more information.
 
 ```
 $ cd new_limit_order_book_project
@@ -57,18 +57,60 @@ $ python3 -m limit_order_book_cli top-of-book TICKER
 
 The original Limit Order Book was written as part of an interview process, although I happen to have written one previously (in Rust, not Python) during a previous role at a startup Hedge Fund.
 
-- The original interview problem can be found in the `old_limit_order_book_project` folder. There are some issues with this implementation, to be expected as it had to be written quickly.
+- The original interview problem can be found in another repository. (https://github.com/edward-b-1/Python-Limit-Order-Book-Old) There are some issues with this implementation, to be expected as it had to be written quickly.
 
-I realized that there was a more elegant way to write the implementation, and this is why I re-wrote the code. The new version can be found in the `new_limit_order_book_project` folder.
+I realized that there was a more elegant way to write the Limit Order Book implementation, which is why I re-wrote the code. The new version can be found in the `limit_order_book` folder.
 
 # Current State
 
-The Limit Order Book Python package contains a working Limit Order Book implementation, and there are tests for it. The tests are located in the `test_limit_order_book` folder. There are numerous ways in which this package could be extended and improved. The implementation is quite minimal.
+The Limit Order Book Python package contains a working Limit Order Book implementation, and there are tests for it. The tests are located in the `tests` folder. There are numerous ways in which the Limit Order Book package could be extended and improved. The implementation is quite minimal.
 
-The FastAPI wrapper package contains a minimal code to connect the Limit Order Book up to the internet. It does not have any tests yet.
+The FastAPI wrapper package contains a minimal code to connect the Limit Order Book up to the internet. It does not have any tests yet. (But probably should.)
 
 The CLI package contains the Command Line Interface which can be used to send messages to the Limit Order Book webserver. The CLI is contained in the folder `limit_order_book_cli`.
 
-The implementation is quite minimal. It isn't designed to be as robust as real production software. You could probably find a way to break it relatively easily. If you do break it, please let me know that it is broken and ideally tell me what you did to break it. That way I can fix it.
+The Limit Orde Book and Webserver implementations are quite minimal. This isn't designed to be as robust as real production software. You could probably find a way to break it relatively easily. (One obvious example is sending so many orders that the system runs out of memory.) If you do break it, please let me know that it is broken and ideally tell me what you did to break it. That way I can fix it. (But please don't deliberatly run it out of memory as this is an obvious failure mode which I already know about.)
 
-One fairly obvious shortcoming is that the CLI currently requires the user to supply an Order Id, but it does not provide a way to ask for a valid Order Id. The Order Id shouldn't be something the user has to supply. The Limit Order Book should generate a unique one for every order it receives. I will probably change this if I have time to do so.
+Another fairly obvious shortcoming is that the CLI currently requires the user to supply an Order Id, but it does not provide a way to ask for a valid Order Id. The Order Id shouldn't be something the user has to supply. The Limit Order Book should generate a unique one for every order it receives. I will probably change this if I have time to do so.
+
+# Setup Instructions (detailed)
+
+Change directory to the root directory.
+
+```
+$ cd Python-Limit-Order_book
+```
+
+Setup a virtual environment with pip. You will need the appropriate Linux package to be installed for this to work. On Debian based systems `sudo apt install python3.XX-venv` should install it. `3.XX` is the version number. It must match with the output of `python3 --version`.
+
+For example, on my system: `sudo apt install python 3.12-venv`.
+
+To create the virtual environment:
+
+```
+$ python3 -m venv .venv
+```
+
+Now, activate the virtual environment.
+
+```
+$ source .venv/bin/activate
+```
+
+Install the Python dependencies.
+
+```
+$ pip3 install -r requirements.txt
+```
+
+Actually, you can skip the following line. This was needed to get the `uvicorn` webserver to run locally, but you probably don't need it for the CLI.
+
+```
+$ export PYTHONPATH=`pwd`
+```
+
+Finally, run the CLI and print the help message. You can probably figure out the available options the CLI provides from here.
+
+```
+$ python3 -m limit_order_book_cli --help
+```
