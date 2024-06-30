@@ -27,6 +27,7 @@ class LimitOrderBook():
 
     def order_modify(self, order: Order) -> list[Trade]:
         modified_order = self._multi_ticker_limit_order_book.update(order)
+        print(f'modified={modified_order}')
 
         number_of_orders = self.number_of_orders()
         print(f'number of orders: {number_of_orders}')

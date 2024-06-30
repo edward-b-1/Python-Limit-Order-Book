@@ -63,6 +63,9 @@ class Order:
     def set_volume(self, volume: Volume):
         self._volume = volume
 
+    def set_int_price(self, int_price: IntPrice):
+        self._int_price = int_price
+
     # def set_order_id(self, order_id: OrderId):
     #     if order_id is None: return self
     #     assert validate_order_id(order_id), VALIDATE_ORDER_ID_ERROR_STR

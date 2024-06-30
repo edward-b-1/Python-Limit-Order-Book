@@ -32,7 +32,7 @@ class OrderPriorityQueue():
     def trade(self, taker_order: Order) -> list[Trade]:
         assert taker_order.to_ticker() == self._ticker, f'OrderPriorityQueue.trade ticker mismatch'
         assert taker_order.to_order_side().other_side() == self._order_side, f'OrderPriorityQueue.trade order side mismatch'
-        assert taker_order.to_int_price() == self._int_price, f'OrderPriorityQueue.trade int price mismatch'
+        #assert taker_order.to_int_price() == self._int_price, f'OrderPriorityQueue.trade int price mismatch'
 
         trade_list = []
         while taker_order.to_volume() > Volume(0) and len(self._queue) > 0:
@@ -70,7 +70,8 @@ class OrderPriorityQueue():
     def update(self, order: Order) -> Order|None:
         assert order.to_ticker() == self._ticker, f'OrderPriorityQueue.update ticker mismatch'
         assert order.to_order_side() == self._order_side, f'OrderPriorityQueue.update order side mismatch'
-        assert order.to_int_price() == self._int_price, f'OrderPriorityQueue.update int price mismatch'
+        #assert order.to_int_price() == self._int_price, f'OrderPriorityQueue.update int price mismatch'
+        # price might be changing
 
         order_id = order.to_order_id()
         existing_orders = self._filter_orders_matching_order_id(order_id)
@@ -88,6 +89,10 @@ class OrderPriorityQueue():
                 # if the price level is different, it is possible to generate a
                 # trade, and the order needs to be sent to a different price
                 # level - not something we can do here
+
+                # remove order
+                self._queue = self._filter_orders_not_matching_order_id(order_id)
+                existing_order.set_int_price(int_price)
                 return existing_order
             else:
                 volume = order.to_volume()
