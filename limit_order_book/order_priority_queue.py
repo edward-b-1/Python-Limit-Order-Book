@@ -90,6 +90,14 @@ class OrderPriorityQueue():
                 # trade, and the order needs to be sent to a different price
                 # level - not something we can do here
 
+                volume = order.to_volume()
+                existing_volume = existing_order.to_volume()
+
+                if volume == existing_volume:
+                    pass
+                elif volume != existing_volume:
+                    existing_order.set_volume(volume)
+
                 # remove order
                 self._queue = self._filter_orders_not_matching_order_id(order_id)
                 existing_order.set_int_price(int_price)
