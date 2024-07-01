@@ -1,0 +1,7 @@
+{
+    "order_id": 1,
+    "ticker": "NVDA",
+    "order_side": "BUY",
+    "price": 1010,
+    "volume": 20
+}
