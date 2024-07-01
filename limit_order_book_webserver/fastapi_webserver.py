@@ -127,11 +127,11 @@ def cancel_order(fastapi_order_id: FastAPI_OrderId):
         )
     else:
         fastapi_order = FastAPI_Order(
-            order_id=order._order_id,
-            ticker=order._ticker,
-            order_side=order._order_side,
-            price=order._int_price,
-            volume=order._volume,
+            order_id=order._order_id.to_int(),
+            ticker=order._ticker.to_str(),
+            order_side=str(order._order_side),
+            price=order._int_price.to_int(),
+            volume=order._volume.to_int(),
         )
         return FastAPI_ReturnStatusWithOrder(
             status='success',
