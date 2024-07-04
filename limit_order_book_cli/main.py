@@ -7,6 +7,7 @@ from limit_order_book.order_side import OrderSide
 from limit_order_book.types.int_price import IntPrice
 from limit_order_book.types.volume import Volume
 from limit_order_book.order import Order
+from limit_order_book.order_without_order_id import OrderWithoutOrderId
 
 import typer
 import requests
@@ -25,9 +26,8 @@ def get_url(endpoint):
 
 
 @app.command()
-def send_order(order_id: int, ticker: str, order_side: str, price: int, volume: int):
-    order = Order(
-        order_id=OrderId(order_id),
+def send_order(ticker: str, order_side: str, price: int, volume: int):
+    order = OrderWithoutOrderId(
         ticker=Ticker(ticker),
         order_side=OrderSide(order_side),
         int_price=IntPrice(price),
@@ -41,7 +41,6 @@ def send_order(order_id: int, ticker: str, order_side: str, price: int, volume: 
         'accept': 'application/json',
     }
     data = {
-        'order_id': order_id,
         'ticker': ticker,
         'order_side': order_side,
         'price': price,
@@ -55,6 +54,39 @@ def send_order(order_id: int, ticker: str, order_side: str, price: int, volume: 
     response_dict = response.json()
     response_dict_json = json.dumps(response_dict, indent=4)
     print(f'{response_dict_json}')
+
+
+# @app.command()
+# def send_order_fixed_order_id(order_id: int, ticker: str, order_side: str, price: int, volume: int):
+#     order = Order(
+#         order_id=OrderId(order_id),
+#         ticker=Ticker(ticker),
+#         order_side=OrderSide(order_side),
+#         int_price=IntPrice(price),
+#         volume=Volume(volume),
+#     )
+#     print(f'/send_order')
+#     print(order)
+
+#     url = get_url('/send_order')
+#     headers = {
+#         'accept': 'application/json',
+#     }
+#     data = {
+#         'order_id': order_id,
+#         'ticker': ticker,
+#         'order_side': order_side,
+#         'price': price,
+#         'volume': volume,
+#     }
+#     response = requests.post(url, headers=headers, json=data)
+#     print(response.request.method)
+#     print(response.request.headers)
+#     print(response.request.body)
+#     print(f'Status: {response.status_code}')
+#     response_dict = response.json()
+#     response_dict_json = json.dumps(response_dict, indent=4)
+#     print(f'{response_dict_json}')
 
 
 @app.command()
