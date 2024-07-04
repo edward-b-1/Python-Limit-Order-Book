@@ -120,7 +120,7 @@ def top_of_book(ticker: str):
     data = {
         'ticker': ticker,
     }
-    response = requests.get(url, headers=headers, json=data)
+    response = requests.post(url, headers=headers, json=data)
     print(f'Status: {response.status_code}')
     response_dict = response.json()
     response_dict_json = json.dumps(response_dict, indent=4)

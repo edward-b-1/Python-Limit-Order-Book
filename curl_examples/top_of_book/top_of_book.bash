@@ -5,6 +5,6 @@ PORT=80
 
 ENDPOINT='top_of_book'
 
-curl -X GET "http://$IP_ADDRESS:$PORT/$ENDPOINT" \
+curl -X POST "http://$IP_ADDRESS:$PORT/$ENDPOINT" \
     -H 'Content-Type: application/json' \
     --data @body.json

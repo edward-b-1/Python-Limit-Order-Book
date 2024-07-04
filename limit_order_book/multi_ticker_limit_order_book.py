@@ -7,6 +7,7 @@ from limit_order_book.order_side import OrderSide
 from limit_order_book.trade import Trade
 from limit_order_book.order import Order
 from limit_order_book.top_of_book import TopOfBook
+from limit_order_book.exceptions import DuplicateOrderIdError
 
 from limit_order_book.double_limit_order_book import DoubleLimitOrderBook
 
@@ -50,7 +51,7 @@ class MultiTickerLimitOrderBook:
         order_id = order.to_order_id()
 
         if self.order_id_exists(order_id):
-            raise RuntimeError(f'cannot insert order with existing order id {order_id}')
+            raise DuplicateOrderIdError(order_id)
 
         self._limit_order_books[ticker].insert(order)
 

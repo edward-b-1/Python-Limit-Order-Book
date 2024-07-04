@@ -1,5 +1,9 @@
 
 from fastapi import FastAPI
+from fastapi import HTTPException
+from fastapi.responses import JSONResponse
+from fastapi import Response
+from fastapi import status
 from pydantic import BaseModel
 
 from limit_order_book.limit_order_book_wrapper import LimitOrderBook
@@ -10,6 +14,7 @@ from limit_order_book.ticker import Ticker
 from limit_order_book.order_side import OrderSide
 from limit_order_book.types.int_price import IntPrice
 from limit_order_book.types.volume import Volume
+from limit_order_book.exceptions import DuplicateOrderIdError
 
 import os
 import threading
@@ -89,7 +94,7 @@ def root():
     }
 
 @app.post('/send_order')
-def send_order(fastapi_order: FastAPI_Order):
+def send_order(fastapi_order: FastAPI_Order, response: Response):
     print(f'pid={os.getpid()}')
     print(f'threading.native_id={threading.get_native_id()}')
     order = Order(
@@ -107,10 +112,28 @@ def send_order(fastapi_order: FastAPI_Order):
             message=None,
             trades=fastapi_trades,
         )
-    except RuntimeError as error:
+    except DuplicateOrderIdError as error:
+        response.status_code = status.HTTP_409_CONFLICT
         return FastAPI_ReturnStatus(
             status='error',
-            message=str(error), # TODO: is this error good enough?
+            message=str(error),
+        )
+        # return JSONResponse(
+        #     status_code=status.HTTP_409_CONFLICT,
+        #     content=json.dumps(
+        #         FastAPI_ReturnStatus(
+        #             status='error',
+        #             message=str(error),
+        #         )
+        #     )
+        # )
+    except RuntimeError as error:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                'status': 'error',
+                'message': str(error),
+            },
         )
 
 @app.post('/cancel_order')
@@ -158,7 +181,7 @@ def modify_order(fastapi_order: FastAPI_Order):
         trades=fastapi_trades,
     )
 
-@app.get('/top_of_book')
+@app.post('/top_of_book')
 def top_of_book(fastapi_ticker: FastAPI_Ticker):
     print(f'pid={os.getpid()}')
     print(f'threading.native_id={threading.get_native_id()}')
