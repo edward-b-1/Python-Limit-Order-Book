@@ -7,6 +7,7 @@ from limit_order_book.order_side import OrderSide
 from limit_order_book.trade import Trade
 from limit_order_book.order import Order
 from limit_order_book.top_of_book import TopOfBook
+from limit_order_book.exceptions import DuplicateOrderIdError
 
 from limit_order_book.single_side_limit_order_book import SingleSideLimitOrderBook
 
@@ -63,7 +64,7 @@ class DoubleLimitOrderBook():
         order_id = order.to_order_id()
 
         if self.order_id_exists(order_id):
-            raise RuntimeError(f'duplicate order id {order_id}')
+            raise DuplicateOrderIdError(order_id)
 
         order_side = order.to_order_side()
 

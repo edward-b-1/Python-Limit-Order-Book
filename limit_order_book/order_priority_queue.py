@@ -6,6 +6,7 @@ from limit_order_book.types.volume import Volume
 from limit_order_book.order_side import OrderSide
 from limit_order_book.trade import Trade
 from limit_order_book.order import Order
+from limit_order_book.exceptions import DuplicateOrderIdError
 
 from typeguard import typechecked
 
@@ -62,7 +63,7 @@ class OrderPriorityQueue():
         order_id = order.to_order_id()
 
         if self.order_id_exists(order_id):
-            raise RuntimeError(f'duplicate order id {order_id}')
+            raise DuplicateOrderIdError(order_id)
 
         self._queue.append(order)
 
