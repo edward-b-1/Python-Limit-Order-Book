@@ -9,7 +9,7 @@ from limit_order_book.top_of_book import TopOfBook
 from limit_order_book.multi_ticker_limit_order_book import MultiTickerLimitOrderBook
 
 
-def test_multi_limit_order_book_top_of_book_buy_sequence():
+def test_multi_ticker_limit_order_book_top_of_book_buy_sequence():
 
     lob = MultiTickerLimitOrderBook()
     ticker = Ticker('PYTH')

@@ -3,6 +3,7 @@
 from limit_order_book.types.order_id import OrderId
 from limit_order_book.order_side import OrderSide
 from limit_order_book.order import Order
+from limit_order_book.order_without_order_id import OrderWithoutOrderId
 from limit_order_book.trade import Trade
 from limit_order_book.ticker import Ticker
 from limit_order_book.top_of_book import TopOfBook
@@ -12,15 +13,25 @@ from limit_order_book.multi_ticker_limit_order_book import MultiTickerLimitOrder
 class LimitOrderBook():
 
     def __init__(self) -> None:
+        self._next_order_id_value = 1
         self._multi_ticker_limit_order_book = MultiTickerLimitOrderBook()
 
-    def order_insert(self, order: Order) -> list[Trade]:
-        trades = self._multi_ticker_limit_order_book.trade(order)
+    def order_insert(self, order: OrderWithoutOrderId) -> tuple[OrderId, list[Trade]]:
+        order_id = OrderId(self._next_order_id_value)
+        self._next_order_id_value += 1
+        order_with_order_id = Order(
+            order_id=order_id,
+            ticker=order.to_ticker(),
+            order_side=order.to_order_side(),
+            int_price=order.to_int_price(),
+            volume=order.to_volume(),
+        )
+        trades = self._multi_ticker_limit_order_book.trade(order_with_order_id)
 
         if order.to_volume().is_not_zero():
-            self._multi_ticker_limit_order_book.insert(order)
+            self._multi_ticker_limit_order_book.insert(order_with_order_id)
 
-        return trades
+        return (order_id, trades)
 
     def order_modify(self, order: Order) -> list[Trade]:
         modified_order = self._multi_ticker_limit_order_book.update(order)

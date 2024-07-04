@@ -31,10 +31,8 @@ $ python3 -m limit_order_book_cli --help
 #### To send an order to the Limit Order Book:
 
 ```
-$ python3 -m limit_order_book_cli send-order ORDER_ID TICKER ORDER_SIDE PRICE VOLUME
+$ python3 -m limit_order_book_cli send-order TICKER ORDER_SIDE PRICE VOLUME
 ```
-
-`ORDER_ID` must be a unique order id. There is currently no way to query for a valid order id. It is on my list of things to do. For now, just guess a random value.
 
 `TICKER` can technically be any string, but it is supposed to represent a ticker symbol like `AAPL` or `NVDA`.
 
@@ -43,6 +41,10 @@ $ python3 -m limit_order_book_cli send-order ORDER_ID TICKER ORDER_SIDE PRICE VO
 `PRICE` is an integer price value. It doesn't have any particular meaning since there are no instrument conventions to convert from an integer price scale to a real one in currency units. You can use the `top-of-book` command to find out what current valid top of book prices are, if one exists.
 
 `VOLUME` is an integer number of units.
+
+##### Return Value:
+
+The webserver will return a JSON structure. This structure contains an `ORDER_ID`, which is a unique value. An `ORDER_ID` is automatically generated for each order which is sent.
 
 #### To query the Top Of Book:
 
@@ -65,13 +67,11 @@ I realized that there was a more elegant way to write the Limit Order Book imple
 
 The Limit Order Book Python package contains a working Limit Order Book implementation, and there are tests for it. The tests are located in the `tests` folder. There are numerous ways in which the Limit Order Book package could be extended and improved. The implementation is quite minimal.
 
-The FastAPI wrapper package contains a minimal code to connect the Limit Order Book up to the internet. It does not have any tests yet. (But probably should.)
+The FastAPI wrapper package contains a minimal code to connect the Limit Order Book up to the internet. It also has tests, which can be found in the `tests/test_webserver` folder.
 
 The CLI package contains the Command Line Interface which can be used to send messages to the Limit Order Book webserver. The CLI is contained in the folder `limit_order_book_cli`.
 
 The Limit Order Book and Webserver implementations are quite minimal. This isn't designed to be as robust as real production software. You could probably find a way to break it relatively easily. (One obvious example is sending so many orders that the system runs out of memory.) If you do break it, please let me know that it is broken and ideally tell me what you did to break it. That way I can fix it. (But please don't deliberatly run it out of memory as this is an obvious failure mode which I already know about.)
-
-Another fairly obvious shortcoming is that the CLI currently requires the user to supply an Order Id, but it does not provide a way to ask for a valid Order Id. The Order Id shouldn't be something the user has to supply. The Limit Order Book should generate a unique one for every order it receives. I will probably change this if I have time to do so.
 
 # Setup Instructions (detailed)
 

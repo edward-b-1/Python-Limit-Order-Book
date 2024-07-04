@@ -4,10 +4,10 @@ from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from fastapi import Response
 from fastapi import status
-from pydantic import BaseModel
 
 from limit_order_book.limit_order_book_wrapper import LimitOrderBook
 from limit_order_book.order import Order
+from limit_order_book.order_without_order_id import OrderWithoutOrderId
 from limit_order_book.trade import Trade
 from limit_order_book.types.order_id import OrderId
 from limit_order_book.ticker import Ticker
@@ -16,71 +16,24 @@ from limit_order_book.types.int_price import IntPrice
 from limit_order_book.types.volume import Volume
 from limit_order_book.exceptions import DuplicateOrderIdError
 
+from limit_order_book_webserver.types import FastAPI_OrderId
+from limit_order_book_webserver.types import FastAPI_Ticker
+from limit_order_book_webserver.types import FastAPI_Order
+from limit_order_book_webserver.types import FastAPI_OrderWithoutOrderId
+from limit_order_book_webserver.types import FastAPI_Trade
+from limit_order_book_webserver.types import FastAPI_TopOfBook
+from limit_order_book_webserver.types import FastAPI_ReturnStatus
+from limit_order_book_webserver.types import FastAPI_ReturnStatusWithOrder
+from limit_order_book_webserver.types import FastAPI_ReturnStatusWithTrades
+from limit_order_book_webserver.types import FastAPI_ReturnStatusWithTradesAndOrderId
+from limit_order_book_webserver.types import FastAPI_ReturnStatusWithTopOfBook
+
+from limit_order_book_webserver.convert_trades_to_fastapi_trades import convert_trades_to_fastapi_trades
+
 import os
 import threading
 
 limit_order_book = LimitOrderBook()
-
-
-class FastAPI_OrderId(BaseModel):
-    order_id: int
-
-class FastAPI_Ticker(BaseModel):
-    ticker: str
-
-class FastAPI_Order(BaseModel):
-    order_id: int
-    ticker: str
-    order_side: str
-    price: int
-    volume: int
-
-class FastAPI_Trade(BaseModel):
-    order_id_maker: int
-    order_id_taker: int
-    ticker: str
-    price: int
-    volume: int
-
-class FastAPI_TopOfBook(BaseModel):
-    ticker: str
-    price_buy: int|None = None
-    volume_buy: int|None = None
-    price_sell: int|None = None
-    volume_sell: int|None = None
-
-class FastAPI_ReturnStatus(BaseModel):
-    status: str
-    message: str|None = None
-
-class FastAPI_ReturnStatusWithOrder(FastAPI_ReturnStatus):
-    order: FastAPI_Order
-
-class FastAPI_ReturnStatusWithTrades(FastAPI_ReturnStatus):
-    trades: list[FastAPI_Trade]
-
-class FastAPI_ReturnStatusWithTopOfBook(FastAPI_ReturnStatus):
-    top_of_book: FastAPI_TopOfBook
-
-
-def convert_trades_to_fastapi_trades(trades: list[Trade]) -> list[FastAPI_Trade]:
-
-    def convert_trade(trade: Trade) -> FastAPI_Trade:
-        return FastAPI_Trade(
-            order_id_maker=trade._order_id_maker.to_int(),
-            order_id_taker=trade._order_id_taker.to_int(),
-            ticker=trade._ticker.to_str(),
-            price=trade._int_price.to_int(),
-            volume=trade._volume.to_int(),
-        )
-
-    fastapi_trades = list(
-        map(
-            lambda trade: convert_trade(trade),
-            trades,
-        )
-    )
-    return fastapi_trades
 
 
 print(f'__name__={__name__}')
@@ -94,24 +47,27 @@ def root():
     }
 
 @app.post('/send_order')
-def send_order(fastapi_order: FastAPI_Order, response: Response):
+def send_order(fastapi_order: FastAPI_OrderWithoutOrderId, response: Response):
     print(f'pid={os.getpid()}')
     print(f'threading.native_id={threading.get_native_id()}')
-    order = Order(
-        order_id=OrderId(fastapi_order.order_id),
+    order = OrderWithoutOrderId(
         ticker=Ticker(fastapi_order.ticker),
         order_side=OrderSide(value=fastapi_order.order_side),
         int_price=IntPrice(fastapi_order.price),
         volume=Volume(fastapi_order.volume),
     )
     try:
-        trades = limit_order_book.order_insert(order)
+        (order_id, trades) = limit_order_book.order_insert(order)
+        fastapi_order_id = FastAPI_OrderId(order_id=order_id.to_int()).order_id
         fastapi_trades = convert_trades_to_fastapi_trades(trades)
-        return FastAPI_ReturnStatusWithTrades(
+        return FastAPI_ReturnStatusWithTradesAndOrderId(
             status='success',
             message=None,
+            order_id=fastapi_order_id,
             trades=fastapi_trades,
         )
+    # NOTE: Since the OrderId is now automatically provided and incremented from
+    # within the Limit Order Book Wrapper class, this can no longer happen
     except DuplicateOrderIdError as error:
         response.status_code = status.HTTP_409_CONFLICT
         return FastAPI_ReturnStatus(
