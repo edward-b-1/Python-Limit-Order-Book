@@ -69,4 +69,4 @@ def test_top_of_book():
     json = helper_generate_ticker('PYTH')
     response = client.post('/top_of_book', json=json)
     assert response.status_code == 200
-    assert response.json() == helper_generate_top_of_book('PYTH', 1000, 0, 1025, 15)
+    assert response.json() == helper_generate_top_of_book('PYTH', None, None, 1025, 15)

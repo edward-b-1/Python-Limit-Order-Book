@@ -266,16 +266,49 @@ class SingleSideLimitOrderBook():
 
 
     def top_of_book(self) -> tuple[IntPrice|None, Volume|None]:
+
+        def filter_non_empty_price_levels(price_level: tuple[IntPrice, OrderPriorityQueue]) -> bool:
+            return price_level[1].number_of_orders() > 0
+
+        def extract_key(price_level: tuple[IntPrice, OrderPriorityQueue]) -> IntPrice:
+            return price_level[0]
+
         if self._order_side == OrderSide.BUY:
             if len(self._price_levels) > 0:
-                price_level = max(self._price_levels.keys())
+                max_non_zero_price_level = (
+                    max(
+                        filter(
+                            filter_non_empty_price_levels,
+                            self._price_levels.items(),
+                        ),
+                        default=None,
+                        key=extract_key,
+                    )
+                )
+                if max_non_zero_price_level is None:
+                    return (None, None)
+                #price_level = max(self._price_levels.keys())
+                price_level = extract_key(max_non_zero_price_level)
                 volume = self._price_levels[price_level].total_volume()
                 return (price_level, volume)
             else:
                 return (None, None)
         elif self._order_side == OrderSide.SELL:
             if len(self._price_levels) > 0:
-                price_level = min(self._price_levels.keys())
+                min_non_zero_price_level = (
+                    min(
+                        filter(
+                            filter_non_empty_price_levels,
+                            self._price_levels.items(),
+                        ),
+                        default=None,
+                        key=extract_key,
+                    )
+                )
+                if min_non_zero_price_level is None:
+                    return (None, None)
+                #price_level = min(self._price_levels.keys())
+                price_level = extract_key(min_non_zero_price_level)
                 volume = self._price_levels[price_level].total_volume()
                 return (price_level, volume)
             else:

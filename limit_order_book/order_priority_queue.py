@@ -25,6 +25,8 @@ class OrderPriorityQueue():
         self._int_price = int_price
         self._queue: list[Order] = []
 
+    def __len__(self) -> int:
+        return len(self._queue)
 
     def number_of_orders(self) -> int:
         return len(self._queue)
