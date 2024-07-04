@@ -4,14 +4,13 @@ from limit_order_book.types.int_price import IntPrice
 from limit_order_book.types.volume import Volume
 from limit_order_book.order_side import OrderSide
 from limit_order_book.ticker import Ticker
-from limit_order_book.order_without_order_id import OrderWithoutOrderId
 from limit_order_book.order import Order
 from limit_order_book.trade import Trade
 from limit_order_book.top_of_book import TopOfBook
-from limit_order_book.limit_order_book_wrapper import LimitOrderBook
+from limit_order_book.multi_ticker_limit_order_book import MultiTickerLimitOrderBook
 
 
-def test_limit_order_book_trade_insert_new():
+def test_multi_limit_order_book_order_insert():
 
     # Book Setup:
     #
@@ -26,55 +25,59 @@ def test_limit_order_book_trade_insert_new():
     # This should produce matches @ price=990
     # a matches first, followed by b
 
-    lob = LimitOrderBook()
+    lob = MultiTickerLimitOrderBook()
     ticker = Ticker('PYTH')
 
     ####
 
-    order_no_match = OrderWithoutOrderId(
+    order_no_match = Order(
+        order_id=OrderId(1000),
         ticker=ticker,
         order_side=OrderSide("BUY"),
         int_price=IntPrice(500),
         volume=Volume(1000),
     )
-    (order_id_1, trades) = lob.order_insert(order_no_match)
-    assert trades == []
+    trades = lob.trade(order_no_match)
+    lob.insert(order_no_match)
 
     ####
 
-    order_1 = OrderWithoutOrderId(
+    order_1 = Order(
+        order_id=OrderId(1),
         ticker=ticker,
         order_side=OrderSide("BUY"),
         int_price=IntPrice(1000),
         volume=Volume(10),
     )
-    (order_id_2, trades) = lob.order_insert(order_1)
-    assert trades == []
+    trades = lob.trade(order_1)
+    lob.insert(order_1)
 
     ####
 
-    order_2 = OrderWithoutOrderId(
+    order_2 = Order(
+        order_id=OrderId(2),
         ticker=ticker,
         order_side=OrderSide("BUY"),
         int_price=IntPrice(1020),
         volume=Volume(20),
     )
-    (order_id_3, trades) = lob.order_insert(order_2)
-    assert trades == []
+    trades = lob.trade(order_2)
+    lob.insert(order_2)
 
     ####
 
-    order_3 = OrderWithoutOrderId(
+    order_3 = Order(
+        order_id=OrderId(3),
         ticker=ticker,
         order_side=OrderSide("SELL"),
         int_price=IntPrice(990),
         volume=Volume(100),
     )
-    (order_id_4, trades) = lob.order_insert(order_3)
+    trades = lob.trade(order_3)
+    lob.insert(order_3)
 
     assert trades == [
-        Trade(order_id_maker=order_id_3, order_id_taker=order_id_4, ticker=ticker, int_price=IntPrice(990), volume=Volume(20)),
-        Trade(order_id_maker=order_id_2, order_id_taker=order_id_4, ticker=ticker, int_price=IntPrice(990), volume=Volume(10)),
+        Trade(order_id_maker=OrderId(2), order_id_taker=OrderId(3), ticker=ticker, int_price=IntPrice(990), volume=Volume(20)),
+        Trade(order_id_maker=OrderId(1), order_id_taker=OrderId(3), ticker=ticker, int_price=IntPrice(990), volume=Volume(10)),
     ]
-    order_3_internal = lob.order_cancel(order_id=order_id_4)
-    assert order_3_internal == Order(order_id=order_id_4, ticker=ticker, order_side=OrderSide("SELL"), int_price=IntPrice(990), volume=Volume(70))
+    assert order_3 == Order(order_id=OrderId(3), ticker=ticker, order_side=OrderSide("SELL"), int_price=IntPrice(990), volume=Volume(70))
