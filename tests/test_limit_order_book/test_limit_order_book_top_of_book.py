@@ -227,8 +227,7 @@ def test_limit_order_book_top_of_book_after_trade():
 
     ####
 
-    order_3 = Order(
-        order_id=order_id,
+    order_3 = OrderWithoutOrderId(
         ticker=ticker,
         order_side=OrderSide("SELL"),
         int_price=IntPrice(1005),
@@ -281,14 +280,7 @@ def test_limit_order_book_top_of_book_modify_order():
 
     ####
 
-    order_2 = Order(
-        order_id=order_id,
-        ticker=ticker,
-        order_side=OrderSide("BUY"),
-        int_price=IntPrice(950),
-        volume=Volume(5),
-    )
-    lob.order_modify(order_2)
+    lob.order_update(order_id=order_id, int_price=IntPrice(950), volume=Volume(5))
 
     top_of_book = lob.top_of_book(ticker)
     assert top_of_book == TopOfBook(
