@@ -90,16 +90,9 @@ def send_order(ticker: str, order_side: str, price: int, volume: int):
 
 
 @app.command()
-def modify_order(order_id: int, ticker: str, order_side: str, price: int, volume: int):
-    order = Order(
-        order_id=OrderId(order_id),
-        ticker=Ticker(ticker),
-        order_side=OrderSide(order_side),
-        int_price=IntPrice(price),
-        volume=Volume(volume),
-    )
+def modify_order(order_id: int, price: int, volume: int):
     print(f'/modify_order')
-    print(order)
+    print(f'{order_id}, {price}, {volume}')
 
     url = get_url('/modify_order')
     headers = {
@@ -107,8 +100,6 @@ def modify_order(order_id: int, ticker: str, order_side: str, price: int, volume
     }
     data = {
         'order_id': order_id,
-        'ticker': ticker,
-        'order_side': order_side,
         'price': price,
         'volume': volume,
     }
