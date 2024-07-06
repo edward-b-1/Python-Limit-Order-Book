@@ -6,6 +6,16 @@ from mbo_data_package.compare_rows import compare_rows
 
 def filter_df_remove_fill_cancel_pairs_get_index(df: pandas.DataFrame):
 
+    '''
+    This function iterates through the rows of a dataframe and finds all rows
+    where there is a Fill followed by a Cancel where all the relevant data in
+    the columns matches. (Meaning that the Fill and Cancel are releated to the
+    same event.)
+
+    Rows which match this criteria have their index added to a set which is used
+    to deselect the rows with these index values.
+    '''
+
     # set of index not selected
     df_not_select_index = set()
     # set of index selected
