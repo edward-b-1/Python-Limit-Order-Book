@@ -26,9 +26,20 @@ class OrderPriorityQueue():
         self._queue: list[Order] = []
 
     def __len__(self) -> int:
+        '''Return the queue length. This is the same as the number of orders in
+        the queue.
+
+        Returns:
+            int: Number of orders in the queue
+        '''
         return len(self._queue)
 
     def number_of_orders(self) -> int:
+        '''Calculate the number of orders in the queue
+
+        Returns:
+            int: Number of orders in the queue
+        '''
         return len(self._queue)
 
 
@@ -68,14 +79,26 @@ class OrderPriorityQueue():
         self._queue.append(order)
 
 
-    # TODO: there are no tests to see if the priority is maintained by these functions if
-    # the order int price and volume is unchanged
     def update(self, order_id: OrderId, int_price: IntPrice, volume: Volume) -> Order|None:
-        '''
-        Note: If the int_price and volume match the existing order int_price
-              and volume, then this function must return None. The priority
-              must not be changed if the values remain the same. This would
-              be surprising to a user of the API.
+        '''Update an order price or volume
+
+        Args:
+            order_id (OrderId): order id of target order
+            int_price (IntPrice): new price value
+            volume (Volume): new volume value
+
+        One or both of `int_price` and `volume` must be specified. If both
+        values are missing, an error is raised.
+
+        If the values of the price and volume match the existing values, then
+        the order priority is unchanged. Otherwise, if the price changes, or the
+        volume is increased, the order loses priority. In this case it is
+        removed from the queue and returned. If the only change is the volume
+        is decreased, the order does not lose priority and None is returned.
+
+        Returns:
+            Order|None: If the update operation causes the order to lose priority
+            then the order is returned. It must be re-inserted by the caller.
         '''
         existing_orders = self._filter_orders_matching_order_id(order_id)
         assert len(existing_orders) <= 1, f'OrderPriorityQueue.update invalid number of orders found'
@@ -104,14 +127,20 @@ class OrderPriorityQueue():
             return existing_order
 
 
-    # TODO: there are no tests to see if the priority is maintained by these functions if
-    # the order int price and volume is unchanged
     def update_int_price(self, order_id: OrderId, int_price: IntPrice) -> Order|None:
-        '''
-        Note: If the int_price and volume match the existing order int_price
-              and volume, then this function must return None. The priority
-              must not be changed if the values remain the same. This would
-              be surprising to a user of the API.
+        '''Update an order price
+
+        Args:
+            order_id (OrderId): order id of target order
+            int_price (IntPrice): new price value
+
+        If the value of the price matches the existing value, then the order
+        priority is unchanged. Otherwise, if the price changes, the order loses
+        priority. In this case it is removed from the queue and returned.
+
+        Returns:
+            Order|None: If the update operation causes the order to lose priority
+            then the order is returned. It must be re-inserted by the caller.
         '''
         existing_orders = self._filter_orders_matching_order_id(order_id)
         assert len(existing_orders) <= 1, f'OrderPriorityQueue.update_int_price invalid number of orders found'
@@ -131,14 +160,22 @@ class OrderPriorityQueue():
             return existing_order
 
 
-    # TODO: there are no tests to see if the priority is maintained by these functions if
-    # the order int price and volume is unchanged
     def update_volume(self, order_id: OrderId, volume: Volume) -> Order|None:
-        '''
-        Note: If the int_price and volume match the existing order int_price
-              and volume, then this function must return None. The priority
-              must not be changed if the values remain the same. This would
-              be surprising to a user of the API.
+        '''Update an order volume
+
+        Args:
+            order_id (OrderId): order id of target order
+            volume (Volume): new volume value
+
+        If the value of volume matches the existing value, then the order
+        priority is unchanged. Otherwise, if the volume is increased, the order
+        loses priority. In this case it is removed from the queue and returned.
+        If the only change is the volume is decreased, the order does not lose
+        priority and None is returned.
+
+        Returns:
+            Order|None: If the update operation causes the order to lose priority
+            then the order is returned. It must be re-inserted by the caller.
         '''
         existing_orders = self._filter_orders_matching_order_id(order_id)
         assert len(existing_orders) <= 1, f'OrderPriorityQueue.update_volume invalid number of orders found'
@@ -160,107 +197,15 @@ class OrderPriorityQueue():
             return None
 
 
-    # def modify_databento(self, order: Order) -> Order|None:
-    #     assert order.to_ticker() == self._ticker, f'OrderPriorityQueue.update ticker mismatch'
-    #     assert order.to_order_side() == self._order_side, f'OrderPriorityQueue.update order side mismatch'
-    #     #assert order.to_int_price() == self._int_price, f'OrderPriorityQueue.update int price mismatch'
-    #     # price might be changing
-
-    #     order_id = order.to_order_id()
-    #     existing_orders = self._filter_orders_matching_order_id(order_id)
-    #     assert len(existing_orders) <= 1, f'OrderPriorityQueue.update invalid number of orders found'
-
-    #     if len(existing_orders) < 1:
-    #         return None
-    #     else:
-    #         existing_order = existing_orders[0]
-
-    #         int_price = order.to_int_price()
-    #         existing_int_price = existing_order.to_int_price()
-
-    #         if int_price != existing_int_price:
-    #             # if the price level is different, it is possible to generate a
-    #             # trade, and the order needs to be sent to a different price
-    #             # level - not something we can do here
-
-    #             volume = order.to_volume()
-    #             existing_volume = existing_order.to_volume()
-
-    #             if volume == existing_volume:
-    #                 pass
-    #             elif volume != existing_volume:
-    #                 existing_order.set_volume(volume)
-
-    #             # remove order
-    #             self._queue = self._filter_orders_not_matching_order_id(order_id)
-    #             existing_order.set_int_price(int_price)
-    #             return existing_order
-    #         else:
-    #             volume = order.to_volume()
-    #             existing_volume = existing_order.to_volume()
-
-    #             if volume == existing_volume:
-    #                 pass
-    #             elif volume < existing_volume:
-    #                 existing_order.set_volume(volume)
-    #             else:
-    #                 # priority reduced
-    #                 self._queue = self._filter_orders_not_matching_order_id(order_id)
-    #                 existing_order.set_volume(volume)
-    #                 self.insert(existing_order)
-
-    #             return None
-
-
-    # def update(self, order: Order) -> Order|None:
-    #     assert order.to_ticker() == self._ticker, f'OrderPriorityQueue.update ticker mismatch'
-    #     assert order.to_order_side() == self._order_side, f'OrderPriorityQueue.update order side mismatch'
-    #     assert order.to_int_price() == self._int_price, f'OrderPriorityQueue.update int price mismatch'
-
-    #     order_id = order.to_order_id()
-    #     existing_order = self.find_order_by_order_id(order_id)
-    #     assert existing_order is not None, f'order not found'
-
-    #     volume = order.to_volume()
-    #     existing_volume = existing_order.to_volume()
-
-    #     if volume > existing_volume:
-    #         # priority reduced
-    #         existing_order = self.cancel(order_id)
-    #         existing_order.set_volume(volume)
-    #         self.insert(existing_order)
-    #         return None
-    #     else:
-    #         existing_order.set_volume(volume)
-    #         return None
-
-    #     # how I think the semantics for this should work
-    #     # if the order volume is made smaller, just make that change to the order
-    #     # doing so requires checking that the order id can be found in the queue
-    #     # and the usual checks in ticker, order_side and int_price should also
-    #     # be done.
-    #     # if the order volume is made larger, then remove the order and replace
-    #     # it with an appended new order (this lowers the priority). otherwise the
-    #     # checks are the same
-    #     # if the int_price is changed, then the order should be returned. this
-    #     # implies that None should be returned in the above two cases. also -
-    #     # the int_price is allowed to be different
-    #     #
-    #     # remaining questions: if the order id is not found, should that be an
-    #     # error? or will we call update on all queues for all price levels in
-    #     # an order_side for a limit order book?
-    #     # in other words, a LOB contains 2x order sides
-    #     # LOB->2x OrderSide, OrderSide->PriceLevels->Queue
-    #     # do we call update() on all levels of an OrderSide?
-    #     #
-    #     # what if the order side changes? well - you can't change the order side
-    #     # so if the order id isn't found in the side specified then this presumably
-    #     # has to be an error
-
-
-    # TODO: use same semantics here as update?
-    # Yes: but for databento only!
     def cancel(self, order_id: OrderId) -> Order|None:
+        '''Cancel an order. The order is returned if it is found
+
+        Args:
+            order_id (OrderId): Order id of target order to cancel
+
+        Returns:
+            Order|None: If an order is found and cancelled, it is returned
+        '''
         orders = self._remove_orders_matching_order_id(order_id)
 
         assert len(orders) <= 1, f'OrderPriorityQueue.cancel invalid number of orders found'
@@ -271,6 +216,12 @@ class OrderPriorityQueue():
 
 
     def cancel_partial(self, order_id: OrderId, volume: Volume) -> None:
+        '''Partially cancel an existing order by reducing the order volume by `volume`
+
+        Args:
+            order_id (OrderId): Order id of target order
+            volume (Volume): Quantity to reduce volume by
+        '''
         existing_orders = self._filter_orders_matching_order_id(order_id)
         assert len(existing_orders) <= 1, f'OrderPriorityQueue.cancel_partial invalid number of orders found'
 
@@ -278,15 +229,11 @@ class OrderPriorityQueue():
             return None
 
         existing_order = existing_orders[0]
-        existing_volume = existing_order.to_volume()
-        if volume > existing_volume:
-            raise
+        existing_order.reduce_volume(volume)
 
-        if volume == existing_volume:
+        if existing_order.to_volume().is_zero():
             existing_orders = self._remove_orders_matching_order_id(order_id)
             assert len(existing_orders) <= 1, f'OrderPriorityQueue.cancel_partial invalid number of orders found'
-        else:
-            existing_order.set_volume(existing_volume - volume)
 
 
     def order_id_exists(self, order_id: OrderId) -> bool:
@@ -304,16 +251,6 @@ class OrderPriorityQueue():
 
         assert len(matching_order_ids) <= 1, f'OrderPriorityQueue.order_id_exists invalid number of order ids found'
         return len(matching_order_ids) == 1
-
-
-    # def find_order_by_order_id(self, order_id: OrderId) -> Order|None:
-    #     matching_orders = self._filter_orders_matching_order_id(order_id)
-
-    #     assert len(matching_orders) <= 1, f'OrderPriorityQueue.find_order_by_order_id invalid number of orders found'
-
-    #     if len(matching_orders) == 1:
-    #         return matching_orders[0]
-    #     return None
 
 
     def _filter_orders_matching_order_id(self, order_id: OrderId) -> list[Order]:
@@ -342,6 +279,11 @@ class OrderPriorityQueue():
         return matched_orders
 
     def total_volume(self) -> Volume:
+        '''Calculate the total volume of all orders in the queue
+
+        Returns:
+            Volume: Total volume of all orders in the queue
+        '''
         total_volume = (
             sum(
                 map(

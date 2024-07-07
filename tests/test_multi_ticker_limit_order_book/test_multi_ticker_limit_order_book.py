@@ -49,7 +49,7 @@ def test_multi_limit_order_book_update_order_no_change():
     )
     lob.insert(order_1)
 
-    # Wrong ticker, so should do nothing
+    # No changes, so should do nothing
     order = lob.update(
         order_id=OrderId(1),
         int_price=IntPrice(100),
@@ -75,13 +75,15 @@ def test_multi_limit_order_book_update_order():
     )
     lob.insert(order_1)
 
-    # Wrong ticker, so should do nothing
+    # Changed price and volume
     order = lob.update(
         order_id=OrderId(1),
         int_price=IntPrice(110),
         volume=Volume(12),
     )
     assert order == order_1
+    assert order.to_int_price().to_int() == 110
+    assert order.to_volume().to_int() == 12
 
     order = lob.cancel(order_id=order_1.to_order_id())
     assert order is None
@@ -108,6 +110,7 @@ def test_multi_limit_order_book_update_order_int_price():
         volume=Volume(10),
     )
     assert order == order_1
+    assert order.to_int_price().to_int() == 110
 
     order = lob.cancel(order_id=order_1.to_order_id())
     assert order is None
@@ -134,6 +137,7 @@ def test_multi_limit_order_book_update_order_volume_increase():
         volume=Volume(11),
     )
     assert order == order_1
+    assert order.to_volume().to_int() == 11
 
     order = lob.cancel(order_id=order_1.to_order_id())
     assert order is None
@@ -163,4 +167,5 @@ def test_multi_limit_order_book_update_order_volume_decrease():
 
     order = lob.cancel(order_id=order_1.to_order_id())
     assert order == order_1
+    assert order.to_volume().to_int() == 9
 

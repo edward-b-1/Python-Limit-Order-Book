@@ -1,4 +1,7 @@
 
+from limit_order_book.exceptions import VolumeReduceAmountTooLarge
+
+
 class Volume():
 
     def __init__(self, volume: int) -> None:
@@ -18,11 +21,27 @@ class Volume():
             return self._volume < other._volume
         raise NotImplementedError(f'not implemented')
 
+    def __ge__(self, other: object) -> bool:
+        return not self.__lt__(other)
+
+    def __gt__(self, other: object) -> bool:
+        if isinstance(other, Volume):
+            return self._volume > other._volume
+        raise NotImplementedError(f'not implemented')
+
+    def __le__(self, other: object) -> bool:
+        return not self.__gt__(other)
+
     def __sub__(self, other: object):
         if isinstance(other, Volume):
             volume = self._volume - other._volume
             return Volume(volume=volume)
         raise TypeError(f'cannot subtract {type(other)} from {type(Volume)}')
+
+    def reduce(self, volume) -> None:
+        if volume > self:
+            raise VolumeReduceAmountTooLarge(volume=self.to_int(), reduce_by_volume=volume.to_int())
+        self._volume -= volume.to_int()
 
     def is_zero(self) -> bool:
         return self._volume == 0

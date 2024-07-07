@@ -56,20 +56,3 @@ def test_order_trade():
             'volume': 5,
         }
     }
-
-    # TODO: this indicates a bug... the order hangs around in the data structure with zero volume
-    # this might also be seen in the top of book endpoint
-    json = helper_generate_order_id(2)
-    response = client.post('/cancel_order', json=json)
-    assert response.status_code == 200
-    assert response.json() == {
-        'status': 'success',
-        'message': 'order id 2 cancelled',
-        'order': {
-            'order_id': 2,
-            'ticker': 'PYTH',
-            'order_side': 'SELL',
-            'price': 995,
-            'volume': 0,
-        }
-    }
