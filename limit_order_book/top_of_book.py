@@ -24,7 +24,8 @@ class TopOfBook():
         self._volume_sell = volume_sell
 
     def __repr__(self) -> str:
-        return f'TopOfBook(ticker={self._ticker}, price_buy={self._int_price_buy}, volume_buy={self._volume_buy}, price_sell={self._int_price_sell}, volume_sell={self._volume_sell})'
+        spread = self._int_price_sell - self._int_price_buy
+        return f'TopOfBook(ticker={self._ticker}, price_buy={self._int_price_buy}, volume_buy={self._volume_buy}, price_sell={self._int_price_sell}, volume_sell={self._volume_sell}, spread={spread})'
 
     def __eq__(self, value: object) -> bool:
         if not isinstance(value, TopOfBook):
