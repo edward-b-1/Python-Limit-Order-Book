@@ -195,5 +195,44 @@ def ping():
     print(f'{response_dict_json}')
 
 
-# if __name__ == '__main__':
-#     app()
+@app.command()
+def debug_log_top_of_book(ticker: str):
+    url = get_url('/debug_log_top_of_book')
+    headers = {
+        'accept': 'application/json',
+    }
+    data = {
+        'ticker': ticker,
+    }
+    response = requests.post(url, headers=headers, json=data)
+    print(f'Status: {response.status_code}')
+    response_dict = response.json()
+    response_dict_json = json.dumps(response_dict, indent=4)
+    print(f'{response_dict_json}')
+
+
+@app.command()
+def debug_log_current_order_id():
+    url = get_url('/debug_log_current_order_id')
+    headers = {
+        'accept': 'application/json',
+    }
+    response = requests.post(url, headers=headers)
+    print(f'Status: {response.status_code}')
+    response_dict = response.json()
+    response_dict_json = json.dumps(response_dict, indent=4)
+    print(f'{response_dict_json}')
+
+
+@app.command()
+def debug_log_all_tickers():
+    url = get_url('/debug_log_all_tickers')
+    headers = {
+        'accept': 'application/json',
+    }
+    response = requests.post(url, headers=headers)
+    print(f'Status: {response.status_code}')
+    response_dict = response.json()
+    response_dict_json = json.dumps(response_dict, indent=4)
+    print(f'{response_dict_json}')
+

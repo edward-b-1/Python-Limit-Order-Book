@@ -178,3 +178,14 @@ class MultiTickerLimitOrderBook:
         top_of_book = self._limit_order_books[ticker].top_of_book()
         return top_of_book
 
+    def _get_all_tickers(self) -> list[str]:
+        tickers = (
+            list(
+                map(
+                    lambda ticker: ticker.to_str(),
+                    self._limit_order_books.keys(),
+                )
+            )
+        )
+        return tickers
+
