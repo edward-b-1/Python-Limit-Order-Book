@@ -41,6 +41,7 @@ class Volume():
     def reduce(self, volume) -> None:
         if volume > self:
             raise VolumeReduceAmountTooLarge(volume=self.to_int(), reduce_by_volume=volume.to_int())
+        self._volume -= volume.to_int()
 
     def is_zero(self) -> bool:
         return self._volume == 0
