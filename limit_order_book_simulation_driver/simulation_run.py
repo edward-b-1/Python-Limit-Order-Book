@@ -211,7 +211,7 @@ def main():
     stored_data = databento.DBNStore.from_file(full_path)
     df_trades: pandas.DataFrame = stored_data.to_df().reset_index()
 
-    df_trades = df_trades.loc[df_trades['price'] == 480.3].reset_index(drop=True)
+    #df_trades = df_trades.loc[df_trades['price'] == 480.3].reset_index(drop=True)
 
     df_trades.iloc[0:100].to_csv('df_trades_tmp.csv')
 
@@ -226,6 +226,9 @@ def main():
     # )
 
     trades_output_list = []
+
+    f_tape_orders = open('tape_orders.txt', 'w')
+    f_tape_trades = open('tape_trades.txt', 'w')
 
     #for index, row in df_trades.iterrows():
     # index_range = list(range(len(df_trades)))
@@ -287,6 +290,11 @@ def main():
                     volume=Volume(size),
                 )
                 print(f'insert order: {lob_order}')
+                TICKER = lob_order.to_ticker().to_str()
+                ORDER_SIDE = str(lob_order.to_order_side())
+                INT_PRICE = lob_order.to_int_price().to_int()
+                VOLUME = lob_order.to_volume().to_int()
+                f_tape_orders.write(f'ORDER_ADD: {TICKER} {ORDER_SIDE} {INT_PRICE} {VOLUME}')
                 (lob_order_id, lob_trades) = lob.order_insert(lob_order)
                 # print(f'top of book (2):')
                 # print(lob.top_of_book(ticker=Ticker('NVDA')))
@@ -322,7 +330,7 @@ def main():
 
                 #lob.order_cancel_partial(expected_trade._order_id_maker, volume=Volume(size))
 
-                print(f'next: {index}')
+                #print(f'next: {index}')
                 #print(next(index_range))
                 #print(next(index_range))
                 index += 2
@@ -351,6 +359,8 @@ def main():
             order_id_maker = OrderId(order_id_map.convert_external_order_id_to_internal_order_id(int(order_id)))
             volume = Volume(size)
             print(f'CANCEL {order_id}, {volume}')
+            ORDER_ID = order_id
+            f_tape_orders.write(f'ORDER_CANCEL: {ORDER_ID}')
             lob.order_cancel_partial(order_id_maker, volume)
 
         elif action == 'A':
@@ -362,7 +372,13 @@ def main():
             )
             # print(f'the top of book is')
             # print(lob.top_of_book(ticker=Ticker('NVDA')))
-            print(f'insert order: {lob_order}')
+            print(f'ADD: {lob_order}')
+            ORDER_ID = order_id
+            TICKER = lob_order.to_ticker().to_str()
+            ORDER_SIDE = str(lob_order.to_order_side())
+            INT_PRICE = lob_order.to_int_price().to_int()
+            VOLUME = lob_order.to_volume().to_int()
+            f_tape_orders.write(f'ORDER_ADD: {ORDER_ID} {TICKER} {ORDER_SIDE} {INT_PRICE} {VOLUME}')
             assert order_id != 0
             (lob_order_id, lob_trades) = lob.order_insert(lob_order)
             if len(lob_trades) != 0:
