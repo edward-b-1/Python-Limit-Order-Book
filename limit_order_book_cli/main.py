@@ -151,38 +151,6 @@ def top_of_book(ticker: str):
 
 
 @app.command()
-def put(value: str):
-    url = get_url('/put')
-    headers = {
-        'accept': 'application/json',
-    }
-    data = {
-        'value': value,
-    }
-    response = requests.post(url, headers=headers, json=data)
-    print(response.request.method)
-    print(response.request.headers)
-    print(response.request.body)
-    print(f'Status: {response.status_code}')
-    response_dict = response.json()
-    response_dict_json = json.dumps(response_dict, indent=4)
-    print(f'{response_dict_json}')
-
-
-@app.command()
-def get():
-    url = get_url('/get')
-    headers = {
-        'accept': 'application/json',
-    }
-    response = requests.get(url, headers=headers)
-    print(f'Status: {response.status_code}')
-    response_dict = response.json()
-    response_dict_json = json.dumps(response_dict, indent=4)
-    print(f'{response_dict_json}')
-
-
-@app.command()
 def ping():
     url = get_url('/ping')
     headers = {
