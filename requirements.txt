@@ -9,8 +9,8 @@ certifi==2024.6.2
 charset-normalizer==3.3.2
 click==8.1.7
 comm==0.2.2
-databento==0.36.1
-databento-dbn==0.18.1
+databento==0.36.3
+databento-dbn==0.18.2
 debugpy==1.8.1
 decorator==5.1.1
 dnspython==2.6.1
