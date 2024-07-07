@@ -16,6 +16,13 @@ def helper_generate_order_without_order_id(ticker: str, order_side: str, price: 
         'volume': volume,
     }
 
+def helper_generate_order_id_price_volume(order_id: int, price: int, volume: int):
+    return {
+        'order_id': order_id,
+        'price': price,
+        'volume': volume,
+    }
+
 def helper_generate_top_of_book(
     ticker: str,
     price_buy: int|None,

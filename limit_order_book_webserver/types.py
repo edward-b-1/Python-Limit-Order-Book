@@ -5,6 +5,11 @@ from pydantic import BaseModel
 class FastAPI_OrderId(BaseModel):
     order_id: int
 
+class FastAPI_OrderIdPriceVolume(BaseModel):
+    order_id: int
+    price: int
+    volume: int
+
 class FastAPI_Ticker(BaseModel):
     ticker: str
 

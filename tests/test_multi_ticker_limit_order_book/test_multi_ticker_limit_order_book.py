@@ -24,21 +24,18 @@ def test_multi_limit_order_book_update_order_wrong_order_id():
     lob.insert(order_1)
 
     # Wrong order id, so should do nothing
-    order_2 = Order(
+    order = lob.update(
         order_id=OrderId(2),
-        ticker=ticker,
-        order_side=order_side,
         int_price=IntPrice(100),
         volume=Volume(10),
     )
-    order = lob.update(order_2)
     assert order is None
 
     order = lob.cancel(order_id=order_1.to_order_id())
     assert order == order_1
 
 
-def test_multi_limit_order_book_update_order_wrong_ticker():
+def test_multi_limit_order_book_update_order_no_change():
 
     lob = MultiTickerLimitOrderBook()
     order_side = OrderSide("BUY")
@@ -53,21 +50,44 @@ def test_multi_limit_order_book_update_order_wrong_ticker():
     lob.insert(order_1)
 
     # Wrong ticker, so should do nothing
-    order_2 = Order(
+    order = lob.update(
         order_id=OrderId(1),
-        ticker=Ticker('RUST'),
-        order_side=order_side,
         int_price=IntPrice(100),
         volume=Volume(10),
     )
-    order = lob.update(order_2)
     assert order is None
 
     order = lob.cancel(order_id=order_1.to_order_id())
     assert order == order_1
 
 
-def test_multi_limit_order_book_update_order_wrong_order_side():
+def test_multi_limit_order_book_update_order():
+
+    lob = MultiTickerLimitOrderBook()
+    order_side = OrderSide("BUY")
+
+    order_1 = Order(
+        order_id=OrderId(1),
+        ticker=Ticker('PYTH'),
+        order_side=order_side,
+        int_price=IntPrice(100),
+        volume=Volume(10),
+    )
+    lob.insert(order_1)
+
+    # Wrong ticker, so should do nothing
+    order = lob.update(
+        order_id=OrderId(1),
+        int_price=IntPrice(110),
+        volume=Volume(12),
+    )
+    assert order == order_1
+
+    order = lob.cancel(order_id=order_1.to_order_id())
+    assert order is None
+
+
+def test_multi_limit_order_book_update_order_int_price():
 
     lob = MultiTickerLimitOrderBook()
     ticker = Ticker('PYTH')
@@ -82,14 +102,63 @@ def test_multi_limit_order_book_update_order_wrong_order_side():
     lob.insert(order_1)
 
     # Wrong order side so should do nothing
-    order_2 = Order(
+    order = lob.update(
+        order_id=OrderId(1),
+        int_price=IntPrice(110),
+        volume=Volume(10),
+    )
+    assert order == order_1
+
+    order = lob.cancel(order_id=order_1.to_order_id())
+    assert order is None
+
+
+def test_multi_limit_order_book_update_order_volume_increase():
+
+    lob = MultiTickerLimitOrderBook()
+    ticker = Ticker('PYTH')
+
+    order_1 = Order(
         order_id=OrderId(1),
         ticker=ticker,
-        order_side=OrderSide("SELL"),
+        order_side=OrderSide("BUY"),
         int_price=IntPrice(100),
         volume=Volume(10),
     )
-    order = lob.update(order_2)
+    lob.insert(order_1)
+
+    # Wrong order side so should do nothing
+    order = lob.update(
+        order_id=OrderId(1),
+        int_price=IntPrice(100),
+        volume=Volume(11),
+    )
+    assert order == order_1
+
+    order = lob.cancel(order_id=order_1.to_order_id())
+    assert order is None
+
+
+def test_multi_limit_order_book_update_order_volume_decrease():
+
+    lob = MultiTickerLimitOrderBook()
+    ticker = Ticker('PYTH')
+
+    order_1 = Order(
+        order_id=OrderId(1),
+        ticker=ticker,
+        order_side=OrderSide("BUY"),
+        int_price=IntPrice(100),
+        volume=Volume(10),
+    )
+    lob.insert(order_1)
+
+    # Wrong order side so should do nothing
+    order = lob.update(
+        order_id=OrderId(1),
+        int_price=IntPrice(100),
+        volume=Volume(9),
+    )
     assert order is None
 
     order = lob.cancel(order_id=order_1.to_order_id())

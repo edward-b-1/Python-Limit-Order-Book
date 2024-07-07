@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+'''
+This file loads all of the files one by one using the manifest. It searches
+the first file to find if F_LAST is set on any record.
+'''
 
 import pandas
 import databento
@@ -20,7 +24,7 @@ def main():
 
     with open(f'/databento/data/mbo/{ticker}/XNAS-20240622-WPPRESG4BH/manifest.json') as f:
         d = jsons.loads(f.read())
-        
+
         files = d['files']
         for file in files:
             filename = file['filename']
@@ -39,7 +43,8 @@ def main():
         if filename == filenames_to_load[0]:
             print(df.dtypes)
         print(df['action'].unique())
-        print((df['flags'] & databento.RecordFlags.F_LAST).unique())
+        print(df['flags'].unique())
+        #print((df['flags'] & databento.RecordFlags.F_LAST).unique())
         #print(df['side'].unique())
         #print(df['instrument_id'].unique())
 

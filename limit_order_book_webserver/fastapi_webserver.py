@@ -17,6 +17,7 @@ from limit_order_book.types.volume import Volume
 from limit_order_book.exceptions import DuplicateOrderIdError
 
 from limit_order_book_webserver.types import FastAPI_OrderId
+from limit_order_book_webserver.types import FastAPI_OrderIdPriceVolume
 from limit_order_book_webserver.types import FastAPI_Ticker
 from limit_order_book_webserver.types import FastAPI_Order
 from limit_order_book_webserver.types import FastAPI_OrderWithoutOrderId
@@ -119,17 +120,15 @@ def cancel_order(fastapi_order_id: FastAPI_OrderId):
         )
 
 @app.post('/modify_order')
-def modify_order(fastapi_order: FastAPI_Order):
+def modify_order(fastapi_order_id_price_volume: FastAPI_OrderIdPriceVolume):
     print(f'pid={os.getpid()}')
     print(f'threading.native_id={threading.get_native_id()}')
-    order = Order(
-        order_id=OrderId(fastapi_order.order_id),
-        ticker=Ticker(fastapi_order.ticker),
-        order_side=OrderSide(value=fastapi_order.order_side),
-        int_price=IntPrice(fastapi_order.price),
-        volume=Volume(fastapi_order.volume),
-    )
-    trades = limit_order_book.order_modify(order)
+
+    order_id=OrderId(fastapi_order_id_price_volume.order_id)
+    int_price=IntPrice(fastapi_order_id_price_volume.price)
+    volume=Volume(fastapi_order_id_price_volume.volume)
+
+    trades = limit_order_book.order_update(order_id=order_id, int_price=int_price, volume=volume)
     fastapi_trades = convert_trades_to_fastapi_trades(trades)
     return FastAPI_ReturnStatusWithTrades(
         status='success',

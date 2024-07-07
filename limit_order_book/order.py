@@ -182,8 +182,8 @@ class Order:
 
         # NOTE: it is the responsibility of the managing data structure to
         # filter orders which have zero remaining volume
-        maker_order._volume = maker_volume
-        taker_order._volume = taker_volume
+        maker_order.set_volume(maker_volume)
+        taker_order.set_volume(taker_volume)
 
         trade = Trade(
             order_id_maker=maker_order.to_order_id(),

@@ -35,7 +35,6 @@ class OrderPriorityQueue():
     def trade(self, taker_order: Order) -> list[Trade]:
         assert taker_order.to_ticker() == self._ticker, f'OrderPriorityQueue.trade ticker mismatch'
         assert taker_order.to_order_side().other_side() == self._order_side, f'OrderPriorityQueue.trade order side mismatch'
-        #assert taker_order.to_int_price() == self._int_price, f'OrderPriorityQueue.trade int price mismatch'
 
         trade_list = []
         while taker_order.to_volume() > Volume(0) and len(self._queue) > 0:
@@ -43,15 +42,14 @@ class OrderPriorityQueue():
             trade = maker_order.match(taker_order)
             if trade is not None:
                 trade_list.append(trade)
-                if maker_order.to_volume().is_zero():
-                    self._queue = (
-                        list(
-                            filter(
-                                lambda order: order.to_volume().is_not_zero(),
-                                self._queue,
-                            )
+                self._queue = (
+                    list(
+                        filter(
+                            lambda order: order.to_volume().is_not_zero(),
+                            self._queue,
                         )
                     )
+                )
             else:
                 raise RuntimeError(f'OrderPriorityQueue.trade: unreachable condition')
         return trade_list
@@ -70,56 +68,148 @@ class OrderPriorityQueue():
         self._queue.append(order)
 
 
-    def update(self, order: Order) -> Order|None:
-        assert order.to_ticker() == self._ticker, f'OrderPriorityQueue.update ticker mismatch'
-        assert order.to_order_side() == self._order_side, f'OrderPriorityQueue.update order side mismatch'
-        #assert order.to_int_price() == self._int_price, f'OrderPriorityQueue.update int price mismatch'
-        # price might be changing
-
-        order_id = order.to_order_id()
+    # TODO: there are no tests to see if the priority is maintained by these functions if
+    # the order int price and volume is unchanged
+    def update(self, order_id: OrderId, int_price: IntPrice, volume: Volume) -> Order|None:
+        '''
+        Note: If the int_price and volume match the existing order int_price
+              and volume, then this function must return None. The priority
+              must not be changed if the values remain the same. This would
+              be surprising to a user of the API.
+        '''
         existing_orders = self._filter_orders_matching_order_id(order_id)
         assert len(existing_orders) <= 1, f'OrderPriorityQueue.update invalid number of orders found'
 
         if len(existing_orders) < 1:
             return None
-        else:
-            existing_order = existing_orders[0]
 
-            int_price = order.to_int_price()
-            existing_int_price = existing_order.to_int_price()
+        existing_order = existing_orders[0]
+        existing_int_price = existing_order.to_int_price()
+        existing_volume = existing_order.to_volume()
+        existing_order.set_int_price(int_price)
+        existing_order.set_volume(volume)
 
-            if int_price != existing_int_price:
-                # if the price level is different, it is possible to generate a
-                # trade, and the order needs to be sent to a different price
-                # level - not something we can do here
-
-                volume = order.to_volume()
-                existing_volume = existing_order.to_volume()
-
-                if volume == existing_volume:
-                    pass
-                elif volume != existing_volume:
-                    existing_order.set_volume(volume)
-
-                # remove order
+        if int_price == existing_int_price:
+            if existing_volume < volume:
+                # priority reduced
                 self._queue = self._filter_orders_not_matching_order_id(order_id)
-                existing_order.set_int_price(int_price)
+                # to reduce the priority, remove the order from the queue and
+                # return it to the calling data structures
                 return existing_order
             else:
-                volume = order.to_volume()
-                existing_volume = existing_order.to_volume()
-
-                if volume == existing_volume:
-                    pass
-                elif volume < existing_volume:
-                    existing_order.set_volume(volume)
-                else:
-                    # priority reduced
-                    self._queue = self._filter_orders_not_matching_order_id(order_id)
-                    existing_order.set_volume(volume)
-                    self.insert(existing_order)
-
                 return None
+        else:
+            # remove order
+            self._queue = self._filter_orders_not_matching_order_id(order_id)
+            return existing_order
+
+
+    # TODO: there are no tests to see if the priority is maintained by these functions if
+    # the order int price and volume is unchanged
+    def update_int_price(self, order_id: OrderId, int_price: IntPrice) -> Order|None:
+        '''
+        Note: If the int_price and volume match the existing order int_price
+              and volume, then this function must return None. The priority
+              must not be changed if the values remain the same. This would
+              be surprising to a user of the API.
+        '''
+        existing_orders = self._filter_orders_matching_order_id(order_id)
+        assert len(existing_orders) <= 1, f'OrderPriorityQueue.update_int_price invalid number of orders found'
+
+        if len(existing_orders) < 1:
+            return None
+
+        existing_order = existing_orders[0]
+        existing_int_price = existing_order.to_int_price()
+        existing_order.set_int_price(int_price)
+
+        if int_price == existing_int_price:
+            return None
+        else:
+            # remove order
+            self._queue = self._filter_orders_not_matching_order_id(order_id)
+            return existing_order
+
+
+    # TODO: there are no tests to see if the priority is maintained by these functions if
+    # the order int price and volume is unchanged
+    def update_volume(self, order_id: OrderId, volume: Volume) -> Order|None:
+        '''
+        Note: If the int_price and volume match the existing order int_price
+              and volume, then this function must return None. The priority
+              must not be changed if the values remain the same. This would
+              be surprising to a user of the API.
+        '''
+        existing_orders = self._filter_orders_matching_order_id(order_id)
+        assert len(existing_orders) <= 1, f'OrderPriorityQueue.update_volume invalid number of orders found'
+
+        if len(existing_orders) < 1:
+            return None
+
+        existing_order = existing_orders[0]
+        existing_volume = existing_order.to_volume()
+        existing_order.set_volume(volume)
+
+        if existing_volume < volume:
+            # priority reduced
+            self._queue = self._filter_orders_not_matching_order_id(order_id)
+            # to reduce the priority, remove the order from the queue and
+            # return it to the calling data structures
+            return existing_order
+        else:
+            return None
+
+
+    # def modify_databento(self, order: Order) -> Order|None:
+    #     assert order.to_ticker() == self._ticker, f'OrderPriorityQueue.update ticker mismatch'
+    #     assert order.to_order_side() == self._order_side, f'OrderPriorityQueue.update order side mismatch'
+    #     #assert order.to_int_price() == self._int_price, f'OrderPriorityQueue.update int price mismatch'
+    #     # price might be changing
+
+    #     order_id = order.to_order_id()
+    #     existing_orders = self._filter_orders_matching_order_id(order_id)
+    #     assert len(existing_orders) <= 1, f'OrderPriorityQueue.update invalid number of orders found'
+
+    #     if len(existing_orders) < 1:
+    #         return None
+    #     else:
+    #         existing_order = existing_orders[0]
+
+    #         int_price = order.to_int_price()
+    #         existing_int_price = existing_order.to_int_price()
+
+    #         if int_price != existing_int_price:
+    #             # if the price level is different, it is possible to generate a
+    #             # trade, and the order needs to be sent to a different price
+    #             # level - not something we can do here
+
+    #             volume = order.to_volume()
+    #             existing_volume = existing_order.to_volume()
+
+    #             if volume == existing_volume:
+    #                 pass
+    #             elif volume != existing_volume:
+    #                 existing_order.set_volume(volume)
+
+    #             # remove order
+    #             self._queue = self._filter_orders_not_matching_order_id(order_id)
+    #             existing_order.set_int_price(int_price)
+    #             return existing_order
+    #         else:
+    #             volume = order.to_volume()
+    #             existing_volume = existing_order.to_volume()
+
+    #             if volume == existing_volume:
+    #                 pass
+    #             elif volume < existing_volume:
+    #                 existing_order.set_volume(volume)
+    #             else:
+    #                 # priority reduced
+    #                 self._queue = self._filter_orders_not_matching_order_id(order_id)
+    #                 existing_order.set_volume(volume)
+    #                 self.insert(existing_order)
+
+    #             return None
 
 
     # def update(self, order: Order) -> Order|None:
@@ -169,6 +259,7 @@ class OrderPriorityQueue():
 
 
     # TODO: use same semantics here as update?
+    # Yes: but for databento only!
     def cancel(self, order_id: OrderId) -> Order|None:
         orders = self._remove_orders_matching_order_id(order_id)
 
@@ -177,6 +268,25 @@ class OrderPriorityQueue():
         if len(orders) == 1:
             return orders[0]
         return None
+
+
+    def cancel_partial(self, order_id: OrderId, volume: Volume) -> None:
+        existing_orders = self._filter_orders_matching_order_id(order_id)
+        assert len(existing_orders) <= 1, f'OrderPriorityQueue.cancel_partial invalid number of orders found'
+
+        if len(existing_orders) < 1:
+            return None
+
+        existing_order = existing_orders[0]
+        existing_volume = existing_order.to_volume()
+        if volume > existing_volume:
+            raise
+
+        if volume == existing_volume:
+            existing_orders = self._remove_orders_matching_order_id(order_id)
+            assert len(existing_orders) <= 1, f'OrderPriorityQueue.cancel_partial invalid number of orders found'
+        else:
+            existing_order.set_volume(existing_volume - volume)
 
 
     def order_id_exists(self, order_id: OrderId) -> bool:

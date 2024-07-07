@@ -4,6 +4,12 @@ import pandas
 
 def compare_rows(index: int, last_row: pandas.DataFrame, row: pandas.DataFrame):
 
+    '''
+    Compare two rows. Return True if the current row is action=Cancel and
+    the previous row is action=Fill, and the other columns in the row match.
+    Only "relevant" columns are compared.
+    '''
+
     action = 'action'
 
     last_row_action = last_row[action]

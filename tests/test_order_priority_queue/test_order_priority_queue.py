@@ -69,16 +69,12 @@ def test_order_priority_queue_update():
         volume=Volume(10),
     )
 
-    order_updated = Order(
-        order_id=OrderId(1),
-        ticker=ticker,
-        order_side=order_side,
-        int_price=int_price,
-        volume=Volume(20),
-    )
-
     queue.insert(order_original)
-    queue.update(order_updated)
+    queue.update(
+        order_id=OrderId(1),
+        int_price=int_price,
+        volume=Volume(5),
+    )
 
     assert queue.order_id_exists(OrderId(1))
     assert queue.order_id_exists(OrderId(2)) == False

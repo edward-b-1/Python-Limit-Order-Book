@@ -74,14 +74,11 @@ def test_limit_order_book_order_update():
     (order_id_4, trades) = lob.order_insert(order_3)
     assert trades == []
 
-    order_3_updated = Order(
+    trades = lob.order_update(
         order_id=order_id_4,
-        ticker=ticker,
-        order_side=OrderSide("SELL"),
         int_price=IntPrice(980),
         volume=Volume(100),
     )
-    trades = lob.order_modify(order_3_updated)
 
     assert trades == [
         Trade(order_id_maker=order_id_3, order_id_taker=order_id_4, ticker=ticker, int_price=IntPrice(980), volume=Volume(20)),
