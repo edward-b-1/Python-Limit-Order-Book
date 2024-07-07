@@ -46,6 +46,9 @@ class Order:
             f')'
         )
 
+    def __repr__(self) -> str:
+        return str(self)
+
     def debug_str(self) -> str:
         return str(self)
 
@@ -62,6 +65,14 @@ class Order:
 
     def set_volume(self, volume: Volume):
         self._volume = volume
+
+    def reduce_volume(self, volume: Volume):
+        '''Reduce order volume by `volume`
+
+        Args:
+            volume (Volume): Volume quantity to reduce by
+        '''
+        self._volume.reduce(volume)
 
     def set_int_price(self, int_price: IntPrice):
         self._int_price = int_price
