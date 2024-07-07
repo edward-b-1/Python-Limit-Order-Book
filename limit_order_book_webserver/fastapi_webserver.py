@@ -186,22 +186,27 @@ def ping():
     }
 
 
-# shared_data = None
+@app.post('/debug_log_top_of_book')
+def debug_log_top_of_book(fastapi_ticker: FastAPI_Ticker):
+    ticker = Ticker(ticker=fastapi_ticker.ticker)
+    limit_order_book.debug_log_top_of_book(ticker=ticker)
+    return FastAPI_ReturnStatus(
+        status='success',
+        message=None,
+    )
 
-# class FastAPI_Value(BaseModel):
-#     value: str
+@app.post('/debug_log_current_order_id')
+def debug_log_current_order_id():
+    limit_order_book.debug_log_current_order_id()
+    return FastAPI_ReturnStatus(
+        status='success',
+        message=None,
+    )
 
-# @app.post('/put')
-# def put(value: FastAPI_Value):
-#     print(f'value={value.value}')
-#     global shared_data
-#     shared_data = value
-#     return {
-#         'status': 'success',
-#     }
-
-# @app.get('/get')
-# def get():
-#     return {
-#         'shared_data': shared_data,
-#     }
+@app.post('/debug_log_all_tickers')
+def debug_log_all_tickers():
+    limit_order_book.debug_log_all_tickers()
+    return FastAPI_ReturnStatus(
+        status='success',
+        message=None,
+    )
