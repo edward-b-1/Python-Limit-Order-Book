@@ -46,6 +46,7 @@ limit_order_book = LimitOrderBookLogged()
 origins = [
     'http://localhost:5555',
     'http://localhost:5173',
+    'http://localhost:80',
 ]
 
 print(f'__name__={__name__}')
