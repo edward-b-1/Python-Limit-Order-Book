@@ -2,6 +2,7 @@
 from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
+from fastapi import Request
 from fastapi import Response
 from fastapi import status
 
@@ -66,9 +67,11 @@ def root():
     }
 
 @app.post('/api/send_order')
-def send_order(fastapi_order: FastAPI_OrderWithoutOrderId, response: Response):
+def send_order(fastapi_order: FastAPI_OrderWithoutOrderId, request: Request, response: Response):
     print(f'pid={os.getpid()}')
     print(f'threading.native_id={threading.get_native_id()}')
+
+    ip = request.client.host
     order = OrderWithoutOrderId(
         ticker=Ticker(fastapi_order.ticker),
         order_side=OrderSide(value=fastapi_order.order_side),
@@ -76,9 +79,10 @@ def send_order(fastapi_order: FastAPI_OrderWithoutOrderId, response: Response):
         volume=Volume(fastapi_order.volume),
     )
     try:
-        (order_id, trades) = limit_order_book.order_insert(order)
+        (order_id, trades) = limit_order_book.order_insert(ip, order)
         fastapi_order_id = FastAPI_OrderId(order_id=order_id.to_int()).order_id
         fastapi_trades = convert_trades_to_fastapi_trades(trades)
+
         return FastAPI_ReturnStatusWithTradesAndOrderId(
             status='success',
             message=None,
@@ -112,16 +116,17 @@ def send_order(fastapi_order: FastAPI_OrderWithoutOrderId, response: Response):
         )
 
 @app.post('/api/modify_order')
-def modify_order(fastapi_order_id_price_volume: FastAPI_OrderIdPriceVolume):
+def modify_order(fastapi_order_id_price_volume: FastAPI_OrderIdPriceVolume, request: Request):
     print(f'pid={os.getpid()}')
     print(f'threading.native_id={threading.get_native_id()}')
 
+    ip = request.client.host
     order_id=OrderId(fastapi_order_id_price_volume.order_id)
     int_price=IntPrice(fastapi_order_id_price_volume.price)
     volume=Volume(fastapi_order_id_price_volume.volume)
-
-    trades = limit_order_book.order_update(order_id=order_id, int_price=int_price, volume=volume)
+    trades = limit_order_book.order_update(ip=ip, order_id=order_id, int_price=int_price, volume=volume)
     fastapi_trades = convert_trades_to_fastapi_trades(trades)
+
     return FastAPI_ReturnStatusWithTrades(
         status='success',
         message=None,
@@ -129,11 +134,13 @@ def modify_order(fastapi_order_id_price_volume: FastAPI_OrderIdPriceVolume):
     )
 
 @app.post('/api/cancel_order')
-def cancel_order(fastapi_order_id: FastAPI_OrderId):
+def cancel_order(fastapi_order_id: FastAPI_OrderId, request: Request):
     print(f'pid={os.getpid()}')
     print(f'threading.native_id={threading.get_native_id()}')
+
+    ip = request.client.host
     order_id = OrderId(fastapi_order_id.order_id)
-    order = limit_order_book.order_cancel(order_id)
+    order = limit_order_book.order_cancel(ip=ip, order_id=order_id)
 
     if order is None:
         return FastAPI_ReturnStatus(
@@ -155,12 +162,15 @@ def cancel_order(fastapi_order_id: FastAPI_OrderId):
         )
 
 @app.post('/api/cancel_order_partial')
-def cancel_order_partial(fastapi_order_id_volume: FastAPI_OrderIdVolume):
+def cancel_order_partial(fastapi_order_id_volume: FastAPI_OrderIdVolume, request: Request):
     print(f'pid={os.getpid()}')
     print(f'threading.native_id={threading.get_native_id()}')
+
+    ip = request.client.host
     order_id = OrderId(fastapi_order_id_volume.order_id)
     volume = Volume(fastapi_order_id_volume.volume)
-    limit_order_book.order_cancel_partial(order_id=order_id, volume=volume)
+    limit_order_book.order_cancel_partial(ip=ip, order_id=order_id, volume=volume)
+
     return FastAPI_ReturnStatus(
         status='success',
         message=None,

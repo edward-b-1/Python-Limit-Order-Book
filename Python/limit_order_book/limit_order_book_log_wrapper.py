@@ -36,19 +36,20 @@ class LimitOrderBookLogged():
         self._limit_order_book = LimitOrderBook()
         self._log_file = None
         atexit.register(self._cleanup)
+        self._initialize()
 
     def _initialize(self):
         self._log_file = open('limit_order_book_log_file.txt', 'a')
         datetime_now = now()
         self._log_file.write(
-            f'SESSION_START {datetime_now}'
+            f'SESSION_START {datetime_now}\n'
         )
         self._log_file.flush()
 
     def _cleanup(self):
         datetime_now = now()
         self._log_file.write(
-            f'SESSION_END {datetime_now}'
+            f'SESSION_END {datetime_now}\n'
         )
         self._log_file.flush()
         self._log_file.close()
@@ -99,20 +100,32 @@ class LimitOrderBookLogged():
         self._log_file.flush()
 
     def order_insert(self, ip: str, order: OrderWithoutOrderId) -> tuple[OrderId, list[Trade]]:
-        self._log_order_insert(ip, order)
-        return self._limit_order_book.order_insert(order)
+        try:
+            return_value = self._limit_order_book.order_insert(order)
+        finally:
+            self._log_order_insert(ip, order)
+        return return_value
 
     def order_update(self, ip: str, order_id: OrderId, int_price: IntPrice|None, volume: Volume|None) -> list[Trade]:
-        self._log_order_update(ip, order_id=order_id, int_price=int_price, volume=volume)
-        return self._limit_order_book.order_update(order_id=order_id, int_price=int_price, volume=volume)
+        try:
+            return_value = self._limit_order_book.order_update(order_id=order_id, int_price=int_price, volume=volume)
+        finally:
+            self._log_order_update(ip, order_id=order_id, int_price=int_price, volume=volume)
+        return return_value
 
     def order_cancel(self, ip: str, order_id: OrderId) -> Order|None:
-        self._log_order_cancel(ip=ip, order_id=order_id)
-        return self._limit_order_book.order_cancel(order_id=order_id)
+        try:
+            return_value = self._limit_order_book.order_cancel(order_id=order_id)
+        finally:
+            self._log_order_cancel(ip=ip, order_id=order_id)
+        return return_value
 
     def order_cancel_partial(self, ip: str, order_id: OrderId, volume: Volume) -> None:
-        self._log_order_cancel_partial(ip, order_id=order_id, volume=volume)
-        return self._limit_order_book.order_cancel_partial(order_id=order_id, volume=volume)
+        try:
+            return_value = self._limit_order_book.order_cancel_partial(order_id=order_id, volume=volume)
+        finally:
+            self._log_order_cancel_partial(ip, order_id=order_id, volume=volume)
+        return return_value
 
     def top_of_book(self, ticker: Ticker) -> TopOfBook:
         return self._limit_order_book.top_of_book(ticker=ticker)
