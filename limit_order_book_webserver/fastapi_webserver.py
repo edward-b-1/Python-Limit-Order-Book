@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from fastapi import Response
 from fastapi import status
 
-from limit_order_book.limit_order_book_wrapper import LimitOrderBook
+from limit_order_book.limit_order_book_log_wrapper import LimitOrderBookLogged
 from limit_order_book.order import Order
 from limit_order_book.order_without_order_id import OrderWithoutOrderId
 from limit_order_book.trade import Trade
@@ -17,6 +17,7 @@ from limit_order_book.types.volume import Volume
 from limit_order_book.exceptions import DuplicateOrderIdError
 
 from limit_order_book_webserver.types import FastAPI_OrderId
+from limit_order_book_webserver.types import FastAPI_OrderIdVolume
 from limit_order_book_webserver.types import FastAPI_OrderIdPriceVolume
 from limit_order_book_webserver.types import FastAPI_Ticker
 from limit_order_book_webserver.types import FastAPI_Order
@@ -28,17 +29,34 @@ from limit_order_book_webserver.types import FastAPI_ReturnStatusWithOrder
 from limit_order_book_webserver.types import FastAPI_ReturnStatusWithTrades
 from limit_order_book_webserver.types import FastAPI_ReturnStatusWithTradesAndOrderId
 from limit_order_book_webserver.types import FastAPI_ReturnStatusWithTopOfBook
+from limit_order_book_webserver.types import FastAPI_ReturnStatusWithTickerList
+
+from fastapi.middleware.cors import CORSMiddleware
 
 from limit_order_book_webserver.convert_trades_to_fastapi_trades import convert_trades_to_fastapi_trades
+from limit_order_book_webserver.convert_ticker_list_to_fastapi_ticker_list import convert_ticker_list_to_fastapi_ticker_list
 
 import os
 import threading
 
-limit_order_book = LimitOrderBook()
+limit_order_book = LimitOrderBookLogged()
 
+
+origins = [
+    'http://localhost:5555',
+    'http://localhost:5173',
+]
 
 print(f'__name__={__name__}')
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
+
 
 @app.get('/')
 def root():
@@ -47,7 +65,7 @@ def root():
         'message': 'please download the client application from the documentation page to interact with this site'
     }
 
-@app.post('/send_order')
+@app.post('/api/send_order')
 def send_order(fastapi_order: FastAPI_OrderWithoutOrderId, response: Response):
     print(f'pid={os.getpid()}')
     print(f'threading.native_id={threading.get_native_id()}')
@@ -93,7 +111,24 @@ def send_order(fastapi_order: FastAPI_OrderWithoutOrderId, response: Response):
             },
         )
 
-@app.post('/cancel_order')
+@app.post('/api/modify_order')
+def modify_order(fastapi_order_id_price_volume: FastAPI_OrderIdPriceVolume):
+    print(f'pid={os.getpid()}')
+    print(f'threading.native_id={threading.get_native_id()}')
+
+    order_id=OrderId(fastapi_order_id_price_volume.order_id)
+    int_price=IntPrice(fastapi_order_id_price_volume.price)
+    volume=Volume(fastapi_order_id_price_volume.volume)
+
+    trades = limit_order_book.order_update(order_id=order_id, int_price=int_price, volume=volume)
+    fastapi_trades = convert_trades_to_fastapi_trades(trades)
+    return FastAPI_ReturnStatusWithTrades(
+        status='success',
+        message=None,
+        trades=fastapi_trades,
+    )
+
+@app.post('/api/cancel_order')
 def cancel_order(fastapi_order_id: FastAPI_OrderId):
     print(f'pid={os.getpid()}')
     print(f'threading.native_id={threading.get_native_id()}')
@@ -119,24 +154,19 @@ def cancel_order(fastapi_order_id: FastAPI_OrderId):
             order=fastapi_order,
         )
 
-@app.post('/modify_order')
-def modify_order(fastapi_order_id_price_volume: FastAPI_OrderIdPriceVolume):
+@app.post('/api/cancel_order_partial')
+def cancel_order_partial(fastapi_order_id_volume: FastAPI_OrderIdVolume):
     print(f'pid={os.getpid()}')
     print(f'threading.native_id={threading.get_native_id()}')
-
-    order_id=OrderId(fastapi_order_id_price_volume.order_id)
-    int_price=IntPrice(fastapi_order_id_price_volume.price)
-    volume=Volume(fastapi_order_id_price_volume.volume)
-
-    trades = limit_order_book.order_update(order_id=order_id, int_price=int_price, volume=volume)
-    fastapi_trades = convert_trades_to_fastapi_trades(trades)
-    return FastAPI_ReturnStatusWithTrades(
+    order_id = OrderId(fastapi_order_id_volume.order_id)
+    volume = Volume(fastapi_order_id_volume.volume)
+    limit_order_book.order_cancel_partial(order_id=order_id, volume=volume)
+    return FastAPI_ReturnStatus(
         status='success',
         message=None,
-        trades=fastapi_trades,
     )
 
-@app.post('/top_of_book')
+@app.post('/api/top_of_book')
 def top_of_book(fastapi_ticker: FastAPI_Ticker):
     print(f'pid={os.getpid()}')
     print(f'threading.native_id={threading.get_native_id()}')
@@ -177,7 +207,17 @@ def top_of_book(fastapi_ticker: FastAPI_Ticker):
     )
     return r
 
-@app.get('/ping')
+@app.post('/api/list_all_tickers')
+def list_all_tickers():
+    ticker_list = limit_order_book.list_all_tickers()
+    ticker_list_str = convert_ticker_list_to_fastapi_ticker_list(ticker_list)
+    return FastAPI_ReturnStatusWithTickerList(
+        status='success',
+        message=None,
+        tickers=ticker_list_str,
+    )
+
+@app.get('/api/debug/ping')
 def ping():
     return {
         'status': 'success',
@@ -186,7 +226,7 @@ def ping():
     }
 
 
-@app.post('/debug_log_top_of_book')
+@app.post('/api/debug/debug_log_top_of_book')
 def debug_log_top_of_book(fastapi_ticker: FastAPI_Ticker):
     ticker = Ticker(ticker=fastapi_ticker.ticker)
     limit_order_book.debug_log_top_of_book(ticker=ticker)
@@ -195,7 +235,7 @@ def debug_log_top_of_book(fastapi_ticker: FastAPI_Ticker):
         message=None,
     )
 
-@app.post('/debug_log_current_order_id')
+@app.post('/api/debug/debug_log_current_order_id')
 def debug_log_current_order_id():
     limit_order_book.debug_log_current_order_id()
     return FastAPI_ReturnStatus(
@@ -203,7 +243,7 @@ def debug_log_current_order_id():
         message=None,
     )
 
-@app.post('/debug_log_all_tickers')
+@app.post('/api/debug/debug_log_all_tickers')
 def debug_log_all_tickers():
     limit_order_book.debug_log_all_tickers()
     return FastAPI_ReturnStatus(
