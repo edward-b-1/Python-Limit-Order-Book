@@ -27,7 +27,6 @@ class LimitOrderBook():
         self._next_order_id_value: int = 1
         self._multi_ticker_limit_order_book = MultiTickerLimitOrderBook()
 
-
     def order_insert(self, order: OrderWithoutOrderId) -> tuple[OrderId, list[Trade]]:
         log.info(f'order insert: {order}')
         order_id = OrderId(self._next_order_id_value)
@@ -87,6 +86,9 @@ class LimitOrderBook():
 
 
     def order_cancel_partial(self, order_id: OrderId, volume: Volume) -> None:
+        '''
+        Note: There is currently no way to know if this succeeded or failed
+        '''
         log.info(f'order cancel partial: {order_id}, {volume}')
         self._multi_ticker_limit_order_book.cancel_partial(order_id, volume)
 
@@ -99,6 +101,10 @@ class LimitOrderBook():
         number_of_orders = self._multi_ticker_limit_order_book.number_of_orders()
         return number_of_orders
 
+    def list_all_tickers(self) -> list[Ticker]:
+        ticker_list = self._multi_ticker_limit_order_book._list_all_tickers()
+        return ticker_list
+
     def debug_log_current_order_id(self) -> None:
         log.info(f'next order id: {self._next_order_id_value}')
 
@@ -108,6 +114,6 @@ class LimitOrderBook():
         log.info(f'{top_of_book}')
 
     def debug_log_all_tickers(self) -> None:
-        tickers = self._multi_ticker_limit_order_book._get_all_tickers()
+        tickers = self._multi_ticker_limit_order_book._list_all_tickers_as_str()
         tickers_str = ' '.join(tickers)
         log.info(f'all tickers: {tickers_str}')
