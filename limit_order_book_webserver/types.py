@@ -5,6 +5,10 @@ from pydantic import BaseModel
 class FastAPI_OrderId(BaseModel):
     order_id: int
 
+class FastAPI_OrderIdVolume(BaseModel):
+    order_id: int
+    volume: int
+
 class FastAPI_OrderIdPriceVolume(BaseModel):
     order_id: int
     price: int
@@ -57,3 +61,6 @@ class FastAPI_ReturnStatusWithTradesAndOrderId(FastAPI_ReturnStatus):
 
 class FastAPI_ReturnStatusWithTopOfBook(FastAPI_ReturnStatus):
     top_of_book: FastAPI_TopOfBook
+
+class FastAPI_ReturnStatusWithTickerList(FastAPI_ReturnStatus):
+    tickers: list[str]

@@ -33,10 +33,10 @@ def send_order(ticker: str, order_side: str, price: int, volume: int):
         int_price=IntPrice(price),
         volume=Volume(volume),
     )
-    print(f'/send_order')
+    print(f'/api/send_order')
     print(order)
 
-    url = get_url('/send_order')
+    url = get_url('/api/send_order')
     headers = {
         'accept': 'application/json',
     }
@@ -65,10 +65,10 @@ def send_order(ticker: str, order_side: str, price: int, volume: int):
 #         int_price=IntPrice(price),
 #         volume=Volume(volume),
 #     )
-#     print(f'/send_order')
+#     print(f'/api/send_order')
 #     print(order)
 
-#     url = get_url('/send_order')
+#     url = get_url('/api/send_order')
 #     headers = {
 #         'accept': 'application/json',
 #     }
@@ -91,10 +91,10 @@ def send_order(ticker: str, order_side: str, price: int, volume: int):
 
 @app.command()
 def modify_order(order_id: int, price: int, volume: int):
-    print(f'/modify_order')
+    print(f'/api/modify_order')
     print(f'{order_id}, {price}, {volume}')
 
-    url = get_url('/modify_order')
+    url = get_url('/api/modify_order')
     headers = {
         'accept': 'application/json',
     }
@@ -113,10 +113,10 @@ def modify_order(order_id: int, price: int, volume: int):
 @app.command()
 def cancel_order(order_id: int):
     order_id_order_id = OrderId(order_id)
-    print(f'/cancel_order')
+    print(f'/api/cancel_order')
     print(order_id_order_id)
 
-    url = get_url('/cancel_order')
+    url = get_url('/api/cancel_order')
     headers = {
         'accept': 'application/json',
     }
@@ -133,10 +133,10 @@ def cancel_order(order_id: int):
 @app.command()
 def top_of_book(ticker: str):
     ticker_ticker = Ticker(ticker)
-    print(f'/top_of_book')
+    print(f'/api/top_of_book')
     print(ticker_ticker)
 
-    url = get_url('/top_of_book')
+    url = get_url('/api/top_of_book')
     headers = {
         'accept': 'application/json',
     }
@@ -152,7 +152,8 @@ def top_of_book(ticker: str):
 
 @app.command()
 def ping():
-    url = get_url('/ping')
+    print(f'/api/debug/ping')
+    url = get_url('/api/debug/ping')
     headers = {
         'accept': 'application/json',
     }
@@ -165,7 +166,9 @@ def ping():
 
 @app.command()
 def debug_log_top_of_book(ticker: str):
-    url = get_url('/debug_log_top_of_book')
+    print(f'/api/debug/debug_log_top_of_book')
+    print(ticker)
+    url = get_url('/api/debug/debug_log_top_of_book')
     headers = {
         'accept': 'application/json',
     }
@@ -181,7 +184,8 @@ def debug_log_top_of_book(ticker: str):
 
 @app.command()
 def debug_log_current_order_id():
-    url = get_url('/debug_log_current_order_id')
+    print(f'/api/debug/debug_log_current_order_id')
+    url = get_url('/api/debug/debug_log_current_order_id')
     headers = {
         'accept': 'application/json',
     }
@@ -194,7 +198,8 @@ def debug_log_current_order_id():
 
 @app.command()
 def debug_log_all_tickers():
-    url = get_url('/debug_log_all_tickers')
+    print(f'/api/debug/debug_log_all_tickers')
+    url = get_url('/api/debug/debug_log_all_tickers')
     headers = {
         'accept': 'application/json',
     }

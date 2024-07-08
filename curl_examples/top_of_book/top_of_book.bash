@@ -3,7 +3,7 @@
 IP_ADDRESS=176.58.122.148
 PORT=80
 
-ENDPOINT='top_of_book'
+ENDPOINT='api/top_of_book'
 
 curl -X POST "http://$IP_ADDRESS:$PORT/$ENDPOINT" \
     -H 'Content-Type: application/json' \

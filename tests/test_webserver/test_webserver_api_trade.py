@@ -15,7 +15,7 @@ client = TestClient(app)
 
 def test_order_trade():
     json = helper_generate_order_without_order_id('PYTH', 'BUY', 1000, 10)
-    response = client.post('/send_order', json=json)
+    response = client.post('/api/send_order', json=json)
     assert response.status_code == 200
     assert response.json() == {
         'status': 'success',
@@ -25,7 +25,7 @@ def test_order_trade():
     }
 
     json = helper_generate_order_without_order_id('PYTH', 'SELL', 995, 5)
-    response = client.post('/send_order', json=json)
+    response = client.post('/api/send_order', json=json)
     assert response.status_code == 200
     assert response.json() == {
         'status': 'success',
@@ -43,7 +43,7 @@ def test_order_trade():
     }
 
     json = helper_generate_order_id(1)
-    response = client.post('/cancel_order', json=json)
+    response = client.post('/api/cancel_order', json=json)
     assert response.status_code == 200
     assert response.json() == {
         'status': 'success',

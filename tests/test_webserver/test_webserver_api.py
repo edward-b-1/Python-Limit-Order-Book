@@ -10,7 +10,7 @@ client = TestClient(app)
 
 
 def test_ping():
-    response = client.get('/ping')
+    response = client.get('/api/debug/ping')
     assert response.status_code == 200
     assert response.json() == {
         'status': 'success',
@@ -31,7 +31,7 @@ def test_root():
 def test_same_order_id():
 
     json = helper_generate_order_without_order_id('PYTH', 'BUY', 1000, 10)
-    response = client.post('/send_order', json=json)
+    response = client.post('/api/send_order', json=json)
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {
         'status': 'success',
@@ -41,7 +41,7 @@ def test_same_order_id():
     }
 
     json = helper_generate_order_without_order_id('PYTH', 'BUY', 1025, 15)
-    response = client.post('/send_order', json=json)
+    response = client.post('/api/send_order', json=json)
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {
         'status': 'success',
@@ -49,9 +49,3 @@ def test_same_order_id():
         'order_id': 2,
         'trades': []
     }
-
-
-
-
-def test_sequence():
-    assert True

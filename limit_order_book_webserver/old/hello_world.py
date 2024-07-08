@@ -20,7 +20,7 @@ def hello_world():
     return '<p>Hello world!</p>'
 
 
-@app.post('/send_order')
+@app.post('/api/send_order')
 def send_order():
     content = request.json
     print(content)
