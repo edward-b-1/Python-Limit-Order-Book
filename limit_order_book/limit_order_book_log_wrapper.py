@@ -38,7 +38,7 @@ class LimitOrderBookLogged():
         atexit.register(self._cleanup)
 
     def _initialize(self):
-        self._log_file = open('limit_order_book_log_file.txt', 'w')
+        self._log_file = open('limit_order_book_log_file.txt', 'a')
         datetime_now = now()
         self._log_file.write(
             f'SESSION_START {datetime_now}'
