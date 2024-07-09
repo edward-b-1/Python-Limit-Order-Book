@@ -44,6 +44,7 @@ limit_order_book = LimitOrderBookLogged()
 
 
 origins = [
+    'http://localhost:5555',
     'http://python-limit-order-book.co.uk:5555',
     'http://python-limit-order-book.co.uk:5173',
     'http://python-limit-order-book.co.uk:80',
