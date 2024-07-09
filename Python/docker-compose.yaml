@@ -2,4 +2,4 @@ services:
     python-limit-order-book:
         build: .
         ports:
-            - "80:80"
+            - "5555:5555"
