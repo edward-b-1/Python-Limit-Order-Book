@@ -218,7 +218,7 @@ function App() {
               Limit Order Book interface with React
             </Typography>
           </Paper>
-          <Box sx={{ pt: 2 }}>
+          <Box sx={{ py: 2 }}>
             <Button variant="contained" onClick={refreshData}>
               Refresh
             </Button>
