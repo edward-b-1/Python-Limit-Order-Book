@@ -33,9 +33,9 @@ def randomVolume():
 
 
 origins = [
-    'http://localhost:5555',
-    'http://localhost:5173',
-    'http://localhost:80',
+    'http://python-limit-order-book.co.uk:5555',
+    'http://python-limit-order-book.co.uk:5173',
+    'http://python-limit-order-book.co.uk:80',
 ]
 
 
