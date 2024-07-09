@@ -1,10 +1,12 @@
 #!/usr/bin/bash
 
-IP_ADDRESS=176.58.122.148
-PORT=80
+PROTOCOL=http
+#HOST=176.58.122.148
+HOST=python-limit-order-book.co.uk
+PORT=5555
 
 ENDPOINT='api/send_order'
 
-curl -X POST "http://$IP_ADDRESS:$PORT/$ENDPOINT" \
+curl -X POST "${PROTOCOL}://$HOST:$PORT/$ENDPOINT" \
     -H 'Content-Type: application/json' \
     --data @body.json
