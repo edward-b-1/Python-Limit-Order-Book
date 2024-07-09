@@ -13,7 +13,7 @@ A Limit Order Book is the core piece of infastructure in a financial exchange, s
 
 # Just show me how to run it
 
-The webserver is running on a Linode. It has the IP address `176.58.122.148 (/24)`. This cloud based VM hosts the FastAPI web API, which provides a REST interface to the Limit Order Book. You can interact with it using the CLI.
+The webserver is running on a Linode. It has the IP address `176.58.122.148 (/24)`. There is also a hostname setup to point to this IP via `python-limit-order-book.co.uk`. This cloud based VM hosts the FastAPI web API, which provides a REST interface to the Limit Order Book. You can interact with it using the CLI.
 
 ## How to use the CLI
 
