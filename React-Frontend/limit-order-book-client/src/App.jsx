@@ -42,14 +42,14 @@ function App() {
   const fetchRows = async () => {
     let rows = [];
     const responseAllTickers = await axios.post(
-      `${import.meta.env.VITE_REACT_API_URL}/api/list_all_tickers`,
+      `/api/list_all_tickers`,
       {}
     );
     const allTickers = responseAllTickers.data['tickers'];
     for (const ticker of allTickers) {
       console.log(`${ticker}`);
       const responseTopOfBook = await axios.post(
-        `${import.meta.env.VITE_REACT_API_URL}/api/top_of_book`,
+        `/api/top_of_book`,
         {
           ticker: ticker,
         }
@@ -86,7 +86,7 @@ function App() {
       `send order: ${sendOrderTicker} ${sendOrderOrderSide} ${sendOrderPrice} ${sendOrderVolume}`
     );
     axios
-      .post(`${import.meta.env.VITE_REACT_API_URL}/api/send_order`, {
+      .post(`/api/send_order`, {
         ticker: sendOrderTicker,
         order_side: sendOrderOrderSide,
         price: sendOrderPrice,
@@ -106,7 +106,7 @@ function App() {
       `update order: ${updateOrderOrderId} ${updateOrderPrice} ${updateOrderVolume}`
     );
     axios
-      .post(`${import.meta.env.VITE_REACT_API_URL}/api/modify_order`, {
+      .post(`/api/modify_order`, {
         order_id: updateOrderOrderId,
         price: updateOrderPrice,
         volume: updateOrderVolume,
@@ -121,7 +121,7 @@ function App() {
   function cancelOrder() {
     console.log(`cancel order: ${cancelOrderOrderId}`);
     axios
-      .post(`${import.meta.env.VITE_REACT_API_URL}/api/cancel_order`, {
+      .post(`/api/cancel_order`, {
         order_id: cancelOrderOrderId,
       })
       .then((response) => {
@@ -134,7 +134,7 @@ function App() {
       `cancel order partial: ${partialCancelOrderOrderId} ${partialCancelOrderVolume}`
     );
     axios
-      .post(`${import.meta.env.VITE_REACT_API_URL}/api/cancel_order_partial`, {
+      .post(`/api/cancel_order_partial`, {
         order_id: partialCancelOrderOrderId,
         volume: partialCancelOrderVolume,
       })
@@ -218,6 +218,8 @@ function App() {
               Limit Order Book interface with React
             </Typography>
           </Paper>
+          <Box sx={{ py: 2 }}>
+          </Box>
           <Grid container spacing={2} columns={10} alignItems="center">
             <Grid item xs={2}>
               <TextField
@@ -375,12 +377,12 @@ function App() {
               </Grid>
             </Box>
           </Box>
-          <Box sx={{ py: 2 }}>
+          <Box sx={{ py: 0 }}>
             <Button variant="contained" onClick={refreshData}>
               Refresh
             </Button>
           </Box>
-          <BasicTable rows={rows} sx={{ px: 2, my: 4 }}>
+          <BasicTable rows={rows} sx={{ px: 2, mt: 2 }}>
             table
           </BasicTable>
           <div>
