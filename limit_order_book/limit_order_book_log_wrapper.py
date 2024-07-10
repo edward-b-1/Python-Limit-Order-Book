@@ -19,6 +19,8 @@ import atexit
 from datetime import datetime
 from datetime import timezone
 
+import os
+
 '''
 Need to perform processing on the Databento data first to create a list of
 messages which can be used to test the order book.
@@ -34,12 +36,29 @@ class LimitOrderBookLogged():
 
     def __init__(self) -> None:
         self._limit_order_book = LimitOrderBook()
+        self._log_filename = 'limit_order_book_log_file.txt'
         self._log_file = None
         atexit.register(self._cleanup)
         self._initialize()
 
+    def _reset(self):
+        self._limit_order_book = LimitOrderBook()
+
     def _initialize(self):
-        self._log_file = open('limit_order_book_log_file.txt', 'a')
+        if os.path.exists(self._log_filename):
+            if not os.path.isfile(self._log_filename):
+                raise RuntimeError(f'path {self._log_filename} exists, but is not a file')
+
+            log_file = open(self._log_filename, 'r')
+            try:
+                self._reprocess_log_events(log_file)
+            except Exception as exception:
+                print(f'log file is not readable!')
+                print(f'{exception}')
+                raise
+            log_file.close()
+
+        self._log_file = open(self._log_filename, 'a')
         datetime_now = now()
         self._log_file.write(
             f'SESSION_START {datetime_now}\n'
@@ -60,6 +79,63 @@ class LimitOrderBookLogged():
 
     def __exit__(self):
         self._cleanup()
+
+    def _reprocess_log_events(self, log_file):
+        for line in log_file:
+            components = line.split(' ')
+            assert len(components) > 0
+            instruction = components[0]
+
+            if instruction == 'ORDER_ADD':
+                assert len(components) == 7
+                ticker_str = components[3]
+                order_side_str = components[4]
+                int_price_str = components[5]
+                volume_str = components[6]
+                order = OrderWithoutOrderId(
+                    ticker=Ticker(ticker_str),
+                    order_side=OrderSide(order_side_str),
+                    int_price=IntPrice(int(int_price_str)),
+                    volume=Volume(int(volume_str)),
+                )
+                self._order_insert(order=order)
+
+            elif instruction == 'ORDER_UPDATE':
+                assert len(components) == 6
+                order_id_str = components[3]
+                int_price_str = components[4]
+                volume_str = components[5]
+                order_id = OrderId(int(order_id_str))
+                int_price = IntPrice(int(int_price_str))
+                volume = Volume(int(volume_str))
+                self._order_update(order_id=order_id, int_price=int_price, volume=volume)
+
+            elif instruction == 'ORDER_CANCEL':
+                assert len(components) == 4
+                order_id_str = components[3]
+                order_id = OrderId(int(order_id_str))
+                self._order_cancel(order_id=order_id)
+
+            elif instruction == 'ORDER_CANCEL_PARTIAL':
+                assert len(components) == 5
+                order_id_str = components[3]
+                volume_str = components[4]
+                order_id = OrderId(int(order_id_str))
+                volume = Volume(int(volume_str))
+                self._order_cancel_partial(order_id=order_id, volume=volume)
+
+            elif instruction == 'SESSION_START':
+                pass
+
+            elif instruction == 'SESSION_END':
+                pass
+
+            elif instruction == 'RESET':
+                self._reset()
+
+            else:
+                raise RuntimeError(f'instruction {instruction} not recognized')
+
 
     def _log_order_insert(self, ip: str, order: OrderWithoutOrderId):
         ticker = order.to_ticker().to_str()
@@ -99,30 +175,43 @@ class LimitOrderBookLogged():
         )
         self._log_file.flush()
 
+    def _order_insert(self, order: OrderWithoutOrderId) -> tuple[OrderId, list[Trade]]:
+        return self._limit_order_book.order_insert(order)
+
+    def _order_update(self, order_id: OrderId, int_price: IntPrice|None, volume: Volume|None) -> list[Trade]:
+        return self._limit_order_book.order_update(order_id=order_id, int_price=int_price, volume=volume)
+
+    def _order_cancel(self, order_id: OrderId) -> Order|None:
+        return self._limit_order_book.order_cancel(order_id=order_id)
+
+    def _order_cancel_partial(self, order_id: OrderId, volume: Volume) -> None:
+        return self._limit_order_book.order_cancel_partial(order_id=order_id, volume=volume)
+
+
     def order_insert(self, ip: str, order: OrderWithoutOrderId) -> tuple[OrderId, list[Trade]]:
         try:
-            return_value = self._limit_order_book.order_insert(order)
+            return_value = self._order_insert(order=order)
         finally:
             self._log_order_insert(ip=ip, order=order)
         return return_value
 
     def order_update(self, ip: str, order_id: OrderId, int_price: IntPrice|None, volume: Volume|None) -> list[Trade]:
         try:
-            return_value = self._limit_order_book.order_update(order_id=order_id, int_price=int_price, volume=volume)
+            return_value = self._order_update(order_id=order_id, int_price=int_price, volume=volume)
         finally:
             self._log_order_update(ip=ip, order_id=order_id, int_price=int_price, volume=volume)
         return return_value
 
     def order_cancel(self, ip: str, order_id: OrderId) -> Order|None:
         try:
-            return_value = self._limit_order_book.order_cancel(order_id=order_id)
+            return_value = self._order_cancel(order_id=order_id)
         finally:
             self._log_order_cancel(ip=ip, order_id=order_id)
         return return_value
 
     def order_cancel_partial(self, ip: str, order_id: OrderId, volume: Volume) -> None:
         try:
-            return_value = self._limit_order_book.order_cancel_partial(order_id=order_id, volume=volume)
+            return_value = self._order_cancel_partial(order_id=order_id, volume=volume)
         finally:
             self._log_order_cancel_partial(ip=ip, order_id=order_id, volume=volume)
         return return_value
