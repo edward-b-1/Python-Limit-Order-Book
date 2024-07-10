@@ -218,6 +218,8 @@ function App() {
               Limit Order Book interface with React
             </Typography>
           </Paper>
+          <Box sx={{ py: 2 }}>
+          </Box>
           <Grid container spacing={2} columns={10} alignItems="center">
             <Grid item xs={2}>
               <TextField
@@ -375,12 +377,12 @@ function App() {
               </Grid>
             </Box>
           </Box>
-          <Box sx={{ py: 2 }}>
+          <Box sx={{ py: 0 }}>
             <Button variant="contained" onClick={refreshData}>
               Refresh
             </Button>
           </Box>
-          <BasicTable rows={rows} sx={{ px: 2, my: 4 }}>
+          <BasicTable rows={rows} sx={{ px: 2, mt: 2 }}>
             table
           </BasicTable>
           <div>
