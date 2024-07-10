@@ -1,21 +1,85 @@
 # Python-Limit-Order-Book
 
-Double Side Limit Order Book implementation in Python, plus webserver, plus command line interface.
+Double Side Limit Order Book implementation in Python
 
-# What is it?
+- plus webserver (web exposed backend REST API)
+- plus command line interface (so you can talk to the backend REST API directly)
+- plus web interface (so you can talk to it from a standard web browser, like Chrome)
 
-This repository consists of the source code for (primarily) two things
+## What is a Limit Order Book?
 
-- A Limit Order Book implementation, which is wrapped with a FastAPI webserver
-- A client CLI which can interact with the webserver
+**A Limit Order Book is the core piece of infastructure used in a financial exchange, such as a stock exchange. They are used to match client buy and sell orders, enabling clients to trade.**
 
-A Limit Order Book is the core piece of infastructure in a financial exchange, such as a stock exchange. They are used to match client buy and sell orders, enabling clients to trade.
+At a deeper level, a Limit Order Book (LOB) is a data structure which stores orders to buy and sell various instruments, at various discrete price levels, in varying volumes. A Limit Order Book also contains logic to match complementary orders, producing trades.
+
+They are used across the Financial Services world in the context of Financial Exchanges. An Exchange is a location, virtual or real, which allows clients to meet and trade.
+
+A Limit Order Book obtains its name from the concept of a *Limit Order*. This is an order to buy or sell some instrument at a price equal to or better than the *limit price*, with some fixed maximum quantity.
+
+- For example, a client may submit an order to buy 10 shares of Nvidia stock (NVDA) at a limit price of \$131.38. This order may be filled by (meaning matched with) orders to sell the same stock at \$131.38 or higher.
+- Alternatively, a client may submit an order to sell 10 shares of NVDA at a limit price of \$132.00. This order may be filled by orders to buy NVDA at \$132.00 or lower.
+- In the implementation featured here, if there is any spread (meaning difference) between the buy and sell price, the aggressor order price is used as the fill price, meaning that the order which arrives first recieves the benefit from the improvement in fill price.
+- Orders can only be filled if the spread is exactly zero (meaning the prices to buy and sell are the same) or if the sell price is less than the buy price.
+- If the buy price is lower than the sell price, then there are no matchable orders because the price levels do not intersect. In this case, any submitted order becomes a *resting* order in the book, meaning that it remains there until either cancelled or a new order arrives with a matchable price.
+
+# What is in this repository?
+
+This repository consists of the source code for (primarily) three things
+
+- A Limit Order Book implementation, which is wrapped with a FastAPI webserver. This is the "backend server". It presents a REST API interface to the "core" LOB.
+- A client CLI which can interact with the backend webserver directly
+- A whole website which is available at `www.python-limit-order-book.co.uk`
 
 # Just show me how to run it
 
-The webserver is running on a Linode. It has the IP address `176.58.122.148 (/24)`. There is also a hostname setup to point to this IP via `python-limit-order-book.co.uk`. This cloud based VM hosts the FastAPI web API, which provides a REST interface to the Limit Order Book. You can interact with it using the CLI.
+Well - what do you want to run?
+
+This repository contains the source code for at least 3 things: A "core" Limit Order Book data structure, a backend server which presents a REST API to an instance of the core LOB, and a website built using the React + Vite framework, which presents a more user-friendly graphical interface.
+
+- If you just want to see something working, go to `www.python-limit-order-book.co.uk` where you will find the website which displays the web interface to a backend server which hosts an instance of the core Limit Order Book logic. Jump to the **website** section for futher information.
+- If you want to use the CLI to talk to the backend, jump to the **How to use the CLI** section for more information. The backend REST API is designed for computers to use, but humans can interface with it using the CLI as a helper, or by running `curl` commands from a terminal.
+- If you are interested in the logic of the core LOB, you can clone this repository and write your own Python program which uses it.
+
+The webserver is running on a Linode. This cloud based VM hosts the FastAPI backend, which provides a REST API to the Limit Order Book. It also hosts the website (frontend), which you can access using a web browser like any other website. There is a dns hostname setup to point to this servers IP address, at `www.python-limit-order-book.co.uk`. You can also interact with this address using the CLI.
+
+## How to use the website
+
+The screenshot below shows what the website looks like at the time of writing. The top section is a command interface, which is used to send, modify and cancel orders. The bottom section is a table showing the *top of book* state of the LOB.
+
+**Top of Book:** Top of Book simply means the best buy and sell price for each instrument. It is quoted with a volume, showing the number of orders available to buy or sell with the top of book price.
+
+#### Example instructions for use:
+
+These instructions have been written assuming the order book is *empty*. If the order book is *not empty* then when you send an order there is a possibility that it will generate a trade. If this happens, you cannot follow these instructions *literally*, because some or all of your order will have been removed from the book due to trading activity.
+
+1. Enter an order using the first row of text entry fields. For example:
+
+```
+TICKER: NVDA
+ORDER SIDE: BUY
+PRICE: 1000
+VOLUME: 10
+```
+
+2. Press "Send Order". Assuming the order send correctly, the "last order id" box will be populated with an order id.
+
+3. Press "Refresh" at the bottom of the command region to refresh the "Top of Book" state. You should see an order to buy 10 NVDA @ 1000.
+
+4. Enter some values to modify the order using the second row of text entry fields. You will have to enter the same order id into the "ORDER ID" box. You can change the price, volume or both. Press "Update Order" to update the order values.
+
+5. Press "Refresh" again to see the updated state of the Top of Book.
+
+6. Use the penultimate row to cancel some remaining quantity of the order, or the final row to cancel the whole order.
+
+Of course, by the time you are reading this it is likely someone else has entered some orders, so you could instead click "Refresh" to look at the current Top of Book state, and figure out what order to send to generate some trades.
+
+*You won't see any output which indicates a trade has occured (yet) because I have not implemented this (yet). But you will know a trade has occured if the top of book volume reduces, or the price level changes.*
+
+![www.python-limit-order-book.co.uk](python-limit-order-book.png)
 
 ## How to use the CLI
+
+This section is intended for more technical audiences.
 
 The following bash commands show how to run the CLI on Linux. You need to be in the root directory, such that the `limit_order_book_cli` directory is accessable from the current working directory. See the section on Setup Instructions for more information.
 
@@ -54,6 +118,18 @@ $ python3 -m limit_order_book_cli top-of-book TICKER
 
 `TICKER` can technically be any string, but it is supposed to represent a ticker symbol like `AAPL` or `NVDA`.
 
+#### Update, Cancel and Partial Cancel:
+
+There are similar commands implemented in the CLI to update and cancel an order. The help option provides more information.
+
+```
+$ python3 -m limit_order_book_cli --help
+```
+
+### What about CURL?
+
+You can use `curl` to send, update and cancel orders too. See the `curl_examples` directory.
+
 
 # History
 
@@ -62,6 +138,12 @@ The original Limit Order Book was written as part of an interview process, altho
 - The original interview problem can be found in another repository. (https://github.com/edward-b-1/Python-Limit-Order-Book-Old) There are some issues with this implementation, to be expected as it had to be written quickly.
 
 I realized that there was a more elegant way to write the Limit Order Book implementation, which is why I re-wrote the code. The new version can be found in the `limit_order_book` folder.
+
+I thought it would be fun to wrap the "core" LOB with a REST API interface, and set this running on a cloud server somewhere. So I wrote the REST API server using FastAPI and deployed this to a cloud server. I wrote a command line interface (CLI), again using Python, which would allow users to download the Python CLI and interact with it. I also wrote examples using `curl` to demonstrate how to interact with it, for users who didn't want to use Python.
+
+However, no one used it. (I know from the log activity.) I realized that this was probably too unfamiliar a technology for general audiences to understand what it was or what it did or how it worked.
+
+So I wrote a website using React and Vite to create a more friendly user interface.
 
 # Current State
 
@@ -125,4 +207,7 @@ The Webserver makes uses of the `FastAPI` web framework package. It provides a w
 
 The CLI uses a Python package which is a close relative of `FastAPI`. It makes writing CLIs relatively straightforward. The CLI uses the Python `requests` package to talk to the Webserver.
 
-The Webserver is Dockerized, meaning that there is a `Dockerfile` which is used to build a Docker container. This Docker container is used to run the Webserver in the cloud. There is also a `docker-compose.yaml` which makes building and running the container even more easy.
+The backend webserver is Dockerized, meaning that there is a `Dockerfile` which is used to build a Docker container. This Docker container is used to run the backend in the cloud. There is also a `docker-compose.yaml` which makes building and running the container even more easy.
+
+The website is hosted using Nginx. Nginx also acts as a reverse proxy, directing requests to the backend webserver, if a request begins with `/api`.
+
