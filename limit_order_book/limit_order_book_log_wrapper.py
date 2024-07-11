@@ -36,7 +36,7 @@ class LimitOrderBookLogged():
 
     def __init__(self) -> None:
         self._limit_order_book = LimitOrderBook()
-        self._log_filename = 'limit_order_book_log_file.txt'
+        self._log_filename = '/python-limit-order-book-data/limit_order_book_log_file.txt'
         self._log_file = None
         atexit.register(self._cleanup)
         self._initialize()
