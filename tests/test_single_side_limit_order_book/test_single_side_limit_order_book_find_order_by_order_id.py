@@ -2,11 +2,11 @@
 from limit_order_book.types import OrderId
 from limit_order_book.types import Ticker
 from limit_order_book.types import OrderSide
-from limit_order_book.order import Order
+from limit_order_book.types import Order
 from limit_order_book.types import IntPrice
 from limit_order_book.types import Volume
 
-from limit_order_book.single_side_limit_order_book import SingleSideLimitOrderBook
+from limit_order_book.data_structures.single_side_limit_order_book import SingleSideLimitOrderBook
 
 
 def test_single_side_limit_order_book_find_order_by_order_id_no_orders():

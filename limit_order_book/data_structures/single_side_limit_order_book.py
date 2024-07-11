@@ -4,11 +4,11 @@ from limit_order_book.types import Ticker
 from limit_order_book.types import IntPrice
 from limit_order_book.types import Volume
 from limit_order_book.types import OrderSide
-from limit_order_book.trade import Trade
-from limit_order_book.order import Order
+from limit_order_book.types import Trade
+from limit_order_book.types import Order
 from limit_order_book.exceptions import DuplicateOrderIdError
 
-from limit_order_book.order_priority_queue import OrderPriorityQueue
+from limit_order_book.data_structures.order_priority_queue import OrderPriorityQueue
 
 #from functools import reduce
 from more_itertools import consume

@@ -4,8 +4,8 @@ from limit_order_book.types import OrderId
 from limit_order_book.types import IntPrice
 from limit_order_book.types import Volume
 from limit_order_book.types import OrderSide
-from limit_order_book.trade import Trade
-from limit_order_book.order import Order
+from limit_order_book.types import Trade
+from limit_order_book.types import Order
 
 # TODO: write the tests for match and finish the match function
 # should test prices which do not match

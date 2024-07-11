@@ -1,7 +1,7 @@
 
 from flask import Flask, request
-from limit_order_book.limit_order_book_wrapper import LimitOrderBook
-from limit_order_book.order import Order
+from limit_order_book.limit_order_book import LimitOrderBook
+from limit_order_book.types import Order
 from limit_order_book.types import OrderId
 from limit_order_book.types import Ticker
 from limit_order_book.types import OrderSide

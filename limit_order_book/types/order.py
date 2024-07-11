@@ -4,7 +4,7 @@ from limit_order_book.types import Ticker
 from limit_order_book.types import IntPrice
 from limit_order_book.types import Volume
 from limit_order_book.types import OrderSide
-from limit_order_book.trade import Trade
+from limit_order_book.types import Trade
 
 from typeguard import typechecked
 

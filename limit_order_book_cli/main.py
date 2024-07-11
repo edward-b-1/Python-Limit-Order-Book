@@ -6,8 +6,8 @@ from limit_order_book.types import Ticker
 from limit_order_book.types import OrderSide
 from limit_order_book.types import IntPrice
 from limit_order_book.types import Volume
-from limit_order_book.order import Order
-from limit_order_book.order_without_order_id import OrderWithoutOrderId
+from limit_order_book.types import Order
+from limit_order_book.types import OrderWithoutOrderId
 
 import typer
 import requests

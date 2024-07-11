@@ -6,10 +6,10 @@ from fastapi import Request
 from fastapi import Response
 from fastapi import status
 
-from limit_order_book.limit_order_book_log_wrapper import LimitOrderBookLogged
-from limit_order_book.order import Order
-from limit_order_book.order_without_order_id import OrderWithoutOrderId
-from limit_order_book.trade import Trade
+from limit_order_book.limit_order_book_logged import LimitOrderBookLogged
+from limit_order_book.types import Order
+from limit_order_book.types import OrderWithoutOrderId
+from limit_order_book.types import Trade
 from limit_order_book.types import OrderId
 from limit_order_book.types import Ticker
 from limit_order_book.types import OrderSide
