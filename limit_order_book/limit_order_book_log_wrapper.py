@@ -30,6 +30,13 @@ messages which can be used to test the order book.
 def now() -> datetime:
     return datetime.now(timezone.utc)
 
+def now_string() -> str:
+    datetime_now = now()
+    return datetime_to_string(datetime_now)
+
+def datetime_to_string(now: datetime) -> str:
+    return now.strftime('%Y-%m-%dT%H:%M:%S.%f%z')
+
 
 @typechecked
 class LimitOrderBookLogged():
@@ -49,6 +56,7 @@ class LimitOrderBookLogged():
         if not os.path.exists(self._log_filename):
             log.error(f'{self._log_filename} does not exist')
             raise RuntimeError(f'path {self._log_filename} does not exist')
+        else:
             if not os.path.isfile(self._log_filename):
                 log.error(f'{self._log_filename} is not a file')
                 raise RuntimeError(f'path {self._log_filename} exists, but is not a file')
@@ -65,18 +73,18 @@ class LimitOrderBookLogged():
 
         log.info(f'session start')
         self._log_file = open(self._log_filename, 'a')
-        datetime_now = now()
+        datetime_now_string = now_string()
         self._log_file.write(
-            f'SESSION_START {datetime_now}\n'
+            f'SESSION_START {datetime_now_string}\n'
         )
         self._log_file.flush()
 
     def _cleanup(self):
         log.info(f'cleanup')
-        datetime_now = now()
+        datetime_now_string = now_string()
         log.info(f'session end')
         self._log_file.write(
-            f'SESSION_END {datetime_now}\n'
+            f'SESSION_END {datetime_now_string}\n'
         )
         self._log_file.flush()
         self._log_file.close()
@@ -154,9 +162,9 @@ class LimitOrderBookLogged():
         order_side = str(order.to_order_side())
         int_price = order.to_int_price().to_int()
         volume = order.to_volume().to_int()
-        datetime_now = now()
+        datetime_now_string = now_string()
         self._log_file.write(
-            f'ORDER_ADD {ip} {datetime_now} {ticker} {order_side} {int_price} {volume}\n'
+            f'ORDER_ADD {ip} {datetime_now_string} {ticker} {order_side} {int_price} {volume}\n'
         )
         self._log_file.flush()
 
@@ -164,26 +172,26 @@ class LimitOrderBookLogged():
         order_id_int = order_id.to_int()
         int_price_int = int_price.to_int()
         volume_int = volume.to_int()
-        datetime_now = now()
+        datetime_now_string = now_string()
         self._log_file.write(
-            f'ORDER_UPDATE {ip} {datetime_now} {order_id_int} {int_price_int} {volume_int}\n'
+            f'ORDER_UPDATE {ip} {datetime_now_string} {order_id_int} {int_price_int} {volume_int}\n'
         )
         self._log_file.flush()
 
     def _log_order_cancel(self, ip: str, order_id: OrderId):
         order_id_int = order_id.to_int()
-        datetime_now = now()
+        datetime_now_string = now_string()
         self._log_file.write(
-            f'ORDER_CANCEL {ip} {datetime_now} {order_id_int}\n'
+            f'ORDER_CANCEL {ip} {datetime_now_string} {order_id_int}\n'
         )
         self._log_file.flush()
 
     def _log_order_cancel_partial(self, ip: str, order_id: OrderId, volume: Volume):
         order_id_int = order_id.to_int()
         volume_int = volume.to_int()
-        datetime_now = now()
+        datetime_now_string = now_string()
         self._log_file.write(
-            f'ORDER_CANCEL_PARTIAL {ip} {datetime_now} {order_id_int} {volume_int}\n'
+            f'ORDER_CANCEL_PARTIAL {ip} {datetime_now_string} {order_id_int} {volume_int}\n'
         )
         self._log_file.flush()
 
