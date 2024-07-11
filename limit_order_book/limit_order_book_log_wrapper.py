@@ -30,13 +30,21 @@ messages which can be used to test the order book.
 def now() -> datetime:
     return datetime.now(timezone.utc)
 
+def now_string() -> str:
+    datetime_now = now()
+    return datetime_to_string(datetime_now)
+
+def datetime_to_string(now: datetime) -> str:
+    return now.strftime('%Y-%m-%dT%H:%M:%S.%f%z')
+
 
 @typechecked
 class LimitOrderBookLogged():
 
     def __init__(self) -> None:
+        log.info(f'LimitOrderBookLogged start')
         self._limit_order_book = LimitOrderBook()
-        self._log_filename = 'limit_order_book_log_file.txt'
+        self._log_filename = '/python-limit-order-book-data/limit_order_book_log_file.txt'
         self._log_file = None
         atexit.register(self._cleanup)
         self._initialize()
@@ -45,33 +53,42 @@ class LimitOrderBookLogged():
         self._limit_order_book = LimitOrderBook()
 
     def _initialize(self):
-        if os.path.exists(self._log_filename):
+        if not os.path.exists(self._log_filename):
+            log.error(f'{self._log_filename} does not exist')
+            raise RuntimeError(f'path {self._log_filename} does not exist')
+        else:
             if not os.path.isfile(self._log_filename):
+                log.error(f'{self._log_filename} is not a file')
                 raise RuntimeError(f'path {self._log_filename} exists, but is not a file')
 
             log_file = open(self._log_filename, 'r')
             try:
                 self._reprocess_log_events(log_file)
             except Exception as exception:
-                print(f'log file is not readable!')
-                print(f'{exception}')
+                log.error(f'log file is not readable!')
+                log.error(f'{exception}')
                 raise
+            log.info(f'initialization complete')
             log_file.close()
 
+        log.info(f'session start')
         self._log_file = open(self._log_filename, 'a')
-        datetime_now = now()
+        datetime_now_string = now_string()
         self._log_file.write(
-            f'SESSION_START {datetime_now}\n'
+            f'SESSION_START {datetime_now_string}\n'
         )
         self._log_file.flush()
 
     def _cleanup(self):
-        datetime_now = now()
+        log.info(f'cleanup')
+        datetime_now_string = now_string()
+        log.info(f'session end')
         self._log_file.write(
-            f'SESSION_END {datetime_now}\n'
+            f'SESSION_END {datetime_now_string}\n'
         )
         self._log_file.flush()
         self._log_file.close()
+        log.info(f'cleanup finished')
 
     def __enter__(self):
         self._initialize()
@@ -81,13 +98,16 @@ class LimitOrderBookLogged():
         self._cleanup()
 
     def _reprocess_log_events(self, log_file):
+        log.info(f'reloading history from log file')
         for line in log_file:
             components = line.split(' ')
             assert len(components) > 0
+            components_string = ', '.join(components)
+            log.info(f'{len(components)}: {components_string}') # TODO: change to debug
             instruction = components[0]
 
             if instruction == 'ORDER_ADD':
-                assert len(components) == 7
+                assert len(components) == 7, f'number of components is {len(components)}, expected 7'
                 ticker_str = components[3]
                 order_side_str = components[4]
                 int_price_str = components[5]
@@ -101,7 +121,7 @@ class LimitOrderBookLogged():
                 self._order_insert(order=order)
 
             elif instruction == 'ORDER_UPDATE':
-                assert len(components) == 6
+                assert len(components) == 6, f'number of components is {len(components)}, expected 6'
                 order_id_str = components[3]
                 int_price_str = components[4]
                 volume_str = components[5]
@@ -111,13 +131,13 @@ class LimitOrderBookLogged():
                 self._order_update(order_id=order_id, int_price=int_price, volume=volume)
 
             elif instruction == 'ORDER_CANCEL':
-                assert len(components) == 4
+                assert len(components) == 4, f'number of components is {len(components)}, expected 4'
                 order_id_str = components[3]
                 order_id = OrderId(int(order_id_str))
                 self._order_cancel(order_id=order_id)
 
             elif instruction == 'ORDER_CANCEL_PARTIAL':
-                assert len(components) == 5
+                assert len(components) == 5, f'number of components is {len(components)}, expected 5'
                 order_id_str = components[3]
                 volume_str = components[4]
                 order_id = OrderId(int(order_id_str))
@@ -142,9 +162,9 @@ class LimitOrderBookLogged():
         order_side = str(order.to_order_side())
         int_price = order.to_int_price().to_int()
         volume = order.to_volume().to_int()
-        datetime_now = now()
+        datetime_now_string = now_string()
         self._log_file.write(
-            f'ORDER_ADD {ip} {datetime_now} {ticker} {order_side} {int_price} {volume}\n'
+            f'ORDER_ADD {ip} {datetime_now_string} {ticker} {order_side} {int_price} {volume}\n'
         )
         self._log_file.flush()
 
@@ -152,26 +172,26 @@ class LimitOrderBookLogged():
         order_id_int = order_id.to_int()
         int_price_int = int_price.to_int()
         volume_int = volume.to_int()
-        datetime_now = now()
+        datetime_now_string = now_string()
         self._log_file.write(
-            f'ORDER_UPDATE {ip} {datetime_now} {order_id_int} {int_price_int} {volume_int}\n'
+            f'ORDER_UPDATE {ip} {datetime_now_string} {order_id_int} {int_price_int} {volume_int}\n'
         )
         self._log_file.flush()
 
     def _log_order_cancel(self, ip: str, order_id: OrderId):
         order_id_int = order_id.to_int()
-        datetime_now = now()
+        datetime_now_string = now_string()
         self._log_file.write(
-            f'ORDER_CANCEL {ip} {datetime_now} {order_id_int}\n'
+            f'ORDER_CANCEL {ip} {datetime_now_string} {order_id_int}\n'
         )
         self._log_file.flush()
 
     def _log_order_cancel_partial(self, ip: str, order_id: OrderId, volume: Volume):
         order_id_int = order_id.to_int()
         volume_int = volume.to_int()
-        datetime_now = now()
+        datetime_now_string = now_string()
         self._log_file.write(
-            f'ORDER_CANCEL_PARTIAL {ip} {datetime_now} {order_id_int} {volume_int}\n'
+            f'ORDER_CANCEL_PARTIAL {ip} {datetime_now_string} {order_id_int} {volume_int}\n'
         )
         self._log_file.flush()
 

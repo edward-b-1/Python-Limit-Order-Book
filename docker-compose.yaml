@@ -3,3 +3,6 @@ services:
         build: .
         ports:
             - "5555:5555"
+        volumes:
+            - /python-limit-order-book-data:/python-limit-order-book-data
+            #- /python-limit-order-book-data/limit_order_book_file_log.txt:/python-limit-order-book/limit_order_book_file_log.txt
