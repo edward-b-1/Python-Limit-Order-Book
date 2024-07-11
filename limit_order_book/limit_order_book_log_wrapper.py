@@ -35,6 +35,7 @@ def now() -> datetime:
 class LimitOrderBookLogged():
 
     def __init__(self) -> None:
+        log.info(f'LimitOrderBookLogged start')
         self._limit_order_book = LimitOrderBook()
         self._log_filename = '/python-limit-order-book-data/limit_order_book_log_file.txt'
         self._log_file = None
@@ -45,19 +46,24 @@ class LimitOrderBookLogged():
         self._limit_order_book = LimitOrderBook()
 
     def _initialize(self):
-        if os.path.exists(self._log_filename):
+        if not os.path.exists(self._log_filename):
+            log.error(f'{self._log_filename} does not exist')
+            raise RuntimeError(f'path {self._log_filename} does not exist')
             if not os.path.isfile(self._log_filename):
+                log.error(f'{self._log_filename} is not a file')
                 raise RuntimeError(f'path {self._log_filename} exists, but is not a file')
 
             log_file = open(self._log_filename, 'r')
             try:
                 self._reprocess_log_events(log_file)
             except Exception as exception:
-                print(f'log file is not readable!')
-                print(f'{exception}')
+                log.error(f'log file is not readable!')
+                log.error(f'{exception}')
                 raise
+            log.info(f'initialization complete')
             log_file.close()
 
+        log.info(f'session start')
         self._log_file = open(self._log_filename, 'a')
         datetime_now = now()
         self._log_file.write(
@@ -66,12 +72,15 @@ class LimitOrderBookLogged():
         self._log_file.flush()
 
     def _cleanup(self):
+        log.info(f'cleanup')
         datetime_now = now()
+        log.info(f'session end')
         self._log_file.write(
             f'SESSION_END {datetime_now}\n'
         )
         self._log_file.flush()
         self._log_file.close()
+        log.info(f'cleanup finished')
 
     def __enter__(self):
         self._initialize()
@@ -81,13 +90,16 @@ class LimitOrderBookLogged():
         self._cleanup()
 
     def _reprocess_log_events(self, log_file):
+        log.info(f'reloading history from log file')
         for line in log_file:
             components = line.split(' ')
             assert len(components) > 0
+            components_string = ', '.join(components)
+            log.info(f'{len(components)}: {components_string}') # TODO: change to debug
             instruction = components[0]
 
             if instruction == 'ORDER_ADD':
-                assert len(components) == 7
+                assert len(components) == 7, f'number of components is {len(components)}, expected 7'
                 ticker_str = components[3]
                 order_side_str = components[4]
                 int_price_str = components[5]
@@ -101,7 +113,7 @@ class LimitOrderBookLogged():
                 self._order_insert(order=order)
 
             elif instruction == 'ORDER_UPDATE':
-                assert len(components) == 6
+                assert len(components) == 6, f'number of components is {len(components)}, expected 6'
                 order_id_str = components[3]
                 int_price_str = components[4]
                 volume_str = components[5]
@@ -111,13 +123,13 @@ class LimitOrderBookLogged():
                 self._order_update(order_id=order_id, int_price=int_price, volume=volume)
 
             elif instruction == 'ORDER_CANCEL':
-                assert len(components) == 4
+                assert len(components) == 4, f'number of components is {len(components)}, expected 4'
                 order_id_str = components[3]
                 order_id = OrderId(int(order_id_str))
                 self._order_cancel(order_id=order_id)
 
             elif instruction == 'ORDER_CANCEL_PARTIAL':
-                assert len(components) == 5
+                assert len(components) == 5, f'number of components is {len(components)}, expected 5'
                 order_id_str = components[3]
                 volume_str = components[4]
                 order_id = OrderId(int(order_id_str))
