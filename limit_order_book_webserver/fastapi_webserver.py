@@ -10,11 +10,11 @@ from limit_order_book.limit_order_book_log_wrapper import LimitOrderBookLogged
 from limit_order_book.order import Order
 from limit_order_book.order_without_order_id import OrderWithoutOrderId
 from limit_order_book.trade import Trade
-from limit_order_book.types.order_id import OrderId
-from limit_order_book.ticker import Ticker
-from limit_order_book.order_side import OrderSide
-from limit_order_book.types.int_price import IntPrice
-from limit_order_book.types.volume import Volume
+from limit_order_book.types import OrderId
+from limit_order_book.types import Ticker
+from limit_order_book.types import OrderSide
+from limit_order_book.types import IntPrice
+from limit_order_book.types import Volume
 from limit_order_book.exceptions import DuplicateOrderIdError
 
 from limit_order_book_webserver.types import FastAPI_OrderId
@@ -58,7 +58,6 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
-
 
 @app.get('/')
 def root():

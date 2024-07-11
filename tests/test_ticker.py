@@ -1,5 +1,5 @@
 
-from limit_order_book.ticker import Ticker
+from limit_order_book.types import Ticker
 
 
 def test_ticker_str_not_equal():

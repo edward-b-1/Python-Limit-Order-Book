@@ -1,5 +1,5 @@
 
-from limit_order_book.ticker import Ticker
+from limit_order_book.types import Ticker
 from limit_order_book_webserver.types import FastAPI_Ticker
 
 

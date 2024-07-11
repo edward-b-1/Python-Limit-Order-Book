@@ -1,8 +1,8 @@
 
-from limit_order_book.ticker import Ticker
-from limit_order_book.types.order_id import OrderId
-from limit_order_book.types.int_price import IntPrice
-from limit_order_book.types.volume import Volume
+from limit_order_book.types import Ticker
+from limit_order_book.types import OrderId
+from limit_order_book.types import IntPrice
+from limit_order_book.types import Volume
 
 from typeguard import typechecked
 

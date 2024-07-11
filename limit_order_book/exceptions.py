@@ -1,4 +1,4 @@
-from limit_order_book.types.order_id import OrderId
+from limit_order_book.types import OrderId
 
 class LimitOrderBookError(Exception):
     pass
