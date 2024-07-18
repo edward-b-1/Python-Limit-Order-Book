@@ -1,7 +1,7 @@
 
 import pytest
 
-from limit_order_book.types import OrderId
+from lib_financial_exchange.financial_exchange_types import OrderId
 
 
 def test_order_id_equal():

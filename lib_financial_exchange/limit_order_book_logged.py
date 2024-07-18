@@ -1,20 +1,20 @@
 
+from lib_financial_exchange.financial_exchange_types import OrderId
+from lib_financial_exchange.financial_exchange_types import OrderInsertMessage
+from lib_financial_exchange.financial_exchange_types import Ticker
+from lib_financial_exchange.financial_exchange_types import OrderSide
+from lib_financial_exchange.financial_exchange_types import IntPrice
+from lib_financial_exchange.financial_exchange_types import Volume
+from lib_financial_exchange.financial_exchange_types import Order
+from lib_financial_exchange.financial_exchange_types import Trade
+from lib_financial_exchange.financial_exchange_types import TopOfBook
 
-from limit_order_book.types import OrderId
-from limit_order_book.types import OrderSide
-from limit_order_book.types import Order
-from limit_order_book.types import OrderWithoutOrderId
-from limit_order_book.types import Trade
-from limit_order_book.types import Ticker
-from limit_order_book.types import IntPrice
-from limit_order_book.types import Volume
-from limit_order_book.types import TopOfBook
-from limit_order_book.limit_order_book import LimitOrderBook
-from limit_order_book.logging import log
+from lib_financial_exchange.limit_order_book import LimitOrderBook
+from lib_financial_exchange.logging import log
 
 from typeguard import typechecked
 
-import atexit
+import atexit # TODO remove, replace with ContextManager
 
 from datetime import datetime
 from datetime import timezone
@@ -46,7 +46,7 @@ class LimitOrderBookLogged():
         self._limit_order_book = LimitOrderBook()
         self._log_filename = '/python-limit-order-book-data/limit_order_book_log_file.txt'
         self._log_file = None
-        atexit.register(self._cleanup)
+        atexit.register(self._cleanup) # TODO remove, replace with ContextManager
         self._initialize()
 
     def _reset(self):
@@ -97,6 +97,7 @@ class LimitOrderBookLogged():
     def __exit__(self):
         self._cleanup()
 
+    # TODO: delete this - now done by MessageFactory
     def _reprocess_log_events(self, log_file):
         log.info(f'reloading history from log file')
         for line in log_file:
@@ -106,13 +107,13 @@ class LimitOrderBookLogged():
             log.info(f'{len(components)}: {components_string}') # TODO: change to debug
             instruction = components[0]
 
-            if instruction == 'ORDER_ADD':
+            if instruction == 'ORDER_INSERT':
                 assert len(components) == 7, f'number of components is {len(components)}, expected 7'
                 ticker_str = components[3]
                 order_side_str = components[4]
                 int_price_str = components[5]
                 volume_str = components[6]
-                order = OrderWithoutOrderId(
+                order = OrderInsertMessage(
                     ticker=Ticker(ticker_str),
                     order_side=OrderSide(order_side_str),
                     int_price=IntPrice(int(int_price_str)),
@@ -157,14 +158,15 @@ class LimitOrderBookLogged():
                 raise RuntimeError(f'instruction {instruction} not recognized')
 
 
-    def _log_order_insert(self, ip: str, order: OrderWithoutOrderId):
+    # TODO: delete these: now done by individual message types __str__ method
+    def _log_order_insert(self, ip: str, order: OrderInsertMessage):
         ticker = order.to_ticker().to_str()
         order_side = str(order.to_order_side())
         int_price = order.to_int_price().to_int()
         volume = order.to_volume().to_int()
         datetime_now_string = now_string()
         self._log_file.write(
-            f'ORDER_ADD {ip} {datetime_now_string} {ticker} {order_side} {int_price} {volume}\n'
+            f'ORDER_INSERT {ip} {datetime_now_string} {ticker} {order_side} {int_price} {volume}\n'
         )
         self._log_file.flush()
 
@@ -195,7 +197,7 @@ class LimitOrderBookLogged():
         )
         self._log_file.flush()
 
-    def _order_insert(self, order: OrderWithoutOrderId) -> tuple[OrderId, list[Trade]]:
+    def _order_insert(self, order: OrderInsertMessage) -> tuple[OrderId, list[Trade]]:
         return self._limit_order_book.order_insert(order)
 
     def _order_update(self, order_id: OrderId, int_price: IntPrice|None, volume: Volume|None) -> list[Trade]:
@@ -207,34 +209,64 @@ class LimitOrderBookLogged():
     def _order_cancel_partial(self, order_id: OrderId, volume: Volume) -> None:
         return self._limit_order_book.order_cancel_partial(order_id=order_id, volume=volume)
 
+    ########
 
-    def order_insert(self, ip: str, order: OrderWithoutOrderId) -> tuple[OrderId, list[Trade]]:
+    def order_insert(self, ip: str, order: OrderInsertMessage) -> tuple[OrderId, list[Trade]]:
         try:
             return_value = self._order_insert(order=order)
-        finally:
-            self._log_order_insert(ip=ip, order=order)
+        except:
+            pass
+            #TODO
+        self._log_order_insert(ip=ip, order=order)
         return return_value
+
+    def order_insert_startup(self, ip: str, order: OrderInsertMessage) -> tuple[OrderId, list[Trade]]:
+        # On restart, only add to internal data structures, do not write to event log file
+        return self._order_insert(order=order)
+
+    ########
 
     def order_update(self, ip: str, order_id: OrderId, int_price: IntPrice|None, volume: Volume|None) -> list[Trade]:
         try:
             return_value = self._order_update(order_id=order_id, int_price=int_price, volume=volume)
-        finally:
-            self._log_order_update(ip=ip, order_id=order_id, int_price=int_price, volume=volume)
+        except:
+            pass
+            #TODO
+        self._log_order_update(ip=ip, order_id=order_id, int_price=int_price, volume=volume)
         return return_value
+
+    def order_update_startup(self, ip: str, order_id: OrderId, int_price: IntPrice|None, volume: Volume|None) -> list[Trade]:
+        return self._order_update(order_id=order_id, int_price=int_price, volume=volume)
+
+    ########
 
     def order_cancel(self, ip: str, order_id: OrderId) -> Order|None:
         try:
             return_value = self._order_cancel(order_id=order_id)
-        finally:
-            self._log_order_cancel(ip=ip, order_id=order_id)
+        except:
+            pass
+            #TODO
+        self._log_order_cancel(ip=ip, order_id=order_id)
         return return_value
+
+    def order_cancel_startup(self, ip: str, order_id: OrderId) -> Order|None:
+        return self._order_cancel(order_id=order_id)
+
+    ########
 
     def order_cancel_partial(self, ip: str, order_id: OrderId, volume: Volume) -> None:
         try:
             return_value = self._order_cancel_partial(order_id=order_id, volume=volume)
-        finally:
-            self._log_order_cancel_partial(ip=ip, order_id=order_id, volume=volume)
+        except:
+            pass
+            #TODO
+        self._log_order_cancel_partial(ip=ip, order_id=order_id, volume=volume)
         return return_value
+
+    def order_cancel_partial_startup(self, ip: str, order_id: OrderId, volume: Volume) -> None:
+        return self._order_cancel_partial(order_id=order_id, volume=volume)
+
+    ########
 
     def top_of_book(self, ticker: Ticker) -> TopOfBook:
         return self._limit_order_book.top_of_book(ticker=ticker)

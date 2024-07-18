@@ -1,8 +1,5 @@
 
 
-
-
-
 class Ticker():
 
     def __init__(self, ticker: object):

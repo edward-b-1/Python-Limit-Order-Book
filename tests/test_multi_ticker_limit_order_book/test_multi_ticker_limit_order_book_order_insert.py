@@ -1,13 +1,13 @@
 
-from limit_order_book.types import OrderId
-from limit_order_book.types import IntPrice
-from limit_order_book.types import Volume
-from limit_order_book.types import OrderSide
-from limit_order_book.types import Ticker
-from limit_order_book.types import Order
-from limit_order_book.types import Trade
-from limit_order_book.types import TopOfBook
-from limit_order_book.data_structures.multi_ticker_limit_order_book import MultiTickerLimitOrderBook
+from lib_financial_exchange.financial_exchange_types import OrderId
+from lib_financial_exchange.financial_exchange_types import IntPrice
+from lib_financial_exchange.financial_exchange_types import Volume
+from lib_financial_exchange.financial_exchange_types import OrderSide
+from lib_financial_exchange.financial_exchange_types import Ticker
+from lib_financial_exchange.financial_exchange_types import Order
+from lib_financial_exchange.financial_exchange_types import Trade
+from lib_financial_exchange.financial_exchange_types import TopOfBook
+from lib_financial_exchange.data_structures.multi_ticker_limit_order_book import MultiTickerLimitOrderBook
 
 
 def test_multi_limit_order_book_order_insert():

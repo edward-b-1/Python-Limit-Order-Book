@@ -8,7 +8,7 @@ from datetime import timezone
 PROCESS_NAME = 'limit_order_book'
 
 
-log = logging.getLogger('webscraper')
+log = logging.getLogger(PROCESS_NAME)
 
 stdout_log_formatter = logging.Formatter(
     '%(name)s: %(asctime)s | %(levelname)s | %(filename)s:%(lineno)s | %(process)d | %(message)s'

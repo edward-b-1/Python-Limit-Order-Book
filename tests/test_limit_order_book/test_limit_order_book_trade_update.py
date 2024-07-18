@@ -1,14 +1,17 @@
 
-from limit_order_book.types import OrderId
-from limit_order_book.types import IntPrice
-from limit_order_book.types import Volume
-from limit_order_book.types import OrderSide
-from limit_order_book.types import Ticker
-from limit_order_book.types import Order
-from limit_order_book.types import OrderWithoutOrderId
-from limit_order_book.types import Trade
-from limit_order_book.types import TopOfBook
-from limit_order_book.limit_order_book import LimitOrderBook
+from lib_financial_exchange.financial_exchange_types import ClientName
+from lib_financial_exchange.financial_exchange_types import OrderId
+from lib_financial_exchange.financial_exchange_types import IntPrice
+from lib_financial_exchange.financial_exchange_types import Volume
+from lib_financial_exchange.financial_exchange_types import OrderSide
+from lib_financial_exchange.financial_exchange_types import Ticker
+from lib_financial_exchange.financial_exchange_types import Order
+from lib_financial_exchange.financial_exchange_types import OrderInsertMessage
+from lib_financial_exchange.financial_exchange_types import Trade
+from lib_financial_exchange.financial_exchange_types import TopOfBook
+from lib_financial_exchange.limit_order_book import LimitOrderBook
+
+from datetime import datetime
 
 
 def test_limit_order_book_order_update():
@@ -29,10 +32,14 @@ def test_limit_order_book_order_update():
 
     lob = LimitOrderBook()
     ticker = Ticker('PYTH')
+    client_name = ClientName(client_name='test')
+    timestamp = datetime(year=2024, month=7, day=11)
 
     ####
 
-    order_no_match = OrderWithoutOrderId(
+    order_no_match = OrderInsertMessage(
+        client_name=client_name,
+        timestamp=timestamp,
         ticker=ticker,
         order_side=OrderSide("BUY"),
         int_price=IntPrice(500),
@@ -43,7 +50,9 @@ def test_limit_order_book_order_update():
 
     ####
 
-    order_1 = OrderWithoutOrderId(
+    order_1 = OrderInsertMessage(
+        client_name=client_name,
+        timestamp=timestamp,
         ticker=ticker,
         order_side=OrderSide("BUY"),
         int_price=IntPrice(1000),
@@ -54,7 +63,9 @@ def test_limit_order_book_order_update():
 
     ####
 
-    order_2 = OrderWithoutOrderId(
+    order_2 = OrderInsertMessage(
+        client_name=client_name,
+        timestamp=timestamp,
         ticker=ticker,
         order_side=OrderSide("BUY"),
         int_price=IntPrice(1020),
@@ -65,7 +76,9 @@ def test_limit_order_book_order_update():
 
     ####
 
-    order_3 = OrderWithoutOrderId(
+    order_3 = OrderInsertMessage(
+        client_name=client_name,
+        timestamp=timestamp,
         ticker=ticker,
         order_side=OrderSide("SELL"),
         int_price=IntPrice(1100),

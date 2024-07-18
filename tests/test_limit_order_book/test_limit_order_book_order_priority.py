@@ -1,15 +1,17 @@
 
-from limit_order_book.types import OrderId
-from limit_order_book.types import IntPrice
-from limit_order_book.types import Volume
-from limit_order_book.types import OrderSide
-from limit_order_book.types import Ticker
-from limit_order_book.types import OrderWithoutOrderId
-from limit_order_book.types import Order
-from limit_order_book.types import Trade
-from limit_order_book.types import TopOfBook
-from limit_order_book.limit_order_book import LimitOrderBook
+from lib_financial_exchange.financial_exchange_types import ClientName
+from lib_financial_exchange.financial_exchange_types import OrderId
+from lib_financial_exchange.financial_exchange_types import IntPrice
+from lib_financial_exchange.financial_exchange_types import Volume
+from lib_financial_exchange.financial_exchange_types import OrderSide
+from lib_financial_exchange.financial_exchange_types import Ticker
+from lib_financial_exchange.financial_exchange_types import OrderInsertMessage
+from lib_financial_exchange.financial_exchange_types import Order
+from lib_financial_exchange.financial_exchange_types import Trade
+from lib_financial_exchange.financial_exchange_types import TopOfBook
+from lib_financial_exchange.limit_order_book import LimitOrderBook
 
+from datetime import datetime
 
 
 def inspect_order_queue(limit_order_book: LimitOrderBook, ticker: Ticker, int_price: IntPrice) -> list[Order]:
@@ -38,7 +40,7 @@ def inspect_order_queue_element(limit_order_book: LimitOrderBook, ticker: Ticker
 
 
 def order_from_order_without_order_id(
-    order_without_order_id: OrderWithoutOrderId,
+    order_without_order_id: OrderInsertMessage,
     order_id: OrderId,
 ) -> Order:
     return Order(
@@ -53,10 +55,14 @@ def order_from_order_without_order_id(
 def create_limit_order_book(ticker, order_side, int_price, int_price_2) -> tuple[LimitOrderBook, list[Order], list[OrderId]]:
 
     lob = LimitOrderBook()
+    client_name = ClientName(client_name='test')
+    timestamp = datetime(year=2024, month=7, day=11)
 
     ####
 
-    order_1 = OrderWithoutOrderId(
+    order_1 = OrderInsertMessage(
+        client_name=client_name,
+        timestamp=timestamp,
         ticker=ticker,
         order_side=order_side,
         int_price=int_price,
@@ -69,7 +75,9 @@ def create_limit_order_book(ticker, order_side, int_price, int_price_2) -> tuple
 
     ####
 
-    order_2 = OrderWithoutOrderId(
+    order_2 = OrderInsertMessage(
+        client_name=client_name,
+        timestamp=timestamp,
         ticker=ticker,
         order_side=order_side,
         int_price=int_price,
@@ -83,7 +91,9 @@ def create_limit_order_book(ticker, order_side, int_price, int_price_2) -> tuple
 
     #### insert another order into different price level
 
-    order_3 = OrderWithoutOrderId(
+    order_3 = OrderInsertMessage(
+        client_name=client_name,
+        timestamp=timestamp,
         ticker=ticker,
         order_side=order_side,
         int_price=int_price_2,

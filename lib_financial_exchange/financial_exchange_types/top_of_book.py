@@ -1,8 +1,8 @@
 
-from limit_order_book.types import Ticker
-from limit_order_book.types import OrderId
-from limit_order_book.types import IntPrice
-from limit_order_book.types import Volume
+from lib_financial_exchange.financial_exchange_types.ticker import Ticker
+from lib_financial_exchange.financial_exchange_types.order_id import OrderId
+from lib_financial_exchange.financial_exchange_types.int_price import IntPrice
+from lib_financial_exchange.financial_exchange_types.volume import Volume
 
 from typeguard import typechecked
 

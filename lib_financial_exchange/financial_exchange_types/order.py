@@ -1,10 +1,12 @@
 
-from limit_order_book.types import OrderId
-from limit_order_book.types import Ticker
-from limit_order_book.types import IntPrice
-from limit_order_book.types import Volume
-from limit_order_book.types import OrderSide
-from limit_order_book.types import Trade
+from lib_financial_exchange.financial_exchange_types.order_id import OrderId
+from lib_financial_exchange.financial_exchange_types.ticker import Ticker
+from lib_financial_exchange.financial_exchange_types.int_price import IntPrice
+from lib_financial_exchange.financial_exchange_types.volume import Volume
+from lib_financial_exchange.financial_exchange_types.order_side import OrderSide
+from lib_financial_exchange.financial_exchange_types.trade import Trade
+
+from datetime import datetime
 
 from typeguard import typechecked
 
@@ -15,12 +17,14 @@ class Order:
     def __init__(
         self,
         order_id: OrderId,
+        timestamp: datetime,
         ticker: Ticker,
         order_side: OrderSide,
         int_price: IntPrice,
         volume: Volume,
     ) -> None:
         self._order_id = order_id
+        self._timestamp = timestamp
         self._ticker = ticker
         self._order_side = order_side
         self._int_price = int_price
@@ -39,6 +43,7 @@ class Order:
         return (
             f'Order('
             f'order_id={self._order_id}, '
+            f'timestamp={self._timestamp} '
             f'ticker={self._ticker}, '
             f'order_side={self._order_side}, '
             f'price={self._int_price}, '
@@ -151,7 +156,7 @@ class Order:
 
     ############################################################################
 
-    def match(self, taker_order) -> Trade|None:
+    def match(self, taker_order, timestamp: datetime) -> Trade|None:
         '''
             The Taker order must be self. The Maker order must be order.
 
@@ -199,6 +204,7 @@ class Order:
         trade = Trade(
             order_id_maker=maker_order.to_order_id(),
             order_id_taker=taker_order.to_order_id(),
+            timestamp=timestamp,
             ticker=self.to_ticker(),
             int_price=match_int_price,
             volume=match_volume,

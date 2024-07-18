@@ -1,9 +1,11 @@
 
-from limit_order_book.types import Ticker
-from limit_order_book.types import OrderId
-from limit_order_book.types import IntPrice
-from limit_order_book.types import Volume
-from limit_order_book.types import OrderSide
+from lib_financial_exchange.financial_exchange_types.ticker import Ticker
+from lib_financial_exchange.financial_exchange_types.order_id import OrderId
+from lib_financial_exchange.financial_exchange_types.int_price import IntPrice
+from lib_financial_exchange.financial_exchange_types.volume import Volume
+from lib_financial_exchange.financial_exchange_types.order_side import OrderSide
+
+from datetime import datetime
 
 from typeguard import typechecked
 
@@ -15,12 +17,14 @@ class Trade():
         self,
         order_id_maker: OrderId,
         order_id_taker: OrderId,
+        timestamp: datetime,
         ticker: Ticker,
         int_price: IntPrice,
         volume: Volume,
     ) -> None:
         self._order_id_maker = order_id_maker
         self._order_id_taker = order_id_taker
+        self._timestamp = timestamp
         self._ticker = ticker
         self._int_price = int_price
         self._volume = volume
@@ -39,6 +43,7 @@ class Trade():
             f'Trade('
             f'order_id_maker={self._order_id_maker}, '
             f'order_id_taker={self._order_id_taker}, '
+            f'timestamp={self._timestamp} '
             f'ticker={self._ticker}, '
             f'price={self._int_price}, '
             f'volume={self._volume}'

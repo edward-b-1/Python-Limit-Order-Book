@@ -1,14 +1,14 @@
 
-from limit_order_book.types import OrderId
-from limit_order_book.types import Ticker
-from limit_order_book.types import IntPrice
-from limit_order_book.types import Volume
-from limit_order_book.types import OrderSide
-from limit_order_book.types import Trade
-from limit_order_book.types import Order
-from limit_order_book.exceptions import DuplicateOrderIdError
+from lib_financial_exchange.financial_exchange_types import OrderId
+from lib_financial_exchange.financial_exchange_types import Ticker
+from lib_financial_exchange.financial_exchange_types import IntPrice
+from lib_financial_exchange.financial_exchange_types import Volume
+from lib_financial_exchange.financial_exchange_types import OrderSide
+from lib_financial_exchange.financial_exchange_types import Trade
+from lib_financial_exchange.financial_exchange_types import Order
+from lib_financial_exchange.exceptions import DuplicateOrderIdError
 
-from limit_order_book.data_structures.order_priority_queue import OrderPriorityQueue
+from lib_financial_exchange.data_structures.order_priority_queue import OrderPriorityQueue
 
 #from functools import reduce
 from more_itertools import consume

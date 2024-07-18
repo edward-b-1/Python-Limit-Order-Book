@@ -1,5 +1,5 @@
 
-from limit_order_book.exceptions import VolumeReduceAmountTooLarge
+from lib_financial_exchange.exceptions import VolumeReduceAmountTooLarge
 
 
 class Volume():
