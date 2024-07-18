@@ -1,15 +1,15 @@
 
-from limit_order_book.types.order_id import OrderId
-from limit_order_book.ticker import Ticker
-from limit_order_book.types.int_price import IntPrice
-from limit_order_book.types.volume import Volume
-from limit_order_book.order_side import OrderSide
-from limit_order_book.trade import Trade
-from limit_order_book.order import Order
-from limit_order_book.top_of_book import TopOfBook
+from limit_order_book.types import OrderId
+from limit_order_book.types import Ticker
+from limit_order_book.types import IntPrice
+from limit_order_book.types import Volume
+from limit_order_book.types import OrderSide
+from limit_order_book.types import Trade
+from limit_order_book.types import Order
+from limit_order_book.types import TopOfBook
 from limit_order_book.exceptions import DuplicateOrderIdError
 
-from limit_order_book.double_limit_order_book import DoubleLimitOrderBook
+from limit_order_book.data_structures.double_limit_order_book import DoubleLimitOrderBook
 
 from more_itertools import consume
 

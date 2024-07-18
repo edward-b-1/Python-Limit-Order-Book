@@ -1,11 +1,11 @@
 
 from limit_order_book_webserver.convert_trades_to_fastapi_trades import convert_trades_to_fastapi_trades
-from limit_order_book_webserver.fastapi_webserver import FastAPI_Trade
-from limit_order_book.trade import Trade
-from limit_order_book.types.order_id import OrderId
-from limit_order_book.ticker import Ticker
-from limit_order_book.types.int_price import IntPrice
-from limit_order_book.types.volume import Volume
+from limit_order_book_webserver.webserver import FastAPI_Trade
+from limit_order_book.types import Trade
+from limit_order_book.types import OrderId
+from limit_order_book.types import Ticker
+from limit_order_book.types import IntPrice
+from limit_order_book.types import Volume
 
 
 def test_convert_trades_to_fastapi_trades():

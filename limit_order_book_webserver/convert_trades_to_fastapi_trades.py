@@ -1,5 +1,5 @@
 
-from limit_order_book.trade import Trade
+from limit_order_book.types import Trade
 from limit_order_book_webserver.types import FastAPI_Trade
 
 

@@ -1,4 +1,4 @@
-from limit_order_book.ticker import Ticker
+from limit_order_book.types import Ticker
 
 d = {}
 

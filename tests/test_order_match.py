@@ -1,11 +1,11 @@
 
-from limit_order_book.ticker import Ticker
-from limit_order_book.types.order_id import OrderId
-from limit_order_book.types.int_price import IntPrice
-from limit_order_book.types.volume import Volume
-from limit_order_book.order_side import OrderSide
-from limit_order_book.trade import Trade
-from limit_order_book.order import Order
+from limit_order_book.types import Ticker
+from limit_order_book.types import OrderId
+from limit_order_book.types import IntPrice
+from limit_order_book.types import Volume
+from limit_order_book.types import OrderSide
+from limit_order_book.types import Trade
+from limit_order_book.types import Order
 
 # TODO: write the tests for match and finish the match function
 # should test prices which do not match
