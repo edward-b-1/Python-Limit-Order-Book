@@ -18,7 +18,7 @@ class SessionEndMessage(AbstractMessage):
 
     def serialize(self) -> str:
         created_datetime = datetime_to_string(self.created_datetime)
-        f'SESSION_END {created_datetime}'
+        return f'SESSION_END {created_datetime}'
 
     @classmethod
     def deserialize(cls, serialized_message: str):

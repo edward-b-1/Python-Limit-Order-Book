@@ -1,5 +1,5 @@
 
-from lib_financial_exchange.financial_exchange_types.order_id import OrderId
+from lib_financial_exchange.financial_exchange_types.ticker import Ticker
 
 from lib_financial_exchange.financial_exchange_types.message_types.abstract_message import AbstractMessage
 
@@ -9,32 +9,32 @@ from lib_datetime import string_to_datetime
 from datetime import datetime
 
 
-class OrderCancelMessage(AbstractMessage):
+class TopOfBookMessage(AbstractMessage):
     def __init__(
         self,
         created_datetime: datetime,
-        order_id: OrderId,
+        ticker: Ticker,
     ) -> None:
         self._created_datetime = created_datetime
-        self._order_id = order_id
+        self._ticker = ticker
 
     def __eq__(self, value: object) -> bool:
-        if not isinstance(value, OrderCancelMessage):
+        if not isinstance(value, TopOfBookMessage):
             return False
         if self._created_datetime != value._created_datetime: return False
-        if self._order_id != value._order_id: return False
+        if self._ticker != value._ticker: return False
         return True
 
     def __str__(self) -> str:
-        return f'OrderCancelMessage({self._created_datetime}, {self._order_id})'
+        return f'TopOfBookMessage({self._created_datetime}, {self._ticker})'
 
     def __repr__(self) -> str:
         return str(self)
 
     def serialize(self) -> str:
         created_datetime = datetime_to_string(self._created_datetime)
-        order_id = str(self._order_id.to_int())
-        return f'ORDER_CANCEL {created_datetime} {order_id}'
+        ticker = str(self._ticker.to_str())
+        return f'TOP_OF_BOOK {created_datetime} {ticker}'
 
     @classmethod
     def deserialize(cls, serialized_message: str):
@@ -42,15 +42,15 @@ class OrderCancelMessage(AbstractMessage):
 
         assert len(components) == 3, f'number of components is {len(components)}, expected 3'
         created_datetime = string_to_datetime(components[1])
-        order_id_str = components[2]
-        order_cancel_message = OrderCancelMessage(
+        ticker_str = components[2]
+        top_of_book_message = TopOfBookMessage(
             created_datetime=created_datetime,
-            order_id=OrderId(int(order_id_str)),
+            ticker=Ticker(ticker_str),
         )
-        return order_cancel_message
+        return top_of_book_message
 
     def to_timestamp(self) -> datetime:
         return self._created_datetime
 
-    def to_order_id(self) -> OrderId:
-        return self._order_id
+    def to_ticker(self) -> Ticker:
+        return self._ticker

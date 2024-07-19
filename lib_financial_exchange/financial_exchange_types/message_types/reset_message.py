@@ -18,7 +18,7 @@ class ResetMessage(AbstractMessage):
 
     def serialize(self) -> str:
         created_datetime = datetime_to_string(self.created_datetime)
-        f'RESET {created_datetime}'
+        return f'RESET {created_datetime}'
 
     @classmethod
     def deserialize(cls, serialized_message: str):

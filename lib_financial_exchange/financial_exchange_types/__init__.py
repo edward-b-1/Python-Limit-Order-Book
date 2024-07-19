@@ -1,9 +1,4 @@
 
-
-from lib_financial_exchange.financial_exchange_types.message_types import OrderInsertMessage
-
-from lib_financial_exchange.financial_exchange_types.message_types.message_factory import MessageFactory
-
 from lib_financial_exchange.financial_exchange_types.int_price import IntPrice
 from lib_financial_exchange.financial_exchange_types.order_id import OrderId
 from lib_financial_exchange.financial_exchange_types.order_side import OrderSide
@@ -13,6 +8,11 @@ from lib_financial_exchange.financial_exchange_types.top_of_book import TopOfBoo
 from lib_financial_exchange.financial_exchange_types.trade import Trade
 from lib_financial_exchange.financial_exchange_types.volume import Volume
 
+from lib_financial_exchange.financial_exchange_types.message_types import OrderInsertMessage
+from lib_financial_exchange.financial_exchange_types.message_types import OrderUpdateMessage
+from lib_financial_exchange.financial_exchange_types.message_types import OrderCancelPartialMessage
+from lib_financial_exchange.financial_exchange_types.message_types import OrderCancelMessage
+from lib_financial_exchange.financial_exchange_types.message_types import TopOfBookMessage
 
-
+from lib_financial_exchange.financial_exchange_types.message_types.message_factory import MessageFactory
 

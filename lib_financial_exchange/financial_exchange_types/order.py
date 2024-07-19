@@ -12,7 +12,7 @@ from typeguard import typechecked
 
 
 @typechecked
-class Order:
+class Order():
 
     def __init__(
         self,
