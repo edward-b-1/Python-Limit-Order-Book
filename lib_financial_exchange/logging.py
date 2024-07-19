@@ -5,7 +5,7 @@ from datetime import datetime
 from datetime import timezone
 
 
-PROCESS_NAME = 'limit_order_book'
+PROCESS_NAME = 'lib_financial_exchange'
 
 
 log = logging.getLogger(PROCESS_NAME)
