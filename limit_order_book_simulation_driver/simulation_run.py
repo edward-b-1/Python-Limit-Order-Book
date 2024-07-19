@@ -2,14 +2,14 @@
 import pandas
 import databento
 
-from limit_order_book.limit_order_book import LimitOrderBook
-from limit_order_book.types import OrderWithoutOrderId
-from limit_order_book.types import Trade
-from limit_order_book.types import Ticker
-from limit_order_book.types import OrderSide
-from limit_order_book.types import OrderId
-from limit_order_book.types import IntPrice
-from limit_order_book.types import Volume
+from lib_financial_exchange.limit_order_book import LimitOrderBook
+from lib_financial_exchange.financial_exchange_types import OrderInsertMessage
+from lib_financial_exchange.financial_exchange_types import Trade
+from lib_financial_exchange.financial_exchange_types import Ticker
+from lib_financial_exchange.financial_exchange_types import OrderSide
+from lib_financial_exchange.financial_exchange_types import OrderId
+from lib_financial_exchange.financial_exchange_types import IntPrice
+from lib_financial_exchange.financial_exchange_types import Volume
 
 # mbo_data/xnas-itch-20240105.mbo.dbn.trades.csv
 # mbo_data/xnas-itch-20240105.mbo.dbn.orders.csv
@@ -283,7 +283,7 @@ def main():
 
                 assert order_side is not None, f'order side is None'
 
-                lob_order = OrderWithoutOrderId(
+                lob_order = OrderInsertMessage(
                     ticker=Ticker(symbol),
                     order_side=OrderSide(order_side),
                     int_price=IntPrice(price),
@@ -364,7 +364,7 @@ def main():
             lob.order_cancel_partial(order_id_maker, volume)
 
         elif action == 'A':
-            lob_order = OrderWithoutOrderId(
+            lob_order = OrderInsertMessage(
                 ticker=Ticker(symbol),
                 order_side=OrderSide(order_side),
                 int_price=IntPrice(price),
