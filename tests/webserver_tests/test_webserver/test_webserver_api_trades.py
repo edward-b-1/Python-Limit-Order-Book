@@ -1,11 +1,7 @@
 
-from fastapi import FastAPI
-from fastapi import status
 from fastapi.testclient import TestClient
 
 from limit_order_book_webserver.fastapi_webserver import app
-from lib_financial_exchange.financial_exchange_types import OrderId
-from lib_financial_exchange.exceptions import DuplicateOrderIdError
 
 from tests.webserver_tests.test_webserver.helper import helper_generate_order_without_order_id
 from tests.webserver_tests.test_webserver.helper import helper_generate_order_id
@@ -55,4 +51,20 @@ def test_order_trade():
             'price': 1000,
             'volume': 5,
         }
+    }
+
+    response = client.get('/api/trades')
+    assert response.status_code == 200
+    assert response.json() == {
+        'status': 'success',
+        'message': None,
+        'trades': [
+            {
+                'ticker': 'PYTH',
+                'order_id_maker': 1,
+                'order_id_taker': 2,
+                'price': 995,
+                'volume': 5,
+            }
+        ]
     }

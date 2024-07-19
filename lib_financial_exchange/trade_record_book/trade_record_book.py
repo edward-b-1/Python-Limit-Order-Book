@@ -1,11 +1,13 @@
 
 from lib_financial_exchange.financial_exchange_types import Trade
 
+from typeguard import typechecked
 
+@typechecked
 class TradeRecordBook():
 
     def __init__(self) -> None:
-        self._trades = []
+        self._trades: list[Trade] = []
 
     def add_trade(self, trade: Trade) -> None:
         self._trades.append(trade)

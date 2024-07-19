@@ -20,6 +20,7 @@ from lib_webserver.webserver_types import FastAPI_ReturnStatusWithTickerList
 from lib_financial_exchange.financial_exchange_types import Ticker
 
 from lib_financial_exchange import LimitOrderBookMessageAdapter
+from lib_financial_exchange import TradeRecordBook
 
 from lib_webserver.convert_fastapi_message_to_internal_message import convert_fastapi_message_to_internal_message
 
@@ -40,6 +41,11 @@ class WebserverImpl():
 
     def __init__(self) -> None:
         self._limit_order_book = LimitOrderBookMessageAdapter()
+        self._trade_record_book = TradeRecordBook()
+        # TODO: add an OrderBoard data structure which follows the lifecycle of each order by order id
+        # will need a new, slightly different order, which records the original order volume, how much
+        # has been cancelled, how much has been filled, how much remains "open out" (in the market)
+
 
     def send_order(
         self,
@@ -48,6 +54,8 @@ class WebserverImpl():
 
         order_insert_message = convert_fastapi_message_to_internal_message(fastapi_order_insert_message, timestamp=now())
         (order_id, trades) = self._limit_order_book.order_insert(order_insert_message)
+
+        self._trade_record_book.add_trades(trades)
 
         fastapi_trades = convert_trades_to_fastapi_trades(trades)
         return FastAPI_ReturnStatusWithTradesAndOrderId(
@@ -65,6 +73,8 @@ class WebserverImpl():
 
         order_update_message = convert_fastapi_message_to_internal_message(fastapi_order_update_message, timestamp=now())
         trades = self._limit_order_book.order_update(order_update_message)
+
+        self._trade_record_book.add_trades(trades)
 
         fastapi_trades = convert_trades_to_fastapi_trades(trades)
         return FastAPI_ReturnStatusWithTrades(
@@ -140,13 +150,11 @@ class WebserverImpl():
         )
 
 
-
-    # TODO: trades stuff not implemented yet
     def trades(
         self,
     ) -> FastAPI_ReturnStatusWithTrades:
-        # trade_list = trade_record.get_trades()
-        trade_list = []
+        trade_list = self._trade_record_book.get_trades()
+
         fastapi_trades = convert_trades_to_fastapi_trades(trade_list)
         return FastAPI_ReturnStatusWithTrades(
             status='success',

@@ -245,6 +245,12 @@ def list_all_tickers(
     request: Request,
     response: Response,
 ):
+    debug_print_pid()
+    timestamp = now()
+    ip = request.client.host
+
+    log.info(f'POST /api/list_all_tickers ({ip}, {timestamp})')
+
     try:
         return webserver.list_all_tickers()
 
@@ -256,11 +262,17 @@ def list_all_tickers(
         )
 
 
-@app.post('/api/trades')
+@app.get('/api/trades')
 def trades(
     request: Request,
     response: Response,
 ):
+    debug_print_pid()
+    timestamp = now()
+    ip = request.client.host
+
+    log.info(f'GET /api/trades ({ip}, {timestamp})')
+
     try:
         return webserver.trades()
 
@@ -277,6 +289,12 @@ def ping(
     request: Request,
     response: Response,
 ):
+    debug_print_pid()
+    timestamp = now()
+    ip = request.client.host
+
+    log.info(f'GET /api/debug/ping ({ip}, {timestamp})')
+
     try:
         return webserver.ping()
 
@@ -294,6 +312,12 @@ def debug_log_top_of_book(
     request: Request,
     response: Response,
 ):
+    debug_print_pid()
+    timestamp = now()
+    ip = request.client.host
+
+    log.info(f'POST /api/debug/debug_log_top_of_book ({ip}, {timestamp})')
+
     try:
         return webserver.debug_log_top_of_book(fastapi_ticker)
 
@@ -310,6 +334,12 @@ def debug_log_current_order_id(
     request: Request,
     response: Response,
 ):
+    debug_print_pid()
+    timestamp = now()
+    ip = request.client.host
+
+    log.info(f'POST /api/debug/debug_log_current_order_id ({ip}, {timestamp})')
+
     try:
         return webserver.debug_log_current_order_id()
 
@@ -326,6 +356,12 @@ def debug_log_all_tickers(
     request: Request,
     response: Response,
 ):
+    debug_print_pid()
+    timestamp = now()
+    ip = request.client.host
+
+    log.info(f'POST /api/debug/debug_log_all_tickers ({ip}, {timestamp})')
+
     try:
         return webserver.debug_log_all_tickers()
 
