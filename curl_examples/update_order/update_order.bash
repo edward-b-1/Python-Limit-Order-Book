@@ -5,7 +5,7 @@ PROTOCOL=http
 HOST=python-limit-order-book.co.uk
 PORT=5555
 
-ENDPOINT='api/modify_order'
+ENDPOINT='api/update_order'
 
 curl -X POST "${PROTOCOL}://$HOST:$PORT/$ENDPOINT" \
     -H 'Content-Type: application/json' \
