@@ -12,6 +12,8 @@ from lib_financial_exchange.financial_exchange_types import TopOfBook
 from lib_financial_exchange.data_structures.multi_ticker_limit_order_book import MultiTickerLimitOrderBook
 from lib_financial_exchange.logging import log
 
+from datetime import datetime
+
 from typeguard import typechecked
 
 '''
@@ -33,34 +35,42 @@ class LimitOrderBook():
         order_side: OrderSide,
         int_price: IntPrice,
         volume: Volume,
+        timestamp: datetime,
     ) -> tuple[OrderId, list[Trade]]:
-        log.info(f'order insert: {ticker}, {order_side}, {int_price}, {volume}')
+        log.info(f'order insert: {ticker}, {order_side}, {int_price}, {volume}, {timestamp}')
 
         order_id = OrderId(self._next_order_id_value)
         self._next_order_id_value += 1
 
-        order_with_order_id = Order(
+        order = Order(
             order_id=order_id,
+            timestamp=timestamp,
             ticker=ticker,
             order_side=order_side,
             int_price=int_price,
             volume=volume,
         )
 
-        trades = self._multi_ticker_limit_order_book.trade(order_with_order_id)
+        trades = self._multi_ticker_limit_order_book.trade(order, timestamp=timestamp)
         if len(trades) > 0:
             log.info(f'order insert: trades generated:')
             for trade in trades:
                 log.info(f'{trade}')
 
-        if order_with_order_id.to_volume().is_not_zero():
-            self._multi_ticker_limit_order_book.insert(order_with_order_id)
+        if order.to_volume().is_not_zero():
+            self._multi_ticker_limit_order_book.insert(order)
 
         return (order_id, trades)
 
 
-    def order_update(self, order_id: OrderId, int_price: IntPrice|None, volume: Volume|None) -> list[Trade]:
-        log.info(f'order update: {order_id}, {int_price}, {volume}')
+    def order_update(
+        self,
+        order_id: OrderId,
+        int_price: IntPrice|None,
+        volume: Volume|None,
+        timestamp: datetime,
+    ) -> list[Trade]:
+        log.info(f'order update: {order_id}, {int_price}, {volume}, {timestamp}')
 
         modified_order = None
         if int_price is None:
@@ -74,7 +84,7 @@ class LimitOrderBook():
             modified_order = self._multi_ticker_limit_order_book.update(order_id, int_price, volume)
 
         if modified_order is not None:
-            trades = self._multi_ticker_limit_order_book.trade(modified_order)
+            trades = self._multi_ticker_limit_order_book.trade(modified_order, timestamp=timestamp)
             if len(trades) > 0:
                 log.info(f'order update: trades generated:')
                 for trade in trades:
@@ -117,6 +127,10 @@ class LimitOrderBook():
         ticker_list = self._multi_ticker_limit_order_book._list_all_tickers()
         return ticker_list
 
+    def debug_current_order_id(self) -> OrderId:
+        return OrderId(order_id=self._next_order_id_value)
+
+    # TODO: some of these might be better done at a higher level of implementation
     def debug_log_current_order_id(self) -> None:
         log.info(f'next order id: {self._next_order_id_value}')
 
