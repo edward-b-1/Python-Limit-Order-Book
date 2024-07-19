@@ -13,6 +13,8 @@ from lib_financial_exchange.data_structures.order_priority_queue import OrderPri
 #from functools import reduce
 from more_itertools import consume
 
+from datetime import datetime
+
 from typeguard import typechecked
 
 
@@ -40,7 +42,7 @@ class SingleSideLimitOrderBook():
         )
 
 
-    def trade(self, taker_order: Order) -> list[Trade]:
+    def trade(self, taker_order: Order, timestamp: datetime) -> list[Trade]:
         assert taker_order.to_ticker() == self._ticker, f'SingleSideLimitOrderBook.trade ticker mismatch'
         assert taker_order.to_order_side().other_side() == self._order_side, f'SingleSideLimitOrderBook.trade order side mismatch'
 
@@ -93,7 +95,7 @@ class SingleSideLimitOrderBook():
                 break
 
             order_priority_queue = self._price_levels[price_level]
-            trades = order_priority_queue.trade(taker_order)
+            trades = order_priority_queue.trade(taker_order, timestamp=timestamp)
             if trades is not None:
                 trade_list += trades
             else:
@@ -101,7 +103,7 @@ class SingleSideLimitOrderBook():
         return trade_list
 
 
-    def insert(self, order: Order):
+    def insert(self, order: Order) -> None:
         assert order.to_ticker() == self._ticker, f'SingleSideLimitOrderBook.insert ticker mismatch'
         assert order.to_order_side() == self._order_side, f'SingleSideLimitOrderBook.insert order side mismatch'
 
@@ -114,6 +116,7 @@ class SingleSideLimitOrderBook():
             raise DuplicateOrderIdError(order_id)
 
         self._price_levels[int_price].insert(order)
+        return None
 
 
     def update(self, order_id: OrderId, int_price: IntPrice, volume: Volume) -> Order|None:

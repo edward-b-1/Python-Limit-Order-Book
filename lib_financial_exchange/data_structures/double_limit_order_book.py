@@ -14,6 +14,8 @@ from lib_financial_exchange.data_structures.single_side_limit_order_book import 
 #from functools import reduce
 from more_itertools import consume
 
+from datetime import datetime
+
 from typeguard import typechecked
 
 
@@ -50,14 +52,14 @@ class DoubleLimitOrderBook():
         )
 
 
-    def trade(self, taker_order: Order) -> list[Trade]:
+    def trade(self, taker_order: Order, timestamp: datetime) -> list[Trade]:
         assert taker_order.to_ticker() == self._ticker, f'DoubleLimitOrderBook.trade ticker mismatch'
 
         order_side = taker_order.to_order_side()
         other_side_order_side = order_side.other_side()
 
         other_side_limit_order_book = self._limit_order_book[other_side_order_side]
-        trades = other_side_limit_order_book.trade(taker_order)
+        trades = other_side_limit_order_book.trade(taker_order, timestamp=timestamp)
         return trades
 
 
@@ -72,6 +74,7 @@ class DoubleLimitOrderBook():
         order_side = order.to_order_side()
 
         self._limit_order_book[order_side].insert(order)
+        return None
 
 
     def update(self, order_id: OrderId, int_price: IntPrice, volume: Volume) -> Order|None:

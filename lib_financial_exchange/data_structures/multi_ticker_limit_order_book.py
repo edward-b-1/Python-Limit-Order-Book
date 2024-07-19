@@ -13,6 +13,8 @@ from lib_financial_exchange.data_structures.double_limit_order_book import Doubl
 
 from more_itertools import consume
 
+from datetime import datetime
+
 from typeguard import typechecked
 
 
@@ -42,11 +44,11 @@ class MultiTickerLimitOrderBook:
         )
 
 
-    def trade(self, taker_order: Order) -> list[Trade]:
+    def trade(self, taker_order: Order, timestamp: datetime) -> list[Trade]:
         ticker = taker_order.to_ticker()
         self._initialize_ticker(ticker)
 
-        trades = self._limit_order_books[ticker].trade(taker_order)
+        trades = self._limit_order_books[ticker].trade(taker_order, timestamp=timestamp)
         return trades
 
 
@@ -60,6 +62,7 @@ class MultiTickerLimitOrderBook:
             raise DuplicateOrderIdError(order_id)
 
         self._limit_order_books[ticker].insert(order)
+        return None
 
     '''
     Note that 3 `update` functions are provided. This is to make the API hard

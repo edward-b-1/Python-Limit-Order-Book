@@ -8,6 +8,8 @@ from lib_financial_exchange.financial_exchange_types import Trade
 from lib_financial_exchange.financial_exchange_types import Order
 from lib_financial_exchange.exceptions import DuplicateOrderIdError
 
+from datetime import datetime
+
 from typeguard import typechecked
 
 
@@ -43,14 +45,14 @@ class OrderPriorityQueue():
         return len(self._queue)
 
 
-    def trade(self, taker_order: Order) -> list[Trade]:
+    def trade(self, taker_order: Order, timestamp: datetime) -> list[Trade]:
         assert taker_order.to_ticker() == self._ticker, f'OrderPriorityQueue.trade ticker mismatch'
         assert taker_order.to_order_side().other_side() == self._order_side, f'OrderPriorityQueue.trade order side mismatch'
 
         trade_list = []
         while taker_order.to_volume() > Volume(0) and len(self._queue) > 0:
             maker_order = self._queue[0]
-            trade = maker_order.match(taker_order)
+            trade = maker_order.match(taker_order, timestamp=timestamp)
             if trade is not None:
                 trade_list.append(trade)
                 self._queue = (
@@ -66,7 +68,7 @@ class OrderPriorityQueue():
         return trade_list
 
 
-    def insert(self, order: Order):
+    def insert(self, order: Order) -> None:
         assert order.to_ticker() == self._ticker, f'OrderPriorityQueue.insert ticker mismatch'
         assert order.to_order_side() == self._order_side, f'OrderPriorityQueue.insert order side mismatch'
         assert order.to_int_price() == self._int_price, f'OrderPriorityQueue.insert int price mismatch'
@@ -77,6 +79,7 @@ class OrderPriorityQueue():
             raise DuplicateOrderIdError(order_id)
 
         self._queue.append(order)
+        return None
 
 
     def update(self, order_id: OrderId, int_price: IntPrice, volume: Volume) -> Order|None:
