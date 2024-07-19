@@ -1,13 +1,13 @@
 # import os
 # print(os.environ['PYTHONPATH'])
 
-from limit_order_book.types import OrderId
-from limit_order_book.types import Ticker
-from limit_order_book.types import OrderSide
-from limit_order_book.types import IntPrice
-from limit_order_book.types import Volume
-from limit_order_book.types import Order
-from limit_order_book.types import OrderWithoutOrderId
+from lib_financial_exchange.financial_exchange_types import OrderId
+from lib_financial_exchange.financial_exchange_types import Ticker
+from lib_financial_exchange.financial_exchange_types import OrderSide
+from lib_financial_exchange.financial_exchange_types import IntPrice
+from lib_financial_exchange.financial_exchange_types import Volume
+from lib_financial_exchange.financial_exchange_types import Order
+from lib_financial_exchange.financial_exchange_types import OrderInsertMessage
 
 import typer
 import requests
@@ -28,7 +28,7 @@ def get_url(endpoint):
 
 @app.command()
 def send_order(ticker: str, order_side: str, price: int, volume: int):
-    order = OrderWithoutOrderId(
+    order = OrderInsertMessage(
         ticker=Ticker(ticker),
         order_side=OrderSide(order_side),
         int_price=IntPrice(price),
@@ -91,11 +91,11 @@ def send_order(ticker: str, order_side: str, price: int, volume: int):
 
 
 @app.command()
-def modify_order(order_id: int, price: int, volume: int):
-    print(f'/api/modify_order')
+def update_order(order_id: int, price: int, volume: int):
+    print(f'/api/update_order')
     print(f'{order_id}, {price}, {volume}')
 
-    url = get_url('/api/modify_order')
+    url = get_url('/api/update_order')
     headers = {
         'accept': 'application/json',
     }
