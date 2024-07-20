@@ -1,26 +1,26 @@
 
 
 
-from lib_webserver.webserver_types import FastAPI_OrderId
-from lib_webserver.webserver_types import FastAPI_OrderIdPriceVolume
 from lib_webserver.webserver_types import FastAPI_Ticker
-from lib_webserver.webserver_types import FastAPI_Order
-from lib_webserver.webserver_types import FastAPI_Trade
 from lib_webserver.webserver_types import FastAPI_TopOfBook
+from lib_webserver.webserver_types import FastAPI_Order
 
 from lib_webserver.webserver_types import FastAPI_ReturnStatus
 from lib_webserver.webserver_types import FastAPI_ReturnStatusWithPing
-from lib_webserver.webserver_types import FastAPI_ReturnStatusWithOrder
 from lib_webserver.webserver_types import FastAPI_ReturnStatusWithTrades
-from lib_webserver.webserver_types import FastAPI_ReturnStatusWithTradesAndOrderId
 from lib_webserver.webserver_types import FastAPI_ReturnStatusWithTopOfBook
 from lib_webserver.webserver_types import FastAPI_ReturnStatusWithTickerList
+from lib_webserver.webserver_types import FastAPI_ReturnStatusWithOrderBoard
 
 from lib_webserver.webserver_types import FastAPI_OrderInsertMessage
 from lib_webserver.webserver_types import FastAPI_OrderUpdateMessage
 from lib_webserver.webserver_types import FastAPI_OrderCancelMessage
 from lib_webserver.webserver_types import FastAPI_OrderCancelPartialMessage
 
+from lib_datetime import datetime_to_order_board_display_string
+
+from datetime import datetime
+from datetime import timezone
 
 
 import random
@@ -96,6 +96,28 @@ class FakeWebserverImpl():
             status='success',
             message=None,
             tickers=tickers,
+        )
+
+
+    def order_board(self) -> FastAPI_ReturnStatusWithOrderBoard:
+        datetime_1 = datetime(
+            year=2024, month=7, day=20,
+            hour=16, minute=21, second=0,
+            tzinfo=timezone.utc,
+        )
+        order_1 = FastAPI_Order(
+            order_id=1,
+            timestamp=datetime_to_order_board_display_string(datetime_1),
+            ticker='PYTH',
+            order_side='BUY',
+            price=1000,
+            volume=10,
+        )
+        orders = [order_1]
+        return FastAPI_ReturnStatusWithOrderBoard(
+            status='success',
+            message=None,
+            orders=orders,
         )
 
 
