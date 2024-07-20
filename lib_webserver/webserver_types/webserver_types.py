@@ -21,6 +21,7 @@ class FastAPI_Ticker(BaseModel):
 
 class FastAPI_Order(BaseModel):
     order_id: int
+    timestamp: str
     ticker: str
     order_side: str
     price: int

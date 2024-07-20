@@ -30,6 +30,9 @@ class FastAPI_ReturnStatusWithTradesAndOrderId(FastAPI_ReturnStatus):
 class FastAPI_ReturnStatusWithTopOfBook(FastAPI_ReturnStatus):
     top_of_book: FastAPI_TopOfBook
 
+class FastAPI_ReturnStatusWithOrderBoard(FastAPI_ReturnStatus):
+    orders: list[FastAPI_Order]
+
 class FastAPI_ReturnStatusWithTickerList(FastAPI_ReturnStatus):
     tickers: list[str]
 

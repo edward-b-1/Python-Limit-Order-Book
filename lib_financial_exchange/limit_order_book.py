@@ -127,6 +127,9 @@ class LimitOrderBook():
         ticker_list = self._multi_ticker_limit_order_book._list_all_tickers()
         return ticker_list
 
+    def order_board(self) -> list[Order]:
+        return self._multi_ticker_limit_order_book.order_board()
+
     def debug_current_order_id(self) -> OrderId:
         return OrderId(order_id=self._next_order_id_value)
 

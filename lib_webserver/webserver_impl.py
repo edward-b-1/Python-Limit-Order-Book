@@ -16,6 +16,7 @@ from lib_webserver.webserver_types import FastAPI_ReturnStatusWithTrades
 from lib_webserver.webserver_types import FastAPI_ReturnStatusWithTradesAndOrderId
 from lib_webserver.webserver_types import FastAPI_ReturnStatusWithTopOfBook
 from lib_webserver.webserver_types import FastAPI_ReturnStatusWithTickerList
+from lib_webserver.webserver_types import FastAPI_ReturnStatusWithOrderBoard
 
 from lib_financial_exchange.financial_exchange_types import Ticker
 
@@ -28,6 +29,7 @@ from lib_webserver.convert_trades_to_fastapi_trades import convert_trades_to_fas
 from lib_webserver.convert_ticker_list_to_fastapi_ticker_list import convert_ticker_list_to_fastapi_ticker_list
 from lib_webserver.convert_top_of_book_to_fastapi_top_of_book import convert_top_of_book_to_fastapi_top_of_book
 from lib_webserver.convert_order_to_fastapi_order import convert_order_to_fastapi_order
+from lib_webserver.convert_order_list_to_fastapi_order_list import convert_order_list_to_fastapi_order_list
 
 from lib_webserver.webserver_logging import log
 
@@ -147,6 +149,18 @@ class WebserverImpl():
             status='success',
             message=None,
             tickers=ticker_list_str,
+        )
+
+
+    def order_board(
+        self,
+    ) -> FastAPI_ReturnStatusWithOrderBoard:
+        orders = self._limit_order_book.order_board()
+        fastapi_orders = convert_order_list_to_fastapi_order_list(orders)
+        return FastAPI_ReturnStatusWithOrderBoard(
+            status='success',
+            message=None,
+            orders=fastapi_orders
         )
 
 

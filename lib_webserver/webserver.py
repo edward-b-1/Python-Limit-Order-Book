@@ -13,6 +13,7 @@ from lib_webserver.webserver_types import FastAPI_ReturnStatusWithPing
 from lib_webserver.webserver_types import FastAPI_ReturnStatusWithTrades
 from lib_webserver.webserver_types import FastAPI_ReturnStatusWithTopOfBook
 from lib_webserver.webserver_types import FastAPI_ReturnStatusWithTickerList
+from lib_webserver.webserver_types import FastAPI_ReturnStatusWithOrderBoard
 
 from lib_webserver.webserver_impl import WebserverImpl
 from lib_webserver.webserver_fake_impl import FakeWebserverImpl
@@ -46,6 +47,9 @@ class Webserver():
 
     def list_all_tickers(self) -> FastAPI_ReturnStatusWithTickerList:
         return self._webserver.list_all_tickers()
+
+    def order_board(self) -> FastAPI_ReturnStatusWithOrderBoard:
+        return self._webserver.order_board()
 
     def trades(self) -> FastAPI_ReturnStatusWithTrades:
         return self._webserver.trades()

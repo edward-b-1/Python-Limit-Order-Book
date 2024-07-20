@@ -1,7 +1,9 @@
 
+from functools import total_ordering
+
 from lib_financial_exchange.exceptions import VolumeReduceAmountTooLarge
 
-
+@total_ordering
 class Volume():
 
     def __init__(self, volume: int) -> None:
@@ -21,16 +23,16 @@ class Volume():
             return self._volume < other._volume
         raise NotImplementedError(f'not implemented')
 
-    def __ge__(self, other: object) -> bool:
-        return not self.__lt__(other)
+    # def __ge__(self, other: object) -> bool:
+    #     return not self.__lt__(other)
 
-    def __gt__(self, other: object) -> bool:
-        if isinstance(other, Volume):
-            return self._volume > other._volume
-        raise NotImplementedError(f'not implemented')
+    # def __gt__(self, other: object) -> bool:
+    #     if isinstance(other, Volume):
+    #         return self._volume > other._volume
+    #     raise NotImplementedError(f'not implemented')
 
-    def __le__(self, other: object) -> bool:
-        return not self.__gt__(other)
+    # def __le__(self, other: object) -> bool:
+    #     return not self.__gt__(other)
 
     def __sub__(self, other: object):
         if isinstance(other, Volume):
