@@ -1,4 +1,7 @@
 
+from functools import total_ordering
+
+@total_ordering
 class OrderId():
 
     def __init__(self, order_id: int) -> None:
@@ -15,6 +18,22 @@ class OrderId():
         if isinstance(value, OrderId):
             return self._order_id == value._order_id
         return False
+
+    def __lt__(self, other: object) -> bool:
+        if isinstance(other, OrderId):
+            return self._order_id < other._order_id
+        raise NotImplementedError(f'not implemented: {type(self)} < {type(other)}')
+
+    # def __ge__(self, other: object) -> bool:
+    #     return not self.__lt__(other)
+
+    # def __gt__(self, other: object) -> bool:
+    #     if isinstance(other, OrderId):
+    #         return self._order_id > other._order_id
+    #     raise NotImplementedError(f'not implemented: {type(self)} > {type(other)}')
+
+    # def __le__(self, other: object) -> bool:
+    #     return not self.__gt__(other)
 
     def to_int(self) -> int:
         return self._order_id

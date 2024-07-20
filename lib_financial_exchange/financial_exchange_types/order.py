@@ -33,6 +33,7 @@ class Order():
     def __eq__(self, value: object) -> bool:
         if not isinstance(value, Order): return False
         if self._order_id != value._order_id: return False
+        if self._timestamp != value._timestamp: return False
         if self._ticker != value._ticker: return False
         if self._order_side != value._order_side: return False
         if self._int_price != value._int_price: return False

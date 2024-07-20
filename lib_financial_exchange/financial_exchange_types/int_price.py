@@ -1,4 +1,7 @@
 
+from functools import total_ordering
+
+@total_ordering
 class IntPrice():
 
     def __init__(self, int_price: int) -> None:
@@ -21,16 +24,16 @@ class IntPrice():
             return self._int_price < other._int_price
         raise NotImplementedError(f'not implemented')
 
-    def __ge__(self, other: object) -> bool:
-        return not self.__lt__(other)
+    # def __ge__(self, other: object) -> bool:
+    #     return not self.__lt__(other)
 
-    def __gt__(self, other: object) -> bool:
-        if isinstance(other, IntPrice):
-            return self._int_price > other._int_price
-        raise NotImplementedError(f'not implemented')
+    # def __gt__(self, other: object) -> bool:
+    #     if isinstance(other, IntPrice):
+    #         return self._int_price > other._int_price
+    #     raise NotImplementedError(f'not implemented')
 
-    def __le__(self, other: object) -> bool:
-        return not self.__gt__(other)
+    # def __le__(self, other: object) -> bool:
+    #     return not self.__gt__(other)
 
     def to_int(self) -> int:
         return self._int_price
