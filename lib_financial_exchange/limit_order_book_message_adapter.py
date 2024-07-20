@@ -88,6 +88,9 @@ class LimitOrderBookMessageAdapter():
     def list_all_tickers(self) -> list[Ticker]:
         return self._limit_order_book.list_all_tickers()
 
+    def order_board(self) -> list[Order]:
+        return self._limit_order_book.order_board()
+
     # Should the LOB retain the information about trades?
     # def trades(self) -> list[Trade]:
     #     return self._limit_order_book.trades()
