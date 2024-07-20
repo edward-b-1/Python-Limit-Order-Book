@@ -262,6 +262,28 @@ def list_all_tickers(
         )
 
 
+@app.get('/api/order_board')
+def order_board(
+    request: Request,
+    response: Response,
+):
+    debug_print_pid()
+    timestamp = now()
+    ip = request.client.host
+
+    log.info(f'GET /api/order_board ({ip}, {timestamp})')
+
+    try:
+        return webserver.order_board()
+
+    except Exception as error:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return FastAPI_ReturnStatus(
+            status='error',
+            message='internal server error',
+        )
+
+
 @app.get('/api/trades')
 def trades(
     request: Request,
