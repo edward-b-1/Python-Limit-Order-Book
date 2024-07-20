@@ -297,3 +297,7 @@ class OrderPriorityQueue():
         )
         return Volume(total_volume)
 
+
+    def get_all_orders(self) -> list[Order]:
+        return self._queue
+

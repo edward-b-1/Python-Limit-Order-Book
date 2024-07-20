@@ -11,6 +11,7 @@ from lib_financial_exchange.exceptions import DuplicateOrderIdError
 
 from lib_financial_exchange.data_structures.double_limit_order_book import DoubleLimitOrderBook
 
+from functools import reduce
 from more_itertools import consume
 
 from datetime import datetime
@@ -199,4 +200,21 @@ class MultiTickerLimitOrderBook:
             )
         )
         return tickers
+
+    # TODO: needs tests
+    def order_board(self) -> list[Order]:
+        orders: list[Order] = (
+            list(
+                reduce(
+                    list.__add__,
+                    map(
+                        lambda double_limit_order_book: double_limit_order_book.get_all_orders(),
+                        self._limit_order_books.values(),
+                    ),
+                    []
+                )
+            )
+        )
+        orders.sort(key=lambda order: order.to_order_id())
+        return orders
 

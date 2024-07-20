@@ -10,7 +10,7 @@ from lib_financial_exchange.exceptions import DuplicateOrderIdError
 
 from lib_financial_exchange.data_structures.order_priority_queue import OrderPriorityQueue
 
-#from functools import reduce
+from functools import reduce
 from more_itertools import consume
 
 from datetime import datetime
@@ -300,4 +300,21 @@ class SingleSideLimitOrderBook():
                 return (price_level, volume)
             else:
                 return (None, None)
+
+
+    def get_all_orders(self) -> list[Order]:
+        orders: list[Order] = (
+            list(
+                reduce(
+                    list.__add__,
+                    map(
+                        lambda order_priority_queue: order_priority_queue.get_all_orders(),
+                        self._price_levels.values(),
+                    ),
+                    []
+                )
+            )
+        )
+        orders.sort(key=lambda order: order.to_order_id())
+        return orders
 
