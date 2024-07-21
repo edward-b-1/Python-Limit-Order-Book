@@ -23,11 +23,11 @@ export const globalTheme = createTheme({
 
     },
     h1: {
-      fontSize: '4rem',
-      fontWeight: 350,
+      fontSize: '3rem',
+      fontWeight: 400,
     },
     h2: {
-      fontSize: '3rem',
+      fontSize: '2rem',
     },
     h3: {
       fontSize: '2rem',
@@ -77,7 +77,12 @@ export const globalTheme = createTheme({
       default: "#EBEAEB",
       paper: "#ffffff",
     },
-    primaryDark: "#002b5e",
+    marineBlue: "#013E87",
+    berkeleyBlue: "#002b5e",
+    whiteSmoke: "#f5f5f5",
+    eerieBlack: "#222725",
+    orangePeel: "#ff9f1c",
+    textfieldBackgroundColor: "#dddddd",
   }
 
   // palette: {
