@@ -9,7 +9,11 @@ from lib_financial_exchange.financial_exchange_types import Ticker
 from lib_financial_exchange.financial_exchange_types import IntPrice
 from lib_financial_exchange.financial_exchange_types import Volume
 from lib_financial_exchange.financial_exchange_types import TopOfBook
+
+from lib_financial_exchange.trade_id_generator import TradeIdGenerator
+
 from lib_financial_exchange.data_structures.multi_ticker_limit_order_book import MultiTickerLimitOrderBook
+
 from lib_financial_exchange.logging import log
 
 from datetime import datetime
@@ -27,6 +31,7 @@ class LimitOrderBook():
 
     def __init__(self) -> None:
         self._next_order_id_value: int = 1
+        self._trade_id_generator = TradeIdGenerator()
         self._multi_ticker_limit_order_book = MultiTickerLimitOrderBook()
 
     def order_insert(
@@ -51,7 +56,14 @@ class LimitOrderBook():
             volume=volume,
         )
 
-        trades = self._multi_ticker_limit_order_book.trade(order, timestamp=timestamp)
+        trades = (
+            self._multi_ticker_limit_order_book.trade(
+                order,
+                trade_id_generator=self._trade_id_generator,
+                timestamp=timestamp,
+            )
+        )
+
         if len(trades) > 0:
             log.info(f'order insert: trades generated:')
             for trade in trades:
@@ -84,7 +96,14 @@ class LimitOrderBook():
             modified_order = self._multi_ticker_limit_order_book.update(order_id, int_price, volume)
 
         if modified_order is not None:
-            trades = self._multi_ticker_limit_order_book.trade(modified_order, timestamp=timestamp)
+            trades = (
+                self._multi_ticker_limit_order_book.trade(
+                    modified_order,
+                    trade_id_generator=self._trade_id_generator,
+                    timestamp=timestamp,
+                )
+            )
+
             if len(trades) > 0:
                 log.info(f'order update: trades generated:')
                 for trade in trades:

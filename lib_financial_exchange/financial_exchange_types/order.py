@@ -6,6 +6,8 @@ from lib_financial_exchange.financial_exchange_types.volume import Volume
 from lib_financial_exchange.financial_exchange_types.order_side import OrderSide
 from lib_financial_exchange.financial_exchange_types.trade import Trade
 
+from lib_financial_exchange.trade_id_generator import TradeIdGenerator
+
 from datetime import datetime
 
 from typeguard import typechecked
@@ -157,7 +159,7 @@ class Order():
 
     ############################################################################
 
-    def match(self, taker_order, timestamp: datetime) -> Trade|None:
+    def match(self, taker_order, trade_id_generator: TradeIdGenerator, timestamp: datetime) -> Trade|None:
         '''
             The Taker order must be self. The Maker order must be order.
 
@@ -202,7 +204,10 @@ class Order():
         maker_order.set_volume(maker_volume)
         taker_order.set_volume(taker_volume)
 
+        trade_id = trade_id_generator.next()
+
         trade = Trade(
+            trade_id=trade_id,
             order_id_maker=maker_order.to_order_id(),
             order_id_taker=taker_order.to_order_id(),
             timestamp=timestamp,

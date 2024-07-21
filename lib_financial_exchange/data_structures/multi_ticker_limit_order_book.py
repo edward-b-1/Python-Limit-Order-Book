@@ -7,6 +7,9 @@ from lib_financial_exchange.financial_exchange_types import OrderSide
 from lib_financial_exchange.financial_exchange_types import Trade
 from lib_financial_exchange.financial_exchange_types import Order
 from lib_financial_exchange.financial_exchange_types import TopOfBook
+
+from lib_financial_exchange.trade_id_generator import TradeIdGenerator
+
 from lib_financial_exchange.exceptions import DuplicateOrderIdError
 
 from lib_financial_exchange.data_structures.double_limit_order_book import DoubleLimitOrderBook
@@ -45,11 +48,11 @@ class MultiTickerLimitOrderBook:
         )
 
 
-    def trade(self, taker_order: Order, timestamp: datetime) -> list[Trade]:
+    def trade(self, taker_order: Order, trade_id_generator: TradeIdGenerator, timestamp: datetime) -> list[Trade]:
         ticker = taker_order.to_ticker()
         self._initialize_ticker(ticker)
 
-        trades = self._limit_order_books[ticker].trade(taker_order, timestamp=timestamp)
+        trades = self._limit_order_books[ticker].trade(taker_order, trade_id_generator=trade_id_generator, timestamp=timestamp)
         return trades
 
 

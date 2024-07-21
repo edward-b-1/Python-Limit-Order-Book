@@ -28,8 +28,10 @@ class FastAPI_Order(BaseModel):
     volume: int
 
 class FastAPI_Trade(BaseModel):
+    trade_id: int
     order_id_maker: int
     order_id_taker: int
+    timestamp: str
     ticker: str
     price: int
     volume: int

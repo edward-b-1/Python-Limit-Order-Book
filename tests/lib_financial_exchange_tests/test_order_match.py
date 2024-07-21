@@ -1,11 +1,14 @@
 
 from lib_financial_exchange.financial_exchange_types import Ticker
 from lib_financial_exchange.financial_exchange_types import OrderId
+from lib_financial_exchange.financial_exchange_types import TradeId
 from lib_financial_exchange.financial_exchange_types import IntPrice
 from lib_financial_exchange.financial_exchange_types import Volume
 from lib_financial_exchange.financial_exchange_types import OrderSide
 from lib_financial_exchange.financial_exchange_types import Trade
 from lib_financial_exchange.financial_exchange_types import Order
+
+from lib_financial_exchange.trade_id_generator import TradeIdGenerator
 
 from datetime import datetime
 
@@ -23,6 +26,8 @@ def test_order_no_match_different_ticker():
     volume = Volume(10)
     timestamp = datetime(year=2024, month=7, day=19)
     trade_timestamp = timestamp
+
+    trade_id_generator = TradeIdGenerator()
 
     order_1 = Order(
         order_id=OrderId(1),
@@ -42,8 +47,10 @@ def test_order_no_match_different_ticker():
         volume=volume,
     )
 
-    trade = order_1.match(order_2, timestamp=trade_timestamp)
+    trade = order_1.match(order_2, trade_id_generator=trade_id_generator, timestamp=trade_timestamp)
     assert trade == None, f'unexpected order match'
+
+    assert trade_id_generator.next() == TradeId(1)
 
 
 # 1/1
@@ -55,6 +62,8 @@ def test_order_no_match_same_order_side():
     volume = Volume(10)
     timestamp = datetime(year=2024, month=7, day=19)
     trade_timestamp = timestamp
+
+    trade_id_generator = TradeIdGenerator()
 
     order_1 = Order(
         order_id=OrderId(1),
@@ -74,8 +83,10 @@ def test_order_no_match_same_order_side():
         volume=volume,
     )
 
-    trade = order_1.match(order_2, timestamp=trade_timestamp)
+    trade = order_1.match(order_2, trade_id_generator=trade_id_generator, timestamp=trade_timestamp)
     assert trade == None, f'unexpected order match'
+
+    assert trade_id_generator.next() == TradeId(1)
 
 # 1/1
 # Test no matching order for incompatiable int_price
@@ -84,6 +95,8 @@ def test_order_no_match_no_match_price():
     volume = Volume(10)
     timestamp = datetime(year=2024, month=7, day=19)
     trade_timestamp = timestamp
+
+    trade_id_generator = TradeIdGenerator()
 
     order_1 = Order(
         order_id=OrderId(1),
@@ -103,8 +116,10 @@ def test_order_no_match_no_match_price():
         volume=volume,
     )
 
-    trade = order_1.match(order_2, timestamp=trade_timestamp)
+    trade = order_1.match(order_2, trade_id_generator=trade_id_generator, timestamp=trade_timestamp)
     assert trade == None, f'unexpected order match'
+
+    assert trade_id_generator.next() == TradeId(1)
 
 # 1/3
 # Test fully matched order for compatiable int_price
@@ -114,6 +129,8 @@ def test_order_full_match_same_price():
     volume = Volume(10)
     timestamp = datetime(year=2024, month=7, day=19)
     trade_timestamp = timestamp
+
+    trade_id_generator = TradeIdGenerator()
 
     order_1 = Order(
         order_id=OrderId(1),
@@ -134,6 +151,7 @@ def test_order_full_match_same_price():
     )
 
     expected_trade = Trade(
+        trade_id=TradeId(1),
         order_id_maker=OrderId(1),
         order_id_taker=OrderId(2),
         timestamp=trade_timestamp,
@@ -142,8 +160,10 @@ def test_order_full_match_same_price():
         volume=volume
     )
 
-    trade = order_1.match(order_2, timestamp=trade_timestamp)
+    trade = order_1.match(order_2, trade_id_generator=trade_id_generator, timestamp=trade_timestamp)
     assert trade == expected_trade, f'unexpected trade data or no trade'
+
+    assert trade_id_generator.next() == TradeId(2)
 
 # 2/3
 # Test partially matched maker order for compatiable int_price
@@ -152,6 +172,8 @@ def test_order_partial_maker_match_same_price():
     int_price = IntPrice(1000)
     timestamp = datetime(year=2024, month=7, day=19)
     trade_timestamp = timestamp
+
+    trade_id_generator = TradeIdGenerator()
 
     order_1 = Order(
         order_id=OrderId(1),
@@ -172,6 +194,7 @@ def test_order_partial_maker_match_same_price():
     )
 
     expected_trade = Trade(
+        trade_id=TradeId(1),
         order_id_maker=OrderId(1),
         order_id_taker=OrderId(2),
         timestamp=trade_timestamp,
@@ -180,10 +203,12 @@ def test_order_partial_maker_match_same_price():
         volume=Volume(10),
     )
 
-    trade = order_1.match(order_2, timestamp=trade_timestamp)
+    trade = order_1.match(order_2, trade_id_generator=trade_id_generator, timestamp=trade_timestamp)
     assert trade == expected_trade, f'unexpected trade data or no trade'
     assert order_1.to_volume() == Volume(10), f'unexpected maker order volume'
     assert order_2.to_volume() == Volume(0), f'unexpected taker order volume'
+
+    assert trade_id_generator.next() == TradeId(2)
 
 # 3/3
 # Test partially matched taker order for compatiable int_price
@@ -193,6 +218,8 @@ def test_order_partial_taker_match_same_price():
     timestamp = datetime(year=2024, month=7, day=19)
     trade_timestamp = timestamp
 
+    trade_id_generator = TradeIdGenerator()
+
     order_1 = Order(
         order_id=OrderId(1),
         timestamp=timestamp,
@@ -212,6 +239,7 @@ def test_order_partial_taker_match_same_price():
     )
 
     expected_trade = Trade(
+        trade_id=TradeId(1),
         order_id_maker=OrderId(1),
         order_id_taker=OrderId(2),
         timestamp=trade_timestamp,
@@ -220,10 +248,12 @@ def test_order_partial_taker_match_same_price():
         volume=Volume(10),
     )
 
-    trade = order_1.match(order_2, timestamp=trade_timestamp)
+    trade = order_1.match(order_2, trade_id_generator=trade_id_generator, timestamp=trade_timestamp)
     assert trade == expected_trade, f'unexpected trade data or no trade'
     assert order_1.to_volume() == Volume(0), f'unexpected maker order volume'
     assert order_2.to_volume() == Volume(10), f'unexpected taker order volume'
+
+    assert trade_id_generator.next() == TradeId(2)
 
 # 1/3
 # Test fully matched order for crossing taker price
@@ -233,6 +263,8 @@ def test_order_full_match_crossing_taker_price():
     timestamp = datetime(year=2024, month=7, day=19)
     trade_timestamp = timestamp
 
+    trade_id_generator = TradeIdGenerator()
+
     order_1 = Order(
         order_id=OrderId(1),
         timestamp=timestamp,
@@ -252,6 +284,7 @@ def test_order_full_match_crossing_taker_price():
     )
 
     expected_trade = Trade(
+        trade_id=TradeId(1),
         order_id_maker=OrderId(1),
         order_id_taker=OrderId(2),
         timestamp=trade_timestamp,
@@ -260,8 +293,10 @@ def test_order_full_match_crossing_taker_price():
         volume=volume,
     )
 
-    trade = order_1.match(order_2, timestamp=trade_timestamp)
+    trade = order_1.match(order_2, trade_id_generator=trade_id_generator, timestamp=trade_timestamp)
     assert trade == expected_trade, f'unexpected trade data or no trade'
+
+    assert trade_id_generator.next() == TradeId(2)
 
 # 2/3
 # Test partially matched maker order for crossing taker price
@@ -270,6 +305,8 @@ def test_order_partial_maker_match_crossing_taker_price():
     timestamp = datetime(year=2024, month=7, day=19)
     trade_timestamp = timestamp
 
+    trade_id_generator = TradeIdGenerator()
+
     order_1 = Order(
         order_id=OrderId(1),
         timestamp=timestamp,
@@ -289,6 +326,7 @@ def test_order_partial_maker_match_crossing_taker_price():
     )
 
     expected_trade = Trade(
+        trade_id=TradeId(1),
         order_id_maker=OrderId(1),
         order_id_taker=OrderId(2),
         timestamp=trade_timestamp,
@@ -297,10 +335,12 @@ def test_order_partial_maker_match_crossing_taker_price():
         volume=Volume(10),
     )
 
-    trade = order_1.match(order_2, timestamp=trade_timestamp)
+    trade = order_1.match(order_2, trade_id_generator=trade_id_generator, timestamp=trade_timestamp)
     assert trade == expected_trade, f'unexpected trade data or no trade'
     assert order_1.to_volume() == Volume(10), f'unexpected maker order volume'
     assert order_2.to_volume() == Volume(0), f'unexpected taker order volume'
+
+    assert trade_id_generator.next() == TradeId(2)
 
 # 3/3
 # Test partially matched taker order for crossing taker price
@@ -309,6 +349,8 @@ def test_order_partial_taker_match_crossing_taker_price():
     timestamp = datetime(year=2024, month=7, day=19)
     trade_timestamp = timestamp
 
+    trade_id_generator = TradeIdGenerator()
+
     order_1 = Order(
         order_id=OrderId(1),
         timestamp=timestamp,
@@ -328,6 +370,7 @@ def test_order_partial_taker_match_crossing_taker_price():
     )
 
     expected_trade = Trade(
+        trade_id=TradeId(1),
         order_id_maker=OrderId(1),
         order_id_taker=OrderId(2),
         timestamp=trade_timestamp,
@@ -336,10 +379,12 @@ def test_order_partial_taker_match_crossing_taker_price():
         volume=Volume(10),
     )
 
-    trade = order_1.match(order_2, timestamp=trade_timestamp)
+    trade = order_1.match(order_2, trade_id_generator=trade_id_generator, timestamp=trade_timestamp)
     assert trade == expected_trade, f'unexpected trade data or no trade'
     assert order_1.to_volume() == Volume(0), f'unexpected maker order volume'
     assert order_2.to_volume() == Volume(10), f'unexpected taker order volume'
+
+    assert trade_id_generator.next() == TradeId(2)
 
 # 1/3
 # Test fully matched order for crossing taker price (reversed)
@@ -348,6 +393,8 @@ def test_order_full_match_crossing_taker_price_reversed():
     volume = Volume(10)
     timestamp = datetime(year=2024, month=7, day=19)
     trade_timestamp = timestamp
+
+    trade_id_generator = TradeIdGenerator()
 
     order_maker = Order(
         order_id=OrderId(1),
@@ -368,6 +415,7 @@ def test_order_full_match_crossing_taker_price_reversed():
     )
 
     expected_trade = Trade(
+        trade_id=TradeId(1),
         order_id_maker=OrderId(1),
         order_id_taker=OrderId(2),
         timestamp=trade_timestamp,
@@ -376,8 +424,10 @@ def test_order_full_match_crossing_taker_price_reversed():
         volume=volume
     )
 
-    trade = order_maker.match(order_taker, timestamp=trade_timestamp)
+    trade = order_maker.match(order_taker, trade_id_generator=trade_id_generator, timestamp=trade_timestamp)
     assert trade == expected_trade, f'unexpected trade data or no trade'
+
+    assert trade_id_generator.next() == TradeId(2)
 
 # 2/3
 # Test partially matched maker order for crossing taker price (reversed)
@@ -385,6 +435,8 @@ def test_order_partial_maker_match_crossing_taker_price_reversed():
     ticker = Ticker('PYTH')
     timestamp = datetime(year=2024, month=7, day=19)
     trade_timestamp = timestamp
+
+    trade_id_generator = TradeIdGenerator()
 
     maker_order = Order(
         order_id=OrderId(1),
@@ -405,6 +457,7 @@ def test_order_partial_maker_match_crossing_taker_price_reversed():
     )
 
     expected_trade = Trade(
+        trade_id=TradeId(1),
         order_id_maker=OrderId(1),
         order_id_taker=OrderId(2),
         timestamp=trade_timestamp,
@@ -413,10 +466,12 @@ def test_order_partial_maker_match_crossing_taker_price_reversed():
         volume=Volume(10),
     )
 
-    trade = maker_order.match(taker_order, timestamp=trade_timestamp)
+    trade = maker_order.match(taker_order, trade_id_generator=trade_id_generator, timestamp=trade_timestamp)
     assert trade == expected_trade, f'unexpected trade data or no trade'
     assert maker_order.to_volume() == Volume(10), f'unexpected maker order volume'
     assert taker_order.to_volume() == Volume(0), f'unexpected taker order volume'
+
+    assert trade_id_generator.next() == TradeId(2)
 
 # 3/3
 # Test partially matched taker order for crossing taker price (reversed)
@@ -424,6 +479,8 @@ def test_order_partial_taker_match_crossing_taker_price_reversed():
     ticker = Ticker('PYTH')
     timestamp = datetime(year=2024, month=7, day=19)
     trade_timestamp = timestamp
+
+    trade_id_generator = TradeIdGenerator()
 
     order_1 = Order(
         order_id=OrderId(1),
@@ -444,6 +501,7 @@ def test_order_partial_taker_match_crossing_taker_price_reversed():
     )
 
     expected_trade = Trade(
+        trade_id=TradeId(1),
         order_id_maker=OrderId(1),
         order_id_taker=OrderId(2),
         timestamp=trade_timestamp,
@@ -452,8 +510,10 @@ def test_order_partial_taker_match_crossing_taker_price_reversed():
         volume=Volume(10),
     )
 
-    trade = order_1.match(order_2, timestamp=trade_timestamp)
+    trade = order_1.match(order_2, trade_id_generator=trade_id_generator, timestamp=trade_timestamp)
     assert trade == expected_trade, f'unexpected trade data or no trade'
     assert order_1.to_volume() == Volume(0), f'unexpected maker order volume'
     assert order_2.to_volume() == Volume(10), f'unexpected taker order volume'
+
+    assert trade_id_generator.next() == TradeId(2)
 

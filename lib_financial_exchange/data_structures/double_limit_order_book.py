@@ -7,6 +7,9 @@ from lib_financial_exchange.financial_exchange_types import OrderSide
 from lib_financial_exchange.financial_exchange_types import Trade
 from lib_financial_exchange.financial_exchange_types import Order
 from lib_financial_exchange.financial_exchange_types import TopOfBook
+
+from lib_financial_exchange.trade_id_generator import TradeIdGenerator
+
 from lib_financial_exchange.exceptions import DuplicateOrderIdError
 
 from lib_financial_exchange.data_structures.single_side_limit_order_book import SingleSideLimitOrderBook
@@ -52,14 +55,14 @@ class DoubleLimitOrderBook():
         )
 
 
-    def trade(self, taker_order: Order, timestamp: datetime) -> list[Trade]:
+    def trade(self, taker_order: Order, trade_id_generator: TradeIdGenerator, timestamp: datetime) -> list[Trade]:
         assert taker_order.to_ticker() == self._ticker, f'DoubleLimitOrderBook.trade ticker mismatch'
 
         order_side = taker_order.to_order_side()
         other_side_order_side = order_side.other_side()
 
         other_side_limit_order_book = self._limit_order_book[other_side_order_side]
-        trades = other_side_limit_order_book.trade(taker_order, timestamp=timestamp)
+        trades = other_side_limit_order_book.trade(taker_order, trade_id_generator=trade_id_generator, timestamp=timestamp)
         return trades
 
 

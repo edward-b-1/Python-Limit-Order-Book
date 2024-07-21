@@ -1,6 +1,7 @@
 
 from lib_financial_exchange.financial_exchange_types.int_price import IntPrice
 from lib_financial_exchange.financial_exchange_types.order_id import OrderId
+from lib_financial_exchange.financial_exchange_types.trade_id import TradeId
 from lib_financial_exchange.financial_exchange_types.order_side import OrderSide
 from lib_financial_exchange.financial_exchange_types.order import Order
 from lib_financial_exchange.financial_exchange_types.ticker import Ticker
