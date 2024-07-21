@@ -1,4 +1,6 @@
+
 import { useState, useEffect } from 'react';
+
 import { Box } from '@mui/material';
 
 import OrderBoardTableContainer from './OrderBoardTableContainer';
@@ -14,7 +16,6 @@ export default function OrderBoard() {
     const allOrders = responseAllTickers.data['orders'];
     console.log(allOrders);
     for (const order of allOrders) {
-      console.log(`Order: ${order}`);
       rows.push(order);
     }
     return rows;
