@@ -1,35 +1,89 @@
 import reactLogo from '../../assets/react.svg';
 import viteLogo from '/vite.svg';
 
-import { Typography, Box, Link } from '@mui/material';
+import { Typography, Box, Link, Paper } from '@mui/material';
 
 export default function TabPanelAboutContent() {
   return (
     <>
-      <Typography variant="h3">This is the about page</Typography>
-      <Typography variant="h3">The backend is built with Python</Typography>
-      <Typography variant="h3">
-        The frontend is built with React and Material UI
-      </Typography>
-      <Typography variant="h3">
-        Tech stack list: Python, FastAPI, React, MUI
-      </Typography>
+      <Box>
+        <Box
+          sx={{
+            py: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            width: 1,
+          }}
+        >
+          <Paper sx={{backgroundColor: 'background.whitesmoke'}}>
+            <Typography variant="h2" sx={{ m: 3 }}>
+              About
+            </Typography>
+          </Paper>
+        </Box>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}>
+          <Typography variant='body2'>
+            More detailed information about this project can be found on the
+            <Link
+              href="https://github.com/edward-b-1/Python-Limit-Order-Book"
+              variant="body2"
+              underline="hover"
+              sx={{ ml: 0.5 }}
+            >
+              associated github page
+            </Link>
+            .
+          </Typography>
+        </Box>
+        <Box sx={{ mt: 3 }}>
+          <Paper sx={{backgroundColor: 'background.whitesmoke'}}>
+            <Box sx={{ my: 3, mx: 2, pb: 2, pt: 1 }}>
+              <Typography variant="h3" sx={{ m: 1, mb: 2 }}>
+                Technology Stack
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 1 }}>
+                The backend is built with Python and FastAPI, which is a Python
+                webserver framework.
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 1 }}>
+                The frontend is built with React and Material UI (MUI).
+              </Typography>
+            </Box>
+          </Paper>
+        </Box>
+      </Box>
 
-      <Box display="flex" justifyContent="center" alignItems="center">
-        <Link href="/about" variant="body2">
+      <Box display="flex" justifyContent="center" alignItems="center" sx={{mb:2}}>
+        <Link href="/about" variant="body2" underline="hover">
           about the developer
         </Link>
       </Box>
 
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Made with Vite + React</h1>
+      <Box
+        sx={{
+          py: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          width: 1,
+        }}
+      >
+        <Box>
+          <Link href="https://vitejs.dev" target="_blank">
+            <img src={viteLogo} className="logo" alt="Vite logo" />
+          </Link>
+          <Link href="https://react.dev" target="_blank">
+            <img src={reactLogo} className="logo react" alt="React logo"/>
+          </Link>
+        </Box>
+        <Typography variant='h4' sx={{mt:3}}>Made with Vite + React</Typography>
+      </Box>
     </>
   );
 }

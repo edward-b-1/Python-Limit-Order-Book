@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button, Box } from '@mui/material';
 
@@ -43,7 +42,10 @@ export default function OrderEntryComponent() {
           Refresh
         </Button>
       </Box>
-      <TopOfBookTableContainer rows={rows} sx={{ px: 2, mt: 2 }}>
+      <TopOfBookTableContainer
+        rows={rows}
+        sx={{ px: 2, mt: 2, backgroundColor: 'background.whitesmoke' }}
+      >
         table
       </TopOfBookTableContainer>
     </>

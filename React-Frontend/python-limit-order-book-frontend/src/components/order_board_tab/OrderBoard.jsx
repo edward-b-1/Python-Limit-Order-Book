@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+
 import { Box } from '@mui/material';
 
 import OrderBoardTableContainer from './OrderBoardTableContainer';
@@ -12,9 +13,7 @@ export default function OrderBoard() {
     let rows = [];
     const responseAllTickers = await axios.get(`/api/order_board`, {});
     const allOrders = responseAllTickers.data['orders'];
-    console.log(allOrders);
     for (const order of allOrders) {
-      console.log(`Order: ${order}`);
       rows.push(order);
     }
     return rows;
@@ -28,7 +27,10 @@ export default function OrderBoard() {
 
   return (
     <>
-      <OrderBoardTableContainer rows={rows} sx={{ px: 2, mt: 2 }}>
+      <OrderBoardTableContainer
+        rows={rows}
+        sx={{ px: 2, mt: 2, backgroundColor: 'background.whitesmoke' }}
+      >
         table
       </OrderBoardTableContainer>
     </>

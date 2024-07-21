@@ -45,12 +45,12 @@ export default function MainPage() {
             justifyContent: 'center',
           }}
         >
-          <Paper elevation={4} sx={{ backgroundColor: 'paper.main' }}>
+          <Paper elevation={4} sx={{ backgroundColor: 'background.default' }}>
             <Typography
               variant="h1"
               sx={{ p: 2, mt: 4, color: 'primary.main' }}
             >
-              Limit Order Book interface with React
+              Limit Order Book Interface with React
             </Typography>
           </Paper>
           <Box sx={{ py: 2 }}></Box>

@@ -1,5 +1,6 @@
 import { Typography } from '@mui/material';
 import { Box } from '@mui/material';
+import TradesDisplayComponent from '../trades_tab/TradesDisplayComponent';
 
 export default function TabPanelTradeRecordsContent() {
   return (
@@ -12,8 +13,9 @@ export default function TabPanelTradeRecordsContent() {
           alignItems: 'center',
         }}
       >
-        <Typography>Trades</Typography>
+        <Typography variant='h3'>Trades</Typography>
       </Box>
+      <TradesDisplayComponent></TradesDisplayComponent>
     </>
   );
 }
