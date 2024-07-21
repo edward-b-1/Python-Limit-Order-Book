@@ -13,7 +13,6 @@ export default function OrderBoard() {
     let rows = [];
     const responseAllTickers = await axios.get(`/api/order_board`, {});
     const allOrders = responseAllTickers.data['orders'];
-    console.log(allOrders);
     for (const order of allOrders) {
       rows.push(order);
     }
