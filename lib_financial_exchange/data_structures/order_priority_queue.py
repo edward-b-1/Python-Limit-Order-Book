@@ -6,6 +6,9 @@ from lib_financial_exchange.financial_exchange_types import Volume
 from lib_financial_exchange.financial_exchange_types import OrderSide
 from lib_financial_exchange.financial_exchange_types import Trade
 from lib_financial_exchange.financial_exchange_types import Order
+
+from lib_financial_exchange.trade_id_generator import TradeIdGenerator
+
 from lib_financial_exchange.exceptions import DuplicateOrderIdError
 
 from datetime import datetime
@@ -45,14 +48,14 @@ class OrderPriorityQueue():
         return len(self._queue)
 
 
-    def trade(self, taker_order: Order, timestamp: datetime) -> list[Trade]:
+    def trade(self, taker_order: Order, trade_id_generator: TradeIdGenerator, timestamp: datetime) -> list[Trade]:
         assert taker_order.to_ticker() == self._ticker, f'OrderPriorityQueue.trade ticker mismatch'
         assert taker_order.to_order_side().other_side() == self._order_side, f'OrderPriorityQueue.trade order side mismatch'
 
         trade_list = []
         while taker_order.to_volume() > Volume(0) and len(self._queue) > 0:
             maker_order = self._queue[0]
-            trade = maker_order.match(taker_order, timestamp=timestamp)
+            trade = maker_order.match(taker_order, trade_id_generator=trade_id_generator, timestamp=timestamp)
             if trade is not None:
                 trade_list.append(trade)
                 self._queue = (

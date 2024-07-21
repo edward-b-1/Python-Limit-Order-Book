@@ -6,6 +6,9 @@ from lib_financial_exchange.financial_exchange_types import Volume
 from lib_financial_exchange.financial_exchange_types import OrderSide
 from lib_financial_exchange.financial_exchange_types import Trade
 from lib_financial_exchange.financial_exchange_types import Order
+
+from lib_financial_exchange.trade_id_generator import TradeIdGenerator
+
 from lib_financial_exchange.exceptions import DuplicateOrderIdError
 
 from lib_financial_exchange.data_structures.order_priority_queue import OrderPriorityQueue
@@ -42,7 +45,7 @@ class SingleSideLimitOrderBook():
         )
 
 
-    def trade(self, taker_order: Order, timestamp: datetime) -> list[Trade]:
+    def trade(self, taker_order: Order, trade_id_generator: TradeIdGenerator, timestamp: datetime) -> list[Trade]:
         assert taker_order.to_ticker() == self._ticker, f'SingleSideLimitOrderBook.trade ticker mismatch'
         assert taker_order.to_order_side().other_side() == self._order_side, f'SingleSideLimitOrderBook.trade order side mismatch'
 
@@ -95,7 +98,7 @@ class SingleSideLimitOrderBook():
                 break
 
             order_priority_queue = self._price_levels[price_level]
-            trades = order_priority_queue.trade(taker_order, timestamp=timestamp)
+            trades = order_priority_queue.trade(taker_order, trade_id_generator=trade_id_generator, timestamp=timestamp)
             if trades is not None:
                 trade_list += trades
             else:
