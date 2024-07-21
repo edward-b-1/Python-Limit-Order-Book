@@ -1,3 +1,4 @@
+import React from 'react';
 import { Typography, Box, Link, Paper } from '@mui/material';
 
 export default function AboutPage() {
