@@ -7,6 +7,9 @@ from lib_financial_exchange.financial_exchange_types import Volume
 from lib_financial_exchange.financial_exchange_types import OrderSide
 from lib_financial_exchange.financial_exchange_types import Ticker
 from lib_financial_exchange.financial_exchange_types import Order
+
+from lib_financial_exchange.trade_id_generator import TradeIdGenerator
+
 from lib_financial_exchange.data_structures.single_side_limit_order_book import SingleSideLimitOrderBook
 
 from datetime import datetime
@@ -19,6 +22,8 @@ def test_single_side_limit_order_book_no_trade_no_previous_order():
     order_side_other_side = order_side.other_side()
     timestamp = datetime(year=2024, month=7, day=19)
     timestamp_trade = timestamp
+
+    trade_id_generator = TradeIdGenerator()
 
     lob = SingleSideLimitOrderBook(
         ticker=ticker,
@@ -34,7 +39,7 @@ def test_single_side_limit_order_book_no_trade_no_previous_order():
         volume=Volume(10),
     )
 
-    trades = lob.trade(order_1, timestamp=timestamp_trade)
+    trades = lob.trade(order_1, trade_id_generator=trade_id_generator, timestamp=timestamp_trade)
     assert trades == []
 
     assert lob.order_id_exists(OrderId(1)) == False
@@ -45,6 +50,8 @@ def test_single_side_limit_order_book_no_trade_no_matching_price_level():
     ticker = Ticker('AAPL')
     timestamp = datetime(year=2024, month=7, day=19)
     timestamp_trade = timestamp
+
+    trade_id_generator = TradeIdGenerator()
 
     lob = SingleSideLimitOrderBook(
         ticker=ticker,
@@ -70,9 +77,9 @@ def test_single_side_limit_order_book_no_trade_no_matching_price_level():
     )
 
     with pytest.raises(Exception):
-        trades = lob.trade(order_1, timestamp=timestamp_trade)
+        trades = lob.trade(order_1, trade_id_generator=trade_id_generator, timestamp=timestamp_trade)
     lob.insert(order_1)
-    trades = lob.trade(order_2, timestamp=timestamp_trade)
+    trades = lob.trade(order_2, trade_id_generator=trade_id_generator, timestamp=timestamp_trade)
     assert trades == []
     with pytest.raises(Exception):
         lob.insert(order_2)
@@ -90,6 +97,8 @@ def test_single_side_limit_order_book_no_trade_no_matching_order_side():
     ticker = Ticker('AAPL')
     timestamp = datetime(year=2024, month=7, day=19)
     timestamp_trade = timestamp
+
+    trade_id_generator = TradeIdGenerator()
 
     lob = SingleSideLimitOrderBook(
         ticker=ticker,
@@ -115,10 +124,12 @@ def test_single_side_limit_order_book_no_trade_no_matching_order_side():
     )
 
     with pytest.raises(Exception):
-        trades = lob.trade(order_1, timestamp=timestamp_trade)
+        trades = lob.trade(order_1, trade_id_generator=trade_id_generator, timestamp=timestamp_trade)
+        # TODO: check full exception
     lob.insert(order_1)
     with pytest.raises(Exception):
-        trades = lob.trade(order_2, timestamp=timestamp_trade)
+        trades = lob.trade(order_2, trade_id_generator=trade_id_generator, timestamp=timestamp_trade)
+        # TODO: check full exception
     lob.insert(order_2)
 
     assert lob.order_id_exists(OrderId(1))

@@ -1,4 +1,5 @@
 
+from lib_financial_exchange.financial_exchange_types import TradeId
 from lib_financial_exchange.financial_exchange_types import IntPrice
 from lib_financial_exchange.financial_exchange_types import Volume
 from lib_financial_exchange.financial_exchange_types import OrderSide
@@ -103,6 +104,7 @@ def test_limit_order_book_trade_insert_new():
 
     assert trades == [
         Trade(
+            trade_id=TradeId(1),
             order_id_maker=order_id_2,
             order_id_taker=order_id_3,
             timestamp=timestamp,
@@ -111,6 +113,7 @@ def test_limit_order_book_trade_insert_new():
             volume=Volume(20),
         ),
         Trade(
+            trade_id=TradeId(2),
             order_id_maker=order_id_1,
             order_id_taker=order_id_3,
             timestamp=timestamp,

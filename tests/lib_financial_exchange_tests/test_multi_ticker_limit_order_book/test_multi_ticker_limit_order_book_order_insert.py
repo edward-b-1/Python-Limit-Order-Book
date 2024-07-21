@@ -1,5 +1,6 @@
 
 from lib_financial_exchange.financial_exchange_types import OrderId
+from lib_financial_exchange.financial_exchange_types import TradeId
 from lib_financial_exchange.financial_exchange_types import IntPrice
 from lib_financial_exchange.financial_exchange_types import Volume
 from lib_financial_exchange.financial_exchange_types import OrderSide
@@ -7,6 +8,9 @@ from lib_financial_exchange.financial_exchange_types import Ticker
 from lib_financial_exchange.financial_exchange_types import Order
 from lib_financial_exchange.financial_exchange_types import Trade
 from lib_financial_exchange.financial_exchange_types import TopOfBook
+
+from lib_financial_exchange.trade_id_generator import TradeIdGenerator
+
 from lib_financial_exchange.data_structures.multi_ticker_limit_order_book import MultiTickerLimitOrderBook
 
 from datetime import datetime
@@ -33,6 +37,8 @@ def test_multi_limit_order_book_order_insert():
     timestamp = datetime(year=2024, month=7, day=19)
     timestamp_trade = timestamp
 
+    trade_id_generator = TradeIdGenerator()
+
     ####
 
     order_no_match = Order(
@@ -43,7 +49,7 @@ def test_multi_limit_order_book_order_insert():
         int_price=IntPrice(500),
         volume=Volume(1000),
     )
-    trades = lob.trade(order_no_match, timestamp=timestamp_trade)
+    trades = lob.trade(order_no_match, trade_id_generator=trade_id_generator, timestamp=timestamp_trade)
     lob.insert(order_no_match)
 
     ####
@@ -56,7 +62,7 @@ def test_multi_limit_order_book_order_insert():
         int_price=IntPrice(1000),
         volume=Volume(10),
     )
-    trades = lob.trade(order_1, timestamp=timestamp_trade)
+    trades = lob.trade(order_1, trade_id_generator=trade_id_generator, timestamp=timestamp_trade)
     lob.insert(order_1)
 
     ####
@@ -69,7 +75,7 @@ def test_multi_limit_order_book_order_insert():
         int_price=IntPrice(1020),
         volume=Volume(20),
     )
-    trades = lob.trade(order_2, timestamp=timestamp_trade)
+    trades = lob.trade(order_2, trade_id_generator=trade_id_generator, timestamp=timestamp_trade)
     lob.insert(order_2)
 
     ####
@@ -82,10 +88,11 @@ def test_multi_limit_order_book_order_insert():
         int_price=IntPrice(990),
         volume=Volume(100),
     )
-    trades = lob.trade(order_3, timestamp=timestamp_trade)
+    trades = lob.trade(order_3, trade_id_generator=trade_id_generator, timestamp=timestamp_trade)
     lob.insert(order_3)
 
     trade_1 = Trade(
+        trade_id=TradeId(1),
         order_id_maker=OrderId(2),
         order_id_taker=OrderId(3),
         timestamp=timestamp_trade,
@@ -95,6 +102,7 @@ def test_multi_limit_order_book_order_insert():
     )
 
     trade_2 = Trade(
+        trade_id=TradeId(2),
         order_id_maker=OrderId(1),
         order_id_taker=OrderId(3),
         timestamp=timestamp_trade,
