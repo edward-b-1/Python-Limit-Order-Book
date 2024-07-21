@@ -12,7 +12,7 @@ export default function TabPanelHelpContent() {
             alignItems: 'center',
           }}
         >
-          <Paper>
+          <Paper sx={{backgroundColor: 'background.whitesmoke'}}>
             <Typography variant="h2" sx={{ m: 3 }}>
               Help Page and User Instructions
             </Typography>
@@ -24,6 +24,7 @@ export default function TabPanelHelpContent() {
             <Link
               href="https://github.com/edward-b-1/Python-Limit-Order-Book"
               variant="body2"
+              underline="hover"
               sx={{ ml: 0.5 }}
             >
               associated github page
@@ -32,7 +33,7 @@ export default function TabPanelHelpContent() {
           </Typography>
         </Box>
         <Box sx={{ mt: 3 }}>
-          <Paper>
+          <Paper sx={{backgroundColor: 'background.whitesmoke'}}>
             <Box sx={{ my: 3, mx: 2, pb: 2, pt: 1 }}>
               <Typography variant="h3" sx={{ m: 1, mb: 2 }}>
                 What is a Limit Order Book?

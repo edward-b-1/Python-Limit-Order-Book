@@ -15,7 +15,7 @@ export default function TabPanelOrderControlContent() {
           alignItems: 'center',
         }}
       >
-        <Typography>Order Control and Top Of Book Display</Typography>
+        <Typography variant='h3'>Order Control and Top Of Book Display</Typography>
       </Box>
       <OrderControlPanel></OrderControlPanel>
       <OrderEntryTopOfBookDisplayComponent></OrderEntryTopOfBookDisplayComponent>

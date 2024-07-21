@@ -16,18 +16,24 @@ export default function TabPanelAboutContent() {
             width: 1,
           }}
         >
-          <Paper>
+          <Paper sx={{backgroundColor: 'background.whitesmoke'}}>
             <Typography variant="h2" sx={{ m: 3 }}>
               About
             </Typography>
           </Paper>
         </Box>
-        <Box>
-          <Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}>
+          <Typography variant='body2'>
             More detailed information about this project can be found on the
             <Link
               href="https://github.com/edward-b-1/Python-Limit-Order-Book"
               variant="body2"
+              underline="hover"
               sx={{ ml: 0.5 }}
             >
               associated github page
@@ -36,7 +42,7 @@ export default function TabPanelAboutContent() {
           </Typography>
         </Box>
         <Box sx={{ mt: 3 }}>
-          <Paper>
+          <Paper sx={{backgroundColor: 'background.whitesmoke'}}>
             <Box sx={{ my: 3, mx: 2, pb: 2, pt: 1 }}>
               <Typography variant="h3" sx={{ m: 1, mb: 2 }}>
                 Technology Stack
@@ -54,7 +60,7 @@ export default function TabPanelAboutContent() {
       </Box>
 
       <Box display="flex" justifyContent="center" alignItems="center" sx={{mb:2}}>
-        <Link href="/about" variant="body2">
+        <Link href="/about" variant="body2" underline="hover">
           about the developer
         </Link>
       </Box>
@@ -76,7 +82,7 @@ export default function TabPanelAboutContent() {
             <img src={reactLogo} className="logo react" alt="React logo"/>
           </Link>
         </Box>
-        <Typography variant='h3' sx={{mt:3}}>Made with Vite + React</Typography>
+        <Typography variant='h4' sx={{mt:3}}>Made with Vite + React</Typography>
       </Box>
     </>
   );

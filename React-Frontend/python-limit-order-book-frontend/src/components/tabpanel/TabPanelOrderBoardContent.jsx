@@ -14,7 +14,7 @@ export default function TabPanelOrderBoardContent() {
           alignItems: 'center',
         }}
       >
-        <Typography>Order Board</Typography>
+        <Typography variant='h3'>Order Board</Typography>
       </Box>
       <OrderBoard></OrderBoard>
     </>

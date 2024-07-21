@@ -13,7 +13,7 @@ export default function TabPanelTradeRecordsContent() {
           alignItems: 'center',
         }}
       >
-        <Typography>Trades</Typography>
+        <Typography variant='h3'>Trades</Typography>
       </Box>
       <TradesDisplayComponent></TradesDisplayComponent>
     </>

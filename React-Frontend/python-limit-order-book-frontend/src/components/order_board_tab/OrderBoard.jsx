@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 
 import { Box } from '@mui/material';
@@ -29,7 +28,10 @@ export default function OrderBoard() {
 
   return (
     <>
-      <OrderBoardTableContainer rows={rows} sx={{ px: 2, mt: 2 }}>
+      <OrderBoardTableContainer
+        rows={rows}
+        sx={{ px: 2, mt: 2, backgroundColor: 'background.whitesmoke' }}
+      >
         table
       </OrderBoardTableContainer>
     </>
