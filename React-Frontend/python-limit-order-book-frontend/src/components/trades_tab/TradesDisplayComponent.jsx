@@ -13,9 +13,7 @@ export default function TradesDisplayComponent() {
     let rows = [];
     const responseAllTrades = await axios.get(`/api/trades`, {});
     const allTrades = responseAllTrades.data['trades'];
-    console.log(allTrades);
     for (const trade of allTrades) {
-      console.log(`Trade: ${trade}`);
       rows.push(trade);
     }
     return rows;

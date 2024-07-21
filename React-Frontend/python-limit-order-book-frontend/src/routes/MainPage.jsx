@@ -14,7 +14,7 @@ import TabPanel from '@mui/lab/TabPanel';
 //import Tab from '@mui/material/Tab';
 
 import TabPanelOrderControlContent from '../components/tabpanel/TabPanelOrderControlContent';
-import TabPanelOrderBoardContent from '../components/tabpanel/TabPanelOrderBoardContent'
+import TabPanelOrderBoardContent from '../components/tabpanel/TabPanelOrderBoardContent';
 import TabPanelTradeRecordsContent from '../components/tabpanel/TabPanelTradeRecordsContent';
 import TabPanelOrderBookStatisticsContent from '../components/tabpanel/TabPanelOrderBookStatisticsContent';
 import TabPanelServerPerformanceStatisticsContent from '../components/tabpanel/TabPanelServerPerformanceStatisticsContent';
@@ -45,13 +45,21 @@ export default function MainPage() {
             justifyContent: 'center',
           }}
         >
-          <Paper elevation={4} sx={{ backgroundColor: 'background.default' }}>
-            <Typography
-              variant="h1"
-              sx={{ p: 2, mt: 4, color: 'primary.main' }}
+          <Paper elevation={4} sx={{ mt: 4, backgroundColor: 'textfieldBackgroundColor' }}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+              }}
             >
-              Limit Order Book Interface with React
-            </Typography>
+              <Typography
+                variant="h1"
+                sx={{ p: 2, mt: 4, color: 'primary.main' }}
+              >
+                Limit Order Book Interface with React
+              </Typography>
+            </Box>
           </Paper>
           <Box sx={{ py: 2 }}></Box>
 

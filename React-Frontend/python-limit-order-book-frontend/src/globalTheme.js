@@ -60,25 +60,12 @@ export const globalTheme = createTheme({
   },
 
   palette: {
-    // antiflashWhite: theme.palette.augmentColor({
-    //   color: {
-    //     main: '#EBEAEB',
-    //   },
-    //   name: 'antiflashWhite',
-    // }),
     primary: {
-      main: "#2541B2",
-      contrastText: "#EBEAEB",
-    },
-    secondary: {
-      main: "#222725",
-    },
-    error: {
-      main: "#D81E5B",
+      main: "#013e87",
     },
     text: {
       primary: "#222725",
-      secondary: "#0D6D6A",
+      secondary: "#002b5e",
       disabled: "#131615",
     },
     common: {
@@ -90,16 +77,53 @@ export const globalTheme = createTheme({
       default: "#EBEAEB",
       paper: "#ffffff",
     },
-    taupeGray: "#999799",
-    perisanBlue: "#2541B2",
-    eerieBlack: "#222725",
-    raspberry: "#D81E5B",
-    caribbeanCurrent: "#0D6D6A",
-    caribbeanCurrentDark: "#0B5B59",
-    verdigris: "#17BEBB",
-    night: "#131615",
-    silver: "#C2C1C2",
-    antiflashWhite: "#EBEAEB",
-    whiteSmoke: "#F5F5F5",
+    primaryDark: "#002b5e",
   }
+
+  // palette: {
+  //   // antiflashWhite: theme.palette.augmentColor({
+  //   //   color: {
+  //   //     main: '#EBEAEB',
+  //   //   },
+  //   //   name: 'antiflashWhite',
+  //   // }),
+  //   primary: {
+  //     main: "#2541B2",
+  //     contrastText: "#EBEAEB",
+  //   },
+  //   secondary: {
+  //     main: "#222725",
+  //   },
+  //   error: {
+  //     main: "#D81E5B",
+  //   },
+  //   text: {
+  //     primary: "#222725",
+  //     secondary: "#0D6D6A",
+  //     disabled: "#131615",
+  //   },
+  //   common: {
+  //     white: "#999799",
+  //     black: "#222725",
+  //   },
+  //   background: {
+  //     whitesmoke: "#F5F5F5",
+  //     default: "#EBEAEB",
+  //     paper: "#ffffff",
+  //   },
+  //   taupeGray: "#999799",
+  //   perisanBlue: "#2541B2",
+  //   eerieBlack: "#222725",
+  //   raspberry: "#D81E5B",
+  //   caribbeanCurrent: "#0D6D6A",
+  //   caribbeanCurrentDark: "#0B5B59",
+  //   verdigris: "#17BEBB",
+  //   night: "#131615",
+  //   silver: "#C2C1C2",
+  //   antiflashWhite: "#EBEAEB",
+  //   whiteSmoke: "#F5F5F5",
+  //   textfieldBackgroundColor: "#dddddd",
+  // }
 });
+
+

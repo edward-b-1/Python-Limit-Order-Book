@@ -19,7 +19,6 @@ export default function OrderEntryComponent() {
     const responseAllTickers = await axios.post(`/api/list_all_tickers`, {});
     const allTickers = responseAllTickers.data['tickers'];
     for (const ticker of allTickers) {
-      console.log(`${ticker}`);
       const responseTopOfBook = await axios.post(`/api/top_of_book`, {
         ticker: ticker,
       });
