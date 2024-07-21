@@ -14,6 +14,7 @@ export default function TradesTableContainer({rows, sx}) {
           <TableRow>
             <TableCell>Order Id</TableCell>
             <TableCell>Order Id</TableCell>
+            <TableCell>Trade Datetime</TableCell>
             <TableCell>Ticker</TableCell>
             <TableCell align="right">Price</TableCell>
             <TableCell align="right">Volume</TableCell>
@@ -25,11 +26,13 @@ export default function TradesTableContainer({rows, sx}) {
               //key={row.ticker, row.orderIdMaker, row.orderIdTaker} // TODO: this is not unique TODO create trade sequence number or trade id?
               sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
             >
-              <TableCell component="th" scope="row">
+              {/* <TableCell component="th" scope="row">
                 {row.ticker}
-              </TableCell>
-              <TableCell align="right">{row.orderIdMaker}</TableCell>
-              <TableCell align="right">{row.orderIdTaker}</TableCell>
+              </TableCell> */}
+              <TableCell>{row.order_id_maker}</TableCell>
+              <TableCell>{row.order_id_taker}</TableCell>
+              <TableCell>{row.timestamp}</TableCell>
+              <TableCell>{row.ticker}</TableCell>
               <TableCell align="right">{row.price}</TableCell>
               <TableCell align="right">{row.volume}</TableCell>
             </TableRow>
@@ -39,3 +42,4 @@ export default function TradesTableContainer({rows, sx}) {
     </TableContainer>
   );
 }
+
