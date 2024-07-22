@@ -12,7 +12,7 @@ from lib_financial_exchange.financial_exchange_types.message_types import OrderC
 
 from lib_financial_exchange.financial_exchange_types.message_types import TopOfBookMessage
 
-from lib_financial_exchange.limit_order_book import LimitOrderBook
+from lib_financial_exchange.limit_order_book.limit_order_book import LimitOrderBook
 
 
 from typeguard import typechecked
