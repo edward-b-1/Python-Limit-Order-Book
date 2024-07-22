@@ -2,7 +2,7 @@
 import pandas
 import databento
 
-from lib_financial_exchange.limit_order_book import LimitOrderBook
+from lib_financial_exchange.limit_order_book.limit_order_book import LimitOrderBook
 from lib_financial_exchange.financial_exchange_types import OrderInsertMessage
 from lib_financial_exchange.financial_exchange_types import Trade
 from lib_financial_exchange.financial_exchange_types import Ticker
