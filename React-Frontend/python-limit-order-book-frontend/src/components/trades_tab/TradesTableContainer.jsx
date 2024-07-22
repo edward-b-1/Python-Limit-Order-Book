@@ -14,6 +14,7 @@ export default function TradesTableContainer({rows, sx}) {
       <Table sx={{ minWidth: 650 }} aria-label="simple table">
         <TableHead>
           <TableRow>
+            <TableCell>Trade Id</TableCell>
             <TableCell>Order Id</TableCell>
             <TableCell>Order Id</TableCell>
             <TableCell>Trade Datetime</TableCell>
@@ -25,12 +26,13 @@ export default function TradesTableContainer({rows, sx}) {
         <TableBody>
           {rows.map((row) => (
             <TableRow
-              //key={row.ticker, row.orderIdMaker, row.orderIdTaker} // TODO: this is not unique TODO create trade sequence number or trade id?
+              key={row.trade_id}
               sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
             >
               {/* <TableCell component="th" scope="row">
                 {row.ticker}
               </TableCell> */}
+              <TableCell>{row.trade_id}</TableCell>
               <TableCell>{row.order_id_maker}</TableCell>
               <TableCell>{row.order_id_taker}</TableCell>
               <TableCell>{row.timestamp}</TableCell>
