@@ -14,14 +14,20 @@ export default function TabPanelHelpContent() {
             alignItems: 'center',
           }}
         >
-          <Paper sx={{backgroundColor: 'background.whitesmoke'}}>
+          <Paper sx={{backgroundColor: 'background.whitesmoke', px: 10 }}>
             <Typography variant="h2" sx={{ m: 3 }}>
               Help Page and User Instructions
             </Typography>
           </Paper>
         </Box>
-        <Box>
-          <Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          <Typography variant="body2">
             More detailed information about this project can be found on the
             <Link
               href="https://github.com/edward-b-1/Python-Limit-Order-Book"
