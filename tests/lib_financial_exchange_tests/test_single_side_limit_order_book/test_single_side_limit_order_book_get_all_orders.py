@@ -7,7 +7,7 @@ from lib_financial_exchange.financial_exchange_types import Volume
 from lib_financial_exchange.financial_exchange_types import OrderSide
 from lib_financial_exchange.financial_exchange_types import Ticker
 from lib_financial_exchange.financial_exchange_types import Order
-from lib_financial_exchange.data_structures.single_side_limit_order_book import SingleSideLimitOrderBook
+from lib_financial_exchange.limit_order_book.data_structures.single_side_limit_order_book import SingleSideLimitOrderBook
 
 from datetime import datetime
 

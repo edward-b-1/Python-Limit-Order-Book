@@ -6,7 +6,7 @@ from lib_financial_exchange.financial_exchange_types import Order
 from lib_financial_exchange.financial_exchange_types import IntPrice
 from lib_financial_exchange.financial_exchange_types import Volume
 
-from lib_financial_exchange.data_structures.single_side_limit_order_book import SingleSideLimitOrderBook
+from lib_financial_exchange.limit_order_book.data_structures.single_side_limit_order_book import SingleSideLimitOrderBook
 
 
 def test_single_side_limit_order_book_find_order_by_order_id_no_orders():

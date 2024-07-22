@@ -12,7 +12,7 @@ from lib_financial_exchange.trade_id_generator import TradeIdGenerator
 
 from lib_financial_exchange.exceptions import DuplicateOrderIdError
 
-from lib_financial_exchange.data_structures.double_limit_order_book import DoubleLimitOrderBook
+from lib_financial_exchange.limit_order_book.data_structures.double_limit_order_book import DoubleLimitOrderBook
 
 from functools import reduce
 from more_itertools import consume
