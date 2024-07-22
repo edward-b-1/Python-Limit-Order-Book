@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { Typography, Box } from '@mui/material';
 import OrderBoard from '../order_board_tab/OrderBoard';
 

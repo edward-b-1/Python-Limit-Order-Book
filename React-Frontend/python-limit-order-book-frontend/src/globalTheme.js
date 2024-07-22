@@ -1,6 +1,15 @@
 
 import { createTheme } from '@mui/material/styles';
 
+const marineBlue = "#013E87";
+const berkeleyBlue = "#002b5e";
+const whiteSmoke = "#f5f5f5";
+const whiteSmokeDark = "#ebebeb";
+const eerieBlack = "#222725";
+const orangePeel = "#ff9f1c";
+const textfieldBackgroundColor = "#dddddd";
+const taupeGray = "#999799";
+
 export const globalTheme = createTheme({
   typography: {
     body1: {
@@ -64,26 +73,26 @@ export const globalTheme = createTheme({
       main: "#013e87",
     },
     text: {
-      primary: "#222725",
+      primary: eerieBlack,
       secondary: "#002b5e",
       disabled: "#131615",
     },
     common: {
-      white: "#999799",
-      black: "#222725",
+      white: taupeGray,
+      black: eerieBlack,
     },
     background: {
-      whitesmoke: "#F5F5F5",
+      whitesmoke: whiteSmoke,
       default: "#EBEAEB",
       paper: "#ffffff",
     },
-    marineBlue: "#013E87",
-    berkeleyBlue: "#002b5e",
-    whiteSmoke: "#f5f5f5",
-    eerieBlack: "#222725",
-    orangePeel: "#ff9f1c",
-    textfieldBackgroundColor: "#dddddd",
-  }
+    marineBlue: marineBlue,
+    berkeleyBlue: berkeleyBlue,
+    whiteSmoke: whiteSmoke,
+    eerieBlack: eerieBlack,
+    orangePeel: orangePeel,
+    textfieldBackgroundColor: textfieldBackgroundColor,
+  },
 
   // palette: {
   //   // antiflashWhite: theme.palette.augmentColor({
@@ -129,6 +138,67 @@ export const globalTheme = createTheme({
   //   whiteSmoke: "#F5F5F5",
   //   textfieldBackgroundColor: "#dddddd",
   // }
+
+  components: {
+    MuiButtonBase: {
+      defaultProps: {
+        disableRipple: true,
+      }
+    },
+    MuiAccordion: {
+      styleOverrides: {
+        root: {
+          backgroundColor: whiteSmoke,
+          borderRadius: "8px",
+          '&:before': {
+            display: "none",
+          },
+          '&.Mui-expanded': {
+            // borderTop: "8px",
+            // borderBottom: "0px",
+            borderRadius: '8px',
+          }
+        },
+        // expanded: {
+        //   borderRadius: "8px",
+        // },
+      }
+    },
+    MuiAccordionSummary: {
+      styleOverrides: {
+        root: {
+          backgroundColor: whiteSmokeDark,
+          // borderRadius: "8px",
+          borderTopLeftRadius: "8px",
+          borderTopRightRadius: "8px",
+          borderBottomLeftRadius: "8px",
+          borderBottomRightRadius: "8px",
+          '&.Mui-expanded': {
+            backgroundColor: whiteSmoke,
+            //borderTop: "8px",
+            borderBottom: "none",
+            borderBottomLeftRadius: "0px",
+            borderBottomRightRadius: "0px",
+          }
+        },
+        // expanded: {
+        //   borderTop: "8px",
+        // },
+        content: {
+          fontWeight: 'bold',
+        }
+      }
+    },
+    MuiAccordionDetails: {
+      styleOverrides: {
+        root: {
+          // borderRadius: "8px",
+          borderBottomLeftRadius: "8px",
+          borderBottomRightRadius: "8px",
+        }
+      }
+    }
+  }
 });
 
 
