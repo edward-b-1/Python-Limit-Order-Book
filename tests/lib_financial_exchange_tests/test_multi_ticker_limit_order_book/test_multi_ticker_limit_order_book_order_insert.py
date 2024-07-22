@@ -11,7 +11,7 @@ from lib_financial_exchange.financial_exchange_types import TopOfBook
 
 from lib_financial_exchange.trade_id_generator import TradeIdGenerator
 
-from lib_financial_exchange.data_structures.multi_ticker_limit_order_book import MultiTickerLimitOrderBook
+from lib_financial_exchange.limit_order_book.data_structures.multi_ticker_limit_order_book import MultiTickerLimitOrderBook
 
 from datetime import datetime
 

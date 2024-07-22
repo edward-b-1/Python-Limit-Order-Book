@@ -1,12 +1,14 @@
 
-from flask import Flask, request
-from lib_financial_exchange.limit_order_book import LimitOrderBook
 from lib_financial_exchange.financial_exchange_types import Order
 from lib_financial_exchange.financial_exchange_types import OrderId
 from lib_financial_exchange.financial_exchange_types import Ticker
 from lib_financial_exchange.financial_exchange_types import OrderSide
 from lib_financial_exchange.financial_exchange_types import IntPrice
 from lib_financial_exchange.financial_exchange_types import Volume
+
+from lib_financial_exchange.limit_order_book.limit_order_book import LimitOrderBook
+
+from flask import Flask, request
 
 
 print(f'__name__={__name__}')

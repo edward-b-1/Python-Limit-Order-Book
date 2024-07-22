@@ -12,7 +12,7 @@ from lib_financial_exchange.financial_exchange_types import OrderSide
 from lib_financial_exchange.financial_exchange_types import Ticker
 from lib_financial_exchange.financial_exchange_types import Order
 
-from lib_financial_exchange.data_structures.double_limit_order_book import DoubleLimitOrderBook
+from lib_financial_exchange.limit_order_book.data_structures.double_limit_order_book import DoubleLimitOrderBook
 
 from datetime import datetime
 
