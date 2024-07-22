@@ -151,7 +151,7 @@ export default function OrderControlPanel() {
         <Grid item xs={2}>
           <TextField
             id="text-entry-order-add-order-side"
-            label="ORDER SIDE"
+            label="ORDER SIDE [BUY|SELL]"
             variant="filled"
             onChange={onChangeOrderAddOrderSide}
           />
