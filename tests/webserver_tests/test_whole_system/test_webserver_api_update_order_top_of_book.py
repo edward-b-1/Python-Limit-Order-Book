@@ -7,11 +7,11 @@ from limit_order_book_webserver.fastapi_webserver import app
 from lib_financial_exchange.financial_exchange_types import OrderId
 from lib_financial_exchange.exceptions import DuplicateOrderIdError
 
-from tests.webserver_tests.test_webserver.helper import helper_generate_order_without_order_id
-from tests.webserver_tests.test_webserver.helper import helper_generate_order_id_price_volume
-from tests.webserver_tests.test_webserver.helper import helper_generate_order_id
-from tests.webserver_tests.test_webserver.helper import helper_generate_ticker
-from tests.webserver_tests.test_webserver.helper import helper_generate_top_of_book
+from tests.webserver_tests.test_whole_system.helper import helper_generate_order_without_order_id
+from tests.webserver_tests.test_whole_system.helper import helper_generate_order_id_price_volume
+from tests.webserver_tests.test_whole_system.helper import helper_generate_order_id
+from tests.webserver_tests.test_whole_system.helper import helper_generate_ticker
+from tests.webserver_tests.test_whole_system.helper import helper_generate_top_of_book
 
 client = TestClient(app)
 
