@@ -32,6 +32,13 @@ from lib_datetime import now
 # NOTE: This environment variable should NOT be set by Unit Test Code.
 # It is here so that systems can switch the Webserver mode into a test mode
 # so that the webserver can be deployed to UAT systems for testing.
+#
+# NOTE: 2024-07-25: I am now using the Fake Webserver in Unit Tests, but it is
+# not being loaded using this environment variable, but by dependency overrides.
+#
+# It is pointless to have FastAPI tests which test the internal logic, so the
+# Fake Webserver MUST still be used for testing.
+#
 webserver_test_mode = False
 if os.environ.get('ENABLE_WEBSERVER_TEST_MODE'):
     webserver_test_mode = True

@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 
 from limit_order_book_webserver.fastapi_webserver import app
 
-from tests.webserver_tests.test_webserver.helper import helper_generate_order_without_order_id
+from tests.webserver_tests.test_whole_system.helper import helper_generate_order_without_order_id
 
 client = TestClient(app)
 
