@@ -41,6 +41,9 @@ class FakeWebserverImpl():
     def __init__(self) -> None:
         pass
 
+    def close(self) -> None:
+        pass
+
     # NOTE: different return structure
     def send_order(self, fastapi_order_insert_message: FastAPI_OrderInsertMessage):
         print(f'{fastapi_order_insert_message}')
