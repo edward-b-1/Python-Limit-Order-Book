@@ -85,6 +85,8 @@ class LimitOrderBookMessageAdapter():
         ticker = top_of_book_message.to_ticker()
         return self._limit_order_book.top_of_book(ticker)
 
+    # TODO: these functions should take an empty type so they can be used by
+    # `handleMessage`
     def list_all_tickers(self) -> list[Ticker]:
         return self._limit_order_book.list_all_tickers()
 

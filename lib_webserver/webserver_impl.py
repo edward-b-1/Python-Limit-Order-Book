@@ -20,7 +20,7 @@ from lib_webserver.webserver_types import FastAPI_ReturnStatusWithOrderBoard
 
 from lib_financial_exchange.financial_exchange_types import Ticker
 
-from lib_financial_exchange import LimitOrderBookMessageAdapter
+from lib_webserver.limit_order_book_event_log_adapter import LimitOrderBookEventLogAdapter
 from lib_financial_exchange import TradeRecordBook
 
 from lib_webserver.convert_fastapi_message_to_internal_message import convert_fastapi_message_to_internal_message
@@ -42,11 +42,21 @@ from typeguard import typechecked
 class WebserverImpl():
 
     def __init__(self) -> None:
-        self._limit_order_book = LimitOrderBookMessageAdapter()
+        trades = []
+        self._limit_order_book = LimitOrderBookEventLogAdapter(
+            returned_trade_list=trades,
+            event_log_file_path_override=None,
+        )
+
         self._trade_record_book = TradeRecordBook()
         # TODO: add an OrderBoard data structure which follows the lifecycle of each order by order id
         # will need a new, slightly different order, which records the original order volume, how much
         # has been cancelled, how much has been filled, how much remains "open out" (in the market)
+        self._trade_record_book.add_trades(trades)
+
+
+    def close(self) -> None:
+        self._limit_order_book.close()
 
 
     def send_order(
@@ -137,7 +147,6 @@ class WebserverImpl():
             top_of_book=fastapi_top_of_book,
         )
         return r
-
 
 
     def list_all_tickers(

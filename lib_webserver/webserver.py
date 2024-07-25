@@ -30,6 +30,9 @@ class Webserver():
         else:
             self._webserver = WebserverImpl()
 
+    def close(self) -> None:
+        self._webserver.close()
+
     def send_order(self, fastapi_order_insert_message: FastAPI_OrderInsertMessage):
         return self._webserver.send_order(fastapi_order_insert_message)
 

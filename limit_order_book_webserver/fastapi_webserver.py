@@ -4,10 +4,11 @@ import threading
 
 from fastapi import FastAPI
 from fastapi import HTTPException
-from fastapi.responses import JSONResponse
 from fastapi import Request
 from fastapi import Response
 from fastapi import status
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -28,10 +29,12 @@ from lib_webserver.webserver import Webserver
 from lib_datetime import now
 
 
+# NOTE: This environment variable should NOT be set by Unit Test Code.
+# It is here so that systems can switch the Webserver mode into a test mode
+# so that the webserver can be deployed to UAT systems for testing.
 webserver_test_mode = False
 if os.environ.get('ENABLE_WEBSERVER_TEST_MODE'):
     webserver_test_mode = True
-webserver = Webserver(test_mode=webserver_test_mode)
 
 
 origins_for_real_mode = [
@@ -58,7 +61,43 @@ if webserver_test_mode:
 
 print(f'__name__={__name__}')
 
+log.info(f'__name__={__name__}')
+log.info(f'FastAPI webserver process start')
 
+# TODO using this instead of lifespan concept
+import signal
+
+def sigint_signal_handler(signal, frame):
+    # ! passing None for request here !
+    webserver = get_webserver_instance(None)
+    webserver.close()
+    raise
+
+signal.signal(signal.SIGINT, sigint_signal_handler)
+signal.signal(signal.SIGTERM, sigint_signal_handler)
+
+# TODO: probably not required?
+# class CommonQueryParams():
+#     def __init__(self) -> None:
+#         self._webserver = Webserver(test_mode=webserver_test_mode)
+
+
+# TODO: probably not required?
+# from typing import TypedDict
+# class State(TypedDict):
+#     webserver: Webserver
+
+# from collections.abc import AsyncIterator
+# from contextlib import asynccontextmanager
+# @asynccontextmanager
+# async def lifespan(app: FastAPI) -> AsyncIterator[State]:
+#     print(f'in asynccontextmanager')
+#     webserver = Webserver(test_mode=webserver_test_mode)
+#     yield {'webserver': webserver}
+#     webserver.close()
+
+
+#app = FastAPI(lifespan=lifespan)
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -68,10 +107,36 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
+# These do not seem to work if a lifespan event is defined
+# @app.on_event('startup')
+# def startup_event():
+#     print(f'startup_event')
+#     raise RuntimeWarning(f'startup')
+
+# @app.on_event('shutdown')
+# def shutdown_event():
+#     print(f'shutdown_event')
+#     raise RuntimeWarning(f'shutdown')
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exception: RequestValidationError):
+    exception_str = f'{exception}'.replace('\n', ' ').replace('   ', ' ')
+    log.error(request, exception_str)
+    content = {
+        'status_code': 10422,
+        'message': exception_str,
+        'data': None,
+    }
+    return JSONResponse(
+        content=content,
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+    )
+
 
 # TODO: remove this? or change to `/api` - it conflicts with '/' on frontend
 @app.get('/')
-def root():
+async def root():
     log.info(f'GET /')
     return {
         'website_address': 'https://www.python-limit-order-book.co.uk',
@@ -85,11 +150,18 @@ def debug_print_pid():
     print(f'threading.native_id={threading.get_native_id()}')
 
 
+
+from limit_order_book_webserver.get_webserver_instance import get_webserver_instance
+
+
+from fastapi import Depends
+
 @app.post('/api/send_order')
-def send_order(
+async def send_order(
     fastapi_order_insert_message: FastAPI_OrderInsertMessage,
     request: Request,
     response: Response,
+    webserver: Webserver = Depends(get_webserver_instance),
 ):
     debug_print_pid()
     timestamp = now()
@@ -98,6 +170,7 @@ def send_order(
     log.info(f'POST /api/send_order ({ip}, {timestamp})')
 
     try:
+        # webserver: Webserver = request.state.webserver
         return webserver.send_order(fastapi_order_insert_message)
 
     except Exception as error:
@@ -149,10 +222,11 @@ def send_order(
 
 
 @app.post('/api/update_order')
-def update_order(
+async def update_order(
     fastapi_order_update_message: FastAPI_OrderUpdateMessage,
     request: Request,
     response: Response,
+    webserver: Webserver = Depends(get_webserver_instance),
 ):
     debug_print_pid()
     timestamp = now()
@@ -161,6 +235,7 @@ def update_order(
     log.info(f'POST /api/update_order ({ip}, {timestamp})')
 
     try:
+        # webserver: Webserver = request.state.webserver
         return webserver.update_order(fastapi_order_update_message)
 
     except Exception as error:
@@ -172,10 +247,11 @@ def update_order(
 
 
 @app.post('/api/cancel_order_partial')
-def cancel_order_partial(
+async def cancel_order_partial(
     fastapi_order_cancel_partial_message: FastAPI_OrderCancelPartialMessage,
     request: Request,
     response: Response,
+    webserver: Webserver = Depends(get_webserver_instance),
 ):
     debug_print_pid()
     timestamp = now()
@@ -184,6 +260,7 @@ def cancel_order_partial(
     log.info(f'POST /api/cancel_order_partial ({ip}, {timestamp})')
 
     try:
+        # webserver: Webserver = request.state.webserver
         return webserver.cancel_order_partial(fastapi_order_cancel_partial_message)
 
     except Exception as error:
@@ -195,10 +272,11 @@ def cancel_order_partial(
 
 
 @app.post('/api/cancel_order')
-def cancel_order(
+async def cancel_order(
     fastapi_order_cancel_message: FastAPI_OrderCancelMessage,
     request: Request,
     response: Response,
+    webserver: Webserver = Depends(get_webserver_instance),
 ):
     debug_print_pid()
     timestamp = now()
@@ -207,6 +285,7 @@ def cancel_order(
     log.info(f'POST /api/cancel_order ({ip}, {timestamp})')
 
     try:
+        # webserver: Webserver = request.state.webserver
         return webserver.cancel_order(fastapi_order_cancel_message)
 
     except Exception as error:
@@ -218,10 +297,11 @@ def cancel_order(
 
 
 @app.post('/api/top_of_book')
-def top_of_book(
+async def top_of_book(
     fastapi_top_of_book_message: FastAPI_TopOfBookMessage,
     request: Request,
     response: Response,
+    webserver: Webserver = Depends(get_webserver_instance),
 ):
     debug_print_pid()
     timestamp = now()
@@ -230,6 +310,7 @@ def top_of_book(
     log.info(f'POST /api/top_of_book ({ip}, {timestamp})')
 
     try:
+        # webserver: Webserver = request.state.webserver
         return webserver.top_of_book(fastapi_top_of_book_message)
 
     except Exception as error:
@@ -241,9 +322,10 @@ def top_of_book(
 
 
 @app.post('/api/list_all_tickers')
-def list_all_tickers(
+async def list_all_tickers(
     request: Request,
     response: Response,
+    webserver: Webserver = Depends(get_webserver_instance),
 ):
     debug_print_pid()
     timestamp = now()
@@ -252,6 +334,7 @@ def list_all_tickers(
     log.info(f'POST /api/list_all_tickers ({ip}, {timestamp})')
 
     try:
+        # webserver: Webserver = request.state.webserver
         return webserver.list_all_tickers()
 
     except Exception as error:
@@ -263,9 +346,10 @@ def list_all_tickers(
 
 
 @app.get('/api/order_board')
-def order_board(
+async def order_board(
     request: Request,
     response: Response,
+    webserver: Webserver = Depends(get_webserver_instance),
 ):
     debug_print_pid()
     timestamp = now()
@@ -274,6 +358,7 @@ def order_board(
     log.info(f'GET /api/order_board ({ip}, {timestamp})')
 
     try:
+        # webserver: Webserver = request.state.webserver
         return webserver.order_board()
 
     except Exception as error:
@@ -285,9 +370,10 @@ def order_board(
 
 
 @app.get('/api/trades')
-def trades(
+async def trades(
     request: Request,
     response: Response,
+    webserver: Webserver = Depends(get_webserver_instance),
 ):
     debug_print_pid()
     timestamp = now()
@@ -296,6 +382,7 @@ def trades(
     log.info(f'GET /api/trades ({ip}, {timestamp})')
 
     try:
+        # webserver: Webserver = request.state.webserver
         return webserver.trades()
 
     except Exception as error:
@@ -307,9 +394,10 @@ def trades(
 
 
 @app.get('/api/debug/ping')
-def ping(
+async def ping(
     request: Request,
     response: Response,
+    webserver: Webserver = Depends(get_webserver_instance),
 ):
     debug_print_pid()
     timestamp = now()
@@ -318,6 +406,7 @@ def ping(
     log.info(f'GET /api/debug/ping ({ip}, {timestamp})')
 
     try:
+        # webserver: Webserver = request.state.webserver
         return webserver.ping()
 
     except Exception as error:
@@ -329,10 +418,11 @@ def ping(
 
 
 @app.post('/api/debug/debug_log_top_of_book')
-def debug_log_top_of_book(
+async def debug_log_top_of_book(
     fastapi_ticker: FastAPI_Ticker,
     request: Request,
     response: Response,
+    webserver: Webserver = Depends(get_webserver_instance),
 ):
     debug_print_pid()
     timestamp = now()
@@ -341,6 +431,7 @@ def debug_log_top_of_book(
     log.info(f'POST /api/debug/debug_log_top_of_book ({ip}, {timestamp})')
 
     try:
+        # webserver: Webserver = request.state.webserver
         return webserver.debug_log_top_of_book(fastapi_ticker)
 
     except Exception as error:
@@ -352,9 +443,10 @@ def debug_log_top_of_book(
 
 
 @app.post('/api/debug/debug_log_current_order_id')
-def debug_log_current_order_id(
+async def debug_log_current_order_id(
     request: Request,
     response: Response,
+    webserver: Webserver = Depends(get_webserver_instance),
 ):
     debug_print_pid()
     timestamp = now()
@@ -363,6 +455,7 @@ def debug_log_current_order_id(
     log.info(f'POST /api/debug/debug_log_current_order_id ({ip}, {timestamp})')
 
     try:
+        # webserver: Webserver = request.state.webserver
         return webserver.debug_log_current_order_id()
 
     except Exception as error:
@@ -374,9 +467,10 @@ def debug_log_current_order_id(
 
 
 @app.post('/api/debug/debug_log_all_tickers')
-def debug_log_all_tickers(
+async def debug_log_all_tickers(
     request: Request,
     response: Response,
+    webserver: Webserver = Depends(get_webserver_instance),
 ):
     debug_print_pid()
     timestamp = now()
@@ -385,6 +479,7 @@ def debug_log_all_tickers(
     log.info(f'POST /api/debug/debug_log_all_tickers ({ip}, {timestamp})')
 
     try:
+        # webserver: Webserver = request.state.webserver
         return webserver.debug_log_all_tickers()
 
     except Exception as error:
