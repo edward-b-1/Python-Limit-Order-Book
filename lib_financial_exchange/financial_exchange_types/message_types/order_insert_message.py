@@ -69,7 +69,7 @@ class OrderInsertMessage(AbstractMessage):
         components = serialized_message.split(' ')
 
         assert len(components) == 6, f'number of components is {len(components)}, expected 6'
-        created_datetime = string_to_datetime(components[1]) # TODO
+        created_datetime = string_to_datetime(components[1])
         ticker_str = components[2]
         order_side_str = components[3]
         int_price_str = components[4]

@@ -15,5 +15,3 @@ from lib_financial_exchange.financial_exchange_types.message_types import OrderC
 from lib_financial_exchange.financial_exchange_types.message_types import OrderCancelMessage
 from lib_financial_exchange.financial_exchange_types.message_types import TopOfBookMessage
 
-from lib_financial_exchange.financial_exchange_types.message_types.message_factory import MessageFactory
-

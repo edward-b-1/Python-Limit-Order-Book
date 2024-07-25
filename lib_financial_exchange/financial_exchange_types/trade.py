@@ -37,6 +37,7 @@ class Trade():
         if self._trade_id != value._trade_id: return False
         if self._order_id_maker != value._order_id_maker: return False
         if self._order_id_taker != value._order_id_taker: return False
+        if self._timestamp != value._timestamp: return False
         if self._ticker != value._ticker: return False
         if self._int_price != value._int_price: return False
         if self._volume != value._volume: return False
