@@ -13,7 +13,7 @@ webserver_test_mode = False
 if os.environ.get('ENABLE_WEBSERVER_TEST_MODE'):
     webserver_test_mode = True
 
-webserver = Webserver(test_mode=webserver_test_mode)
+webserver = Webserver(use_fake_webserver=webserver_test_mode)
 
 def get_webserver_instance(request: Request) -> Webserver:
     #return request.state.webserver
