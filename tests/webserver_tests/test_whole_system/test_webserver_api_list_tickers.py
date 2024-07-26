@@ -8,17 +8,18 @@ from lib_financial_exchange.financial_exchange_types import OrderId
 from lib_financial_exchange.exceptions import DuplicateOrderIdError
 
 from lib_webserver.webserver import Webserver
+from lib_webserver.webserver import WebserverImplementationMode
 
-from tests.webserver_tests.test_whole_system.helper import helper_generate_order_without_order_id
-from tests.webserver_tests.test_whole_system.helper import helper_generate_order_id
 from tests.webserver_tests.test_whole_system.helper import helper_generate_ticker
-from tests.webserver_tests.test_whole_system.helper import helper_generate_top_of_book
 
 from limit_order_book_webserver.get_webserver_instance import get_webserver_instance
 
 # client = TestClient(app)
 
-webserver_without_event_log = Webserver(use_fake_webserver=False, event_log_disabled=True)
+webserver_without_event_log = Webserver(
+    webserver_implementation_mode=WebserverImplementationMode.DEFAULT,
+    event_log_disabled=True,
+)
 
 def override_get_webserver_instance():
     return webserver_without_event_log

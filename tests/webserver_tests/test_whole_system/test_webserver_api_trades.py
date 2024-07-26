@@ -7,6 +7,8 @@ from tests.webserver_tests.test_whole_system.helper import helper_generate_order
 from tests.webserver_tests.test_whole_system.helper import helper_generate_order_id
 
 from lib_webserver.webserver import Webserver
+from lib_webserver.webserver import WebserverImplementationMode
+
 from lib_datetime import DatetimeStrategy
 from lib_datetime import datetime_to_order_board_display_string
 
@@ -24,22 +26,22 @@ current_datetime = datetime(
     hour=9, minute=30, second=0,
     tzinfo=timezone.utc,
 )
-datetime_strategy = DatetimeStrategy(test_mode=True, current_datetime=current_datetime)
+# datetime_strategy = DatetimeStrategy(test_mode=True, current_datetime=current_datetime)
 
 webserver = Webserver(
-    use_fake_webserver=False,
-    use_fake_datetime=True,
+    webserver_implementation_mode=WebserverImplementationMode.WITH_FAKE_DATETIME_PROXY,
     event_log_disabled=True,
 )
+webserver._webserver.set_datetime(current_datetime)
 
 def override_get_webserver_instance():
     return webserver
 
 app.dependency_overrides[get_webserver_instance] = override_get_webserver_instance
 
-def override_get_datetime_strategy():
-    print(f'get_datetime_strategy(): (override_get_datetime_strategy()) returning the FAKE datetime strategy')
-    return datetime_strategy
+# def override_get_datetime_strategy():
+#     print(f'get_datetime_strategy(): (override_get_datetime_strategy()) returning the FAKE datetime strategy')
+#     return datetime_strategy
 
 
 def test_order_trade():
@@ -65,7 +67,7 @@ def test_order_trade():
             {
                 'trade_id': 1,
                 # TODO: wrong datetime format?
-                'timestamp': datetime_to_order_board_display_string(datetime_strategy.now()),
+                'timestamp': datetime_to_order_board_display_string(current_datetime),
                 'ticker': 'PYTH',
                 'order_id_maker': 1,
                 'order_id_taker': 2,
@@ -84,7 +86,7 @@ def test_order_trade():
         'order': {
             'order_id': 1,
             # TODO: wrong datetime format?
-            'timestamp': datetime_to_order_board_display_string(datetime_strategy.now()),
+            'timestamp': datetime_to_order_board_display_string(current_datetime),
             'ticker': 'PYTH',
             'order_side': 'BUY',
             'price': 1000,
@@ -100,7 +102,7 @@ def test_order_trade():
         'trades': [
             {
                 'trade_id': 1,
-                'timestamp': datetime_to_order_board_display_string(datetime_strategy.now()),
+                'timestamp': datetime_to_order_board_display_string(current_datetime),
                 'ticker': 'PYTH',
                 'order_id_maker': 1,
                 'order_id_taker': 2,
