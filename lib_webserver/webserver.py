@@ -15,10 +15,21 @@ from lib_webserver.webserver_types import FastAPI_ReturnStatusWithTopOfBook
 from lib_webserver.webserver_types import FastAPI_ReturnStatusWithTickerList
 from lib_webserver.webserver_types import FastAPI_ReturnStatusWithOrderBoard
 
-from lib_webserver.webserver_impl import WebserverImpl
+from lib_webserver.webserver_impl import WebserverImplReal
+from lib_webserver.webserver_impl import WebserverImplRealWithFakeDatetimeProxy
 from lib_webserver.webserver_fake_impl import FakeWebserverImpl
 
 from typeguard import typechecked
+
+from enum import StrEnum
+
+class WebserverImplementationMode(StrEnum):
+    # The default (real) webserver implementation
+    DEFAULT = 'DEFAULT'
+    # The default (real) webserver implementation, but with a fake (test) datetime proxy
+    WITH_FAKE_DATETIME_PROXY = 'WITH_FAKE_DATETIME_PROXY'
+    # The fake (test) webserver implementation, the datetime proxy is also fake
+    TEST = 'TEST'
 
 
 @typechecked
@@ -26,15 +37,17 @@ class Webserver():
 
     def __init__(
         self,
-        use_fake_webserver=False,
-        use_fake_datetime=False,
-        event_log_disabled=False,
+        webserver_implementation_mode: WebserverImplementationMode = WebserverImplementationMode.DEFAULT,
+        event_log_disabled: bool = False,
     ) -> None:
-        if use_fake_webserver == True:
+        if webserver_implementation_mode == WebserverImplementationMode.TEST:
             self._webserver = FakeWebserverImpl()
-        else:
-            self._webserver = WebserverImpl(
-                use_fake_datetime_strategy=use_fake_datetime,
+        elif webserver_implementation_mode == WebserverImplementationMode.WITH_FAKE_DATETIME_PROXY:
+            self._webserver = WebserverImplRealWithFakeDatetimeProxy(
+                event_log_disabled=event_log_disabled,
+            )
+        else: # TODO: else here or elif with a raise
+            self._webserver = WebserverImplReal(
                 event_log_disabled=event_log_disabled,
             )
 
