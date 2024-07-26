@@ -18,10 +18,10 @@ from limit_order_book_webserver.get_webserver_instance import get_webserver_inst
 
 # client = TestClient(app)
 
-webserver_fake = Webserver(test_mode=True)
+webserver_without_event_log = Webserver(use_fake_webserver=False, event_log_disabled=True)
 
 def override_get_webserver_instance():
-    return webserver_fake
+    return webserver_without_event_log
 
 app.dependency_overrides[get_webserver_instance] = override_get_webserver_instance
 

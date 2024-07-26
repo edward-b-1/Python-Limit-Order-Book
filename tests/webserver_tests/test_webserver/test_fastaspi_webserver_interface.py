@@ -18,7 +18,7 @@ from limit_order_book_webserver.get_webserver_instance import get_webserver_inst
 
 # client = TestClient(app)
 
-webserver_fake = Webserver(test_mode=True)
+webserver_fake = Webserver(use_fake_webserver=True)
 
 def override_get_webserver_instance():
     return webserver_fake

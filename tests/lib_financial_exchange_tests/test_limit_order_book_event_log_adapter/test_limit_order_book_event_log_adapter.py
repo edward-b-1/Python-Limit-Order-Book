@@ -22,7 +22,8 @@ def run_phase_1():
     # Order Insert Message
 
     limit_order_book = LimitOrderBookEventLogAdapter(
-        event_log_file_path_override=f'test_limit_order_book_event_log.txt'
+        event_log_file_path_override=f'test_limit_order_book_event_log.txt',
+        event_log_disabled=False,
     )
 
     timestamp = datetime(
@@ -58,7 +59,8 @@ def run_phase_2():
     # Order Insert Message, and check the OrderId is 2, not 1
 
     limit_order_book = LimitOrderBookEventLogAdapter(
-        event_log_file_path_override=f'test_limit_order_book_event_log.txt'
+        event_log_file_path_override=f'test_limit_order_book_event_log.txt',
+        event_log_disabled=False,
     )
 
     timestamp = datetime(
@@ -95,7 +97,8 @@ def run_phase_3():
     # This order will trade all of order id 1 and part of order id 2
 
     limit_order_book = LimitOrderBookEventLogAdapter(
-        event_log_file_path_override=f'test_limit_order_book_event_log.txt'
+        event_log_file_path_override=f'test_limit_order_book_event_log.txt',
+        event_log_disabled=False,
     )
 
     timestamp = datetime(
