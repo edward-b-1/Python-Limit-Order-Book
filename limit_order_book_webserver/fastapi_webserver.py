@@ -12,6 +12,9 @@ from fastapi.responses import JSONResponse
 
 from fastapi.middleware.cors import CORSMiddleware
 
+from contextlib import asynccontextmanager
+from httpx import AsyncClient
+
 from limit_order_book_webserver.fastapi_webserver_logging import log
 
 from lib_webserver.webserver_types import FastAPI_OrderInsertMessage
@@ -26,7 +29,7 @@ from lib_webserver.webserver_types import FastAPI_ReturnStatus
 
 from lib_webserver.webserver import Webserver
 
-from lib_datetime import now
+from lib_datetime import DatetimeStrategy
 
 
 # NOTE: This environment variable should NOT be set by Unit Test Code.
@@ -72,16 +75,28 @@ log.info(f'__name__={__name__}')
 log.info(f'FastAPI webserver process start')
 
 # TODO using this instead of lifespan concept
-import signal
+#import signal
 
-def sigint_signal_handler(signal, frame):
-    # ! passing None for request here !
-    webserver = get_webserver_instance(None)
-    webserver.close()
-    raise
+# TODO: might want to add this back to handle the CTRL+C exception?
+# but then how to shutdown webserver?
+# def sigint_signal_handler(signal, frame):
+#     # ! passing None for request here !
+#     webserver = get_webserver_instance(None)
+#     webserver.close()
+#     raise
 
-signal.signal(signal.SIGINT, sigint_signal_handler)
-signal.signal(signal.SIGTERM, sigint_signal_handler)
+# signal.signal(signal.SIGINT, sigint_signal_handler)
+# signal.signal(signal.SIGTERM, sigint_signal_handler)
+
+# This is the new lifespan concept implementation, taken from example
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with AsyncClient(app=app) as client:
+        webserver = Webserver(use_fake_webserver=False, event_log_disabled=False)
+        yield {
+            'webserver': webserver,
+        }
+        webserver.close()
 
 # TODO: probably not required?
 # class CommonQueryParams():
@@ -159,6 +174,7 @@ def debug_print_pid():
 
 
 from limit_order_book_webserver.get_webserver_instance import get_webserver_instance
+from lib_datetime.get_datetime_strategy import get_datetime_strategy
 
 
 from fastapi import Depends
@@ -169,12 +185,16 @@ async def send_order(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
+    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = now()
+    timestamp = datetime_strategy.now()
     ip = request.client.host
 
     log.info(f'POST /api/send_order ({ip}, {timestamp})')
+
+    # print(f'which webserver implementation is being used?')
+    # print(f'{type(webserver._webserver)}')
 
     try:
         # webserver: Webserver = request.state.webserver
@@ -234,9 +254,10 @@ async def update_order(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
+    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = now()
+    timestamp = datetime_strategy.now()
     ip = request.client.host
 
     log.info(f'POST /api/update_order ({ip}, {timestamp})')
@@ -259,9 +280,10 @@ async def cancel_order_partial(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
+    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = now()
+    timestamp = datetime_strategy.now()
     ip = request.client.host
 
     log.info(f'POST /api/cancel_order_partial ({ip}, {timestamp})')
@@ -284,9 +306,10 @@ async def cancel_order(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
+    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = now()
+    timestamp = datetime_strategy.now()
     ip = request.client.host
 
     log.info(f'POST /api/cancel_order ({ip}, {timestamp})')
@@ -309,9 +332,10 @@ async def top_of_book(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
+    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = now()
+    timestamp = datetime_strategy.now()
     ip = request.client.host
 
     log.info(f'POST /api/top_of_book ({ip}, {timestamp})')
@@ -333,9 +357,10 @@ async def list_all_tickers(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
+    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = now()
+    timestamp = datetime_strategy.now()
     ip = request.client.host
 
     log.info(f'POST /api/list_all_tickers ({ip}, {timestamp})')
@@ -357,9 +382,10 @@ async def order_board(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
+    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = now()
+    timestamp = datetime_strategy.now()
     ip = request.client.host
 
     log.info(f'GET /api/order_board ({ip}, {timestamp})')
@@ -381,9 +407,10 @@ async def trades(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
+    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = now()
+    timestamp = datetime_strategy.now()
     ip = request.client.host
 
     log.info(f'GET /api/trades ({ip}, {timestamp})')
@@ -405,9 +432,10 @@ async def ping(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
+    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = now()
+    timestamp = datetime_strategy.now()
     ip = request.client.host
 
     log.info(f'GET /api/debug/ping ({ip}, {timestamp})')
@@ -430,9 +458,10 @@ async def debug_log_top_of_book(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
+    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = now()
+    timestamp = datetime_strategy.now()
     ip = request.client.host
 
     log.info(f'POST /api/debug/debug_log_top_of_book ({ip}, {timestamp})')
@@ -454,9 +483,10 @@ async def debug_log_current_order_id(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
+    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = now()
+    timestamp = datetime_strategy.now()
     ip = request.client.host
 
     log.info(f'POST /api/debug/debug_log_current_order_id ({ip}, {timestamp})')
@@ -478,9 +508,10 @@ async def debug_log_all_tickers(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
+    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = now()
+    timestamp = datetime_strategy.now()
     ip = request.client.host
 
     log.info(f'POST /api/debug/debug_log_all_tickers ({ip}, {timestamp})')

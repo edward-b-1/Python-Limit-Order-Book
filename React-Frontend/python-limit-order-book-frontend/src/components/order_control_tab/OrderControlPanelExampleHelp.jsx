@@ -11,7 +11,7 @@ import Button from '@mui/material/Button';
 function OrderControlPanelExampleHelp() {
   return (
     <>
-      <Accordion disableGutters={true} sx={{ mb: 4, mt: 4, ml: 2, mr: 2 }}>
+      <Accordion disableGutters={true} sx={{ mb: 4, mt: 0, ml: 2, mr: 2 }}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel1-content"
