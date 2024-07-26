@@ -33,7 +33,7 @@ from lib_webserver.convert_order_list_to_fastapi_order_list import convert_order
 
 from lib_webserver.webserver_logging import log
 
-from lib_datetime import now
+from lib_datetime import DatetimeStrategy
 
 from typeguard import typechecked
 
@@ -41,11 +41,35 @@ from typeguard import typechecked
 @typechecked
 class WebserverImpl():
 
-    def __init__(self) -> None:
+    # TODO: having all these flags is garbage
+    # there should be at least 3 types:
+    # WebserverImpl (normal implementation)
+    # WebserverFakeDatetimeImpl (normal business logic, fake datetime object which can be controlled from within a test environment)
+    # WebserverFake (fake implementation of business logic, close to NOOP in most cases, plus fake datetime object which can be controlled within a test environment)
+    #
+    # The first of these is for normal production running mode and UAT testing
+    # The second of these is for end-to-end unit tests, which need to control the simulated datetime, but require the business logic implementation to be the same
+    # The final of these is for simple tests which test the FastAPI paths, serialization and deserialization of data types
+    #
+    def __init__(
+        self,
+        use_fake_datetime_strategy: bool = False,
+        event_log_disabled: bool = False,
+    ) -> None:
+        self._datetime_strategy = DatetimeStrategy(test_mode=use_fake_datetime_strategy)
+
+        # print(f'in WebserverImpl: calling __init__')
+        # #self._datetime_strategy = get_datetime_strategy(None)
+        # self._datetime_strategy = DatetimeStrategy(test_mode=test_mode)
+        # print(f'in WebserverImpl: self._datetime_strategy type {type(self._datetime_strategy._datetime_strategy)}')
+        # print(f'in WebserverImpl: now -> {self._datetime_strategy.now()}')
+        # print(f'in WebserverImpl: now -> {self._datetime_strategy.now_string()}')
+
         trades = []
         self._limit_order_book = LimitOrderBookEventLogAdapter(
             returned_trade_list=trades,
             event_log_file_path_override=None,
+            event_log_disabled=event_log_disabled,
         )
 
         self._trade_record_book = TradeRecordBook()
@@ -64,7 +88,12 @@ class WebserverImpl():
         fastapi_order_insert_message: FastAPI_OrderInsertMessage,
     ) -> FastAPI_ReturnStatusWithTradesAndOrderId:
 
-        order_insert_message = convert_fastapi_message_to_internal_message(fastapi_order_insert_message, timestamp=now())
+        # print(f'in WebserverImpl.send_order:')
+        # print(f'in WebserverImpl.send_order: self._datetime_strategy type {type(self._datetime_strategy._datetime_strategy)}')
+        # print(f'in WebserverImpl.send_order: now -> {self._datetime_strategy.now()}')
+        # print(f'in WebserverImpl.send_order: now -> {self._datetime_strategy.now_string()}')
+
+        order_insert_message = convert_fastapi_message_to_internal_message(fastapi_order_insert_message, timestamp=self._datetime_strategy.now())
         (order_id, trades) = self._limit_order_book.order_insert(order_insert_message)
 
         self._trade_record_book.add_trades(trades)
@@ -83,7 +112,7 @@ class WebserverImpl():
         fastapi_order_update_message: FastAPI_OrderUpdateMessage,
     ) -> FastAPI_ReturnStatusWithTrades:
 
-        order_update_message = convert_fastapi_message_to_internal_message(fastapi_order_update_message, timestamp=now())
+        order_update_message = convert_fastapi_message_to_internal_message(fastapi_order_update_message, timestamp=self._datetime_strategy.now())
         trades = self._limit_order_book.order_update(order_update_message)
 
         self._trade_record_book.add_trades(trades)
@@ -101,7 +130,7 @@ class WebserverImpl():
         fastapi_order_cancel_partial_message: FastAPI_OrderCancelPartialMessage,
     ) -> FastAPI_ReturnStatus:
 
-        order_cancel_partial_message = convert_fastapi_message_to_internal_message(fastapi_order_cancel_partial_message, timestamp=now())
+        order_cancel_partial_message = convert_fastapi_message_to_internal_message(fastapi_order_cancel_partial_message, timestamp=self._datetime_strategy.now())
         self._limit_order_book.order_cancel_partial(order_cancel_partial_message)
 
         return FastAPI_ReturnStatus(
@@ -115,7 +144,7 @@ class WebserverImpl():
         fastapi_order_cancel_message: FastAPI_OrderCancelMessage,
     ) -> FastAPI_ReturnStatus|FastAPI_ReturnStatusWithOrder:
 
-        order_cancel_message = convert_fastapi_message_to_internal_message(fastapi_order_cancel_message, timestamp=now())
+        order_cancel_message = convert_fastapi_message_to_internal_message(fastapi_order_cancel_message, timestamp=self._datetime_strategy.now())
         order = self._limit_order_book.order_cancel(order_cancel_message)
 
         if order is None:
@@ -137,7 +166,7 @@ class WebserverImpl():
         fastapi_top_of_book_message: FastAPI_TopOfBookMessage,
     ) -> FastAPI_ReturnStatusWithTopOfBook:
 
-        top_of_book_message = convert_fastapi_message_to_internal_message(fastapi_top_of_book_message, timestamp=now())
+        top_of_book_message = convert_fastapi_message_to_internal_message(fastapi_top_of_book_message, timestamp=self._datetime_strategy.now())
         top_of_book = self._limit_order_book.top_of_book(top_of_book_message)
 
         fastapi_top_of_book = convert_top_of_book_to_fastapi_top_of_book(top_of_book)

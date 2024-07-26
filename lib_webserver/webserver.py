@@ -24,11 +24,19 @@ from typeguard import typechecked
 @typechecked
 class Webserver():
 
-    def __init__(self, test_mode=False) -> None:
-        if test_mode == True:
+    def __init__(
+        self,
+        use_fake_webserver=False,
+        use_fake_datetime=False,
+        event_log_disabled=False,
+    ) -> None:
+        if use_fake_webserver == True:
             self._webserver = FakeWebserverImpl()
         else:
-            self._webserver = WebserverImpl()
+            self._webserver = WebserverImpl(
+                use_fake_datetime_strategy=use_fake_datetime,
+                event_log_disabled=event_log_disabled,
+            )
 
     def close(self) -> None:
         self._webserver.close()

@@ -22,24 +22,32 @@ from lib_financial_exchange.financial_exchange_types.message_types import Sessio
 from lib_financial_exchange.financial_exchange_types.message_types import SessionEndMessage
 from lib_financial_exchange.financial_exchange_types.message_types import ResetMessage
 
-from lib_datetime import now
+from lib_datetime.get_datetime_strategy import get_datetime_strategy
 
 import os
 
 
 class LimitOrderBookEventLogAdapter():
 
-    def __init__(self, returned_trade_list:list[Trade]=[], event_log_file_path_override:str|None=None) -> None:
+    def __init__(
+        self,
+        returned_trade_list:list[Trade]=[],
+        event_log_file_path_override:str|None=None,
+        event_log_disabled:bool=False,
+    ) -> None:
         self._limit_order_book_message_adapter = LimitOrderBookMessageAdapter()
         self._event_log = None
+        self._event_log_disabled = event_log_disabled
+        self._datetime_strategy = get_datetime_strategy(None)
 
         event_log_file_path = f'/python-limit-order-book-data/python_limit_order_book_event_log.txt'
         if event_log_file_path_override is not None:
             event_log_file_path = event_log_file_path_override
 
-        if not os.path.exists(event_log_file_path):
-            with open(event_log_file_path, 'w') as _:
-                pass
+        if not event_log_disabled:
+            if not os.path.exists(event_log_file_path):
+                with open(event_log_file_path, 'w') as _:
+                    pass
 
         trades = []
 
@@ -59,26 +67,28 @@ class LimitOrderBookEventLogAdapter():
                     pass
 
         # TODO: API might be better if like `with open_input_message_event_log(filepath) as ifile:`
-        event_log = OutputMessageEventLog(file_path=event_log_file_path)
-        event_log.open()
-        self._event_log = event_log
-        self._event_log.write(
-            message=SessionStartMessage(
-                created_datetime=now(),
+        if not self._event_log_disabled:
+            event_log = OutputMessageEventLog(file_path=event_log_file_path)
+            event_log.open()
+            self._event_log = event_log
+            self._event_log.write(
+                message=SessionStartMessage(
+                    created_datetime=self._datetime_strategy.now(),
+                )
             )
-        )
-        returned_trade_list.clear()
-        returned_trade_list += trades
+            returned_trade_list.clear()
+            returned_trade_list += trades
 
 
     # TODO: add RAII functions, `open` function
     def close(self):
-        self._event_log.write(
-            message=SessionEndMessage(
-                created_datetime=now(),
+        if not self._event_log_disabled:
+            self._event_log.write(
+                message=SessionEndMessage(
+                    created_datetime=self._datetime_strategy.now(),
+                )
             )
-        )
-        self._event_log.close()
+            self._event_log.close()
 
 
     # TODO: missing start, end and reset messages
@@ -110,7 +120,8 @@ class LimitOrderBookEventLogAdapter():
     ) -> tuple[OrderId, list[Trade]]:
 
         (order_id, trades) = self._order_insert(order_insert_message)
-        self._event_log.write(message=order_insert_message)
+        if not self._event_log_disabled:
+            self._event_log.write(message=order_insert_message)
         return (order_id, trades)
 
 
@@ -129,7 +140,8 @@ class LimitOrderBookEventLogAdapter():
     ) -> list[Trade]:
 
         trades = self._order_update(order_update_message)
-        self._event_log.write(message=order_update_message)
+        if not self._event_log_disabled:
+            self._event_log.write(message=order_update_message)
         return trades
 
 
@@ -148,7 +160,8 @@ class LimitOrderBookEventLogAdapter():
     ) -> None:
 
         self._order_cancel_partial(order_cancel_partial_message)
-        self._event_log.write(message=order_cancel_partial_message)
+        if not self._event_log_disabled:
+            self._event_log.write(message=order_cancel_partial_message)
         return None
 
 
@@ -167,7 +180,8 @@ class LimitOrderBookEventLogAdapter():
     ) -> Order|None:
 
         order = self._order_cancel(order_cancel_message)
-        self._event_log.write(message=order_cancel_message)
+        if not self._event_log_disabled:
+            self._event_log.write(message=order_cancel_message)
         return order
 
 
@@ -186,7 +200,8 @@ class LimitOrderBookEventLogAdapter():
     ) -> TopOfBook:
 
         top_of_book = self._top_of_book(top_of_book_message)
-        #self._event_log.write(message=top_of_book_message) # NOTE: currently don't save this event because not state changing
+        #if not self._event_log_disabled:
+        #    self._event_log.write(message=top_of_book_message) # NOTE: currently don't save this event because not state changing
         return top_of_book
 
 
