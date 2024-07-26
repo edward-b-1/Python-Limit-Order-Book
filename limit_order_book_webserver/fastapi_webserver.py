@@ -28,6 +28,7 @@ from lib_webserver.webserver_types import FastAPI_Ticker
 from lib_webserver.webserver_types import FastAPI_ReturnStatus
 
 from lib_webserver.webserver import Webserver
+from lib_webserver.webserver import WebserverImplementationMode
 
 from lib_datetime import DatetimeStrategy
 
@@ -92,7 +93,10 @@ log.info(f'FastAPI webserver process start')
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with AsyncClient(app=app) as client:
-        webserver = Webserver(use_fake_webserver=False, event_log_disabled=False)
+        webserver = Webserver(
+            webserver_implementation_mode=WebserverImplementationMode.DEFAULT,
+            event_log_disabled=False,
+        )
         yield {
             'webserver': webserver,
         }
