@@ -13,11 +13,12 @@ from tests.webserver_tests.test_whole_system.helper import helper_generate_ticke
 from tests.webserver_tests.test_whole_system.helper import helper_generate_top_of_book
 
 from lib_webserver.webserver import Webserver
-from lib_datetime import DatetimeStrategy
+from lib_datetime.fake_datetime import now as now_fake
+from lib_datetime.fake_datetime import set_current_datetime
 from lib_datetime import datetime_to_order_board_display_string
 
 from limit_order_book_webserver.get_webserver_instance import get_webserver_instance
-from lib_datetime.get_datetime_strategy import get_datetime_strategy
+from lib_datetime.get_now_function import get_now_function
 
 from datetime import datetime
 from datetime import timezone
@@ -30,23 +31,22 @@ current_datetime = datetime(
     hour=9, minute=30, second=0,
     tzinfo=timezone.utc,
 )
-datetime_strategy = DatetimeStrategy(test_mode=True, current_datetime=current_datetime)
-
-def override_get_datetime_strategy():
-    print(f'get_datetime_strategy(): (override_get_datetime_strategy()) returning the FAKE datetime strategy')
-    return datetime_strategy
-
-app.dependency_overrides[get_datetime_strategy] = override_get_datetime_strategy
+set_current_datetime(current_datetime_value=current_datetime)
+now = now_fake
 
 webserver = Webserver(
     use_fake_webserver=False,
-    use_fake_datetime=True,
     event_log_disabled=True,
 )
+
+def override_get_datetime_strategy():
+    print(f'override_get_now_function(): returning the FAKE now function')
+    return now
 
 def override_get_webserver_instance():
     return webserver
 
+app.dependency_overrides[get_now_function] = override_get_datetime_strategy
 app.dependency_overrides[get_webserver_instance] = override_get_webserver_instance
 
 
@@ -96,7 +96,7 @@ def test_top_of_book():
         'order': {
             'order_id': 1,
             # TODO: wrong datetime format?
-            'timestamp': datetime_to_order_board_display_string(datetime_strategy.now()),
+            'timestamp': datetime_to_order_board_display_string(now()),
             'ticker': 'PYTH',
             'order_side': 'BUY',
             'price': 1000,

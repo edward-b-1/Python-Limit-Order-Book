@@ -7,22 +7,40 @@ from fastapi.testclient import TestClient
 from limit_order_book_webserver.fastapi_webserver import app
 
 from lib_webserver.webserver import Webserver
+from lib_datetime.fake_datetime import now as now_fake
+from lib_datetime.fake_datetime import set_current_datetime
 
 from lib_datetime import datetime_to_string
 from lib_datetime import datetime_to_order_board_display_string
 
+from limit_order_book_webserver.get_webserver_instance import get_webserver_instance
+from lib_datetime.get_now_function import get_now_function
+
 from datetime import datetime
 from datetime import timezone
 
-from limit_order_book_webserver.get_webserver_instance import get_webserver_instance
-
 # client = TestClient(app)
 
-webserver_fake = Webserver(use_fake_webserver=True)
+current_datetime = datetime(
+    year=2024, month=1, day=1,
+    hour=9, minute=30, second=0,
+    tzinfo=timezone.utc,
+)
+set_current_datetime(current_datetime_value=current_datetime)
+now = now_fake
+
+webserver_fake = Webserver(
+    use_fake_webserver=True,
+)
+
+def override_get_now_function():
+    print(f'override_get_now_function(): returning the FAKE now function')
+    return now
 
 def override_get_webserver_instance():
     return webserver_fake
 
+app.dependency_overrides[get_now_function] = override_get_now_function
 app.dependency_overrides[get_webserver_instance] = override_get_webserver_instance
 
 
