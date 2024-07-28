@@ -189,9 +189,6 @@ async def send_order(
 
     log.info(f'POST /api/send_order ({ip}, {timestamp})')
 
-    # print(f'which webserver implementation is being used?')
-    # print(f'{type(webserver._webserver)}')
-
     try:
         # webserver: Webserver = request.state.webserver
         return webserver.send_order(fastapi_order_insert_message)
@@ -333,7 +330,6 @@ async def top_of_book(
     log.info(f'POST /api/top_of_book ({ip}, {timestamp})')
 
     try:
-        print(fastapi_top_of_book_message)
         # webserver: Webserver = request.state.webserver
         return webserver.top_of_book(fastapi_top_of_book_message)
 

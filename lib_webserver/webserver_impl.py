@@ -61,12 +61,6 @@ class WebserverImpl():
         self,
         event_log_disabled: bool = False,
     ) -> None:
-        # print(f'in WebserverImpl: calling __init__')
-        # #self._datetime_strategy = get_datetime_strategy(None)
-        # self._datetime_strategy = DatetimeStrategy(test_mode=test_mode)
-        # print(f'in WebserverImpl: self._datetime_strategy type {type(self._datetime_strategy._datetime_strategy)}')
-        # print(f'in WebserverImpl: now -> {self._datetime_strategy.now()}')
-        # print(f'in WebserverImpl: now -> {self._datetime_strategy.now_string()}')
 
         trades = []
         self._limit_order_book = LimitOrderBookEventLogAdapter(
@@ -90,11 +84,6 @@ class WebserverImpl():
         self,
         fastapi_order_insert_message: FastAPI_OrderInsertMessage,
     ) -> FastAPI_ReturnStatusWithTradesAndOrderId:
-
-        # print(f'in WebserverImpl.send_order:')
-        # print(f'in WebserverImpl.send_order: self._datetime_strategy type {type(self._datetime_strategy._datetime_strategy)}')
-        # print(f'in WebserverImpl.send_order: now -> {self._datetime_strategy.now()}')
-        # print(f'in WebserverImpl.send_order: now -> {self._datetime_strategy.now_string()}')
 
         order_insert_message = convert_fastapi_message_to_internal_message(fastapi_order_insert_message, timestamp=now())
         (order_id, trades) = self._limit_order_book.order_insert(order_insert_message)

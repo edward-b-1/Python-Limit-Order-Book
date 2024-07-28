@@ -50,14 +50,7 @@ class FakeWebserverImpl():
             hour=9, minute=0, second=0,
             tzinfo=timezone.utc,
         )
-        # TODO: use
-        #
-        # from fastapi import Depends
-        # def now() -> datetime:
-        #     now_impl = Depends(get_now_function)
-        #     return now_impl()
-        #
-        # ? (put this code outside this class)
+
 
     def close(self) -> None:
         pass
