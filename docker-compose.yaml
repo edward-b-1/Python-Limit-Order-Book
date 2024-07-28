@@ -1,5 +1,8 @@
+version: '3'
+
 services:
     python-limit-order-book:
+        restart: unless-stopped
         build: .
         ports:
             - "5555:5555"
