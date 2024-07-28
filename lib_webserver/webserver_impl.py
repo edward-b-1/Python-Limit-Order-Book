@@ -35,29 +35,7 @@ from lib_webserver.webserver_logging import log
 
 from typeguard import typechecked
 
-from lib_datetime.get_now_function import get_now_function
-
-########################################################################
-# TODO: will this still work as a dependency if moved to lib_datetime ?
-from datetime import datetime
-
-# def now() -> datetime:
-#     print(f'now_impl')
-#     print(get_now_function)
-#     print(get_now_function())
-#     now_impl = get_now_function()
-#     print(now_impl)
-#     return now_impl()
-
-from fastapi import Depends
-def now() -> datetime:
-    print(f'calling now with Depends from WebserverImpl')
-    now_impl = Depends(get_now_function)
-    print(f'now_impl:')
-    print(now_impl)
-    print(now_impl())
-    return now_impl()
-########################################################################
+from lib_datetime import now
 
 
 @typechecked

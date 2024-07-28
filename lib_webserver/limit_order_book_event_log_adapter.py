@@ -22,18 +22,9 @@ from lib_financial_exchange.financial_exchange_types.message_types import Sessio
 from lib_financial_exchange.financial_exchange_types.message_types import SessionEndMessage
 from lib_financial_exchange.financial_exchange_types.message_types import ResetMessage
 
+from lib_datetime import now
+
 import os
-
-from lib_datetime.get_now_function import get_now_function
-
-########################################################################
-# TODO: will this still work as a dependency if moved to lib_datetime ?
-from datetime import datetime
-
-def now() -> datetime:
-    now_impl = get_now_function()
-    return now_impl()
-########################################################################
 
 class LimitOrderBookEventLogAdapter():
 

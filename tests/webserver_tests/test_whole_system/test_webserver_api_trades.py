@@ -7,12 +7,11 @@ from tests.webserver_tests.test_whole_system.helper import helper_generate_order
 from tests.webserver_tests.test_whole_system.helper import helper_generate_order_id
 
 from lib_webserver.webserver import Webserver
-from lib_datetime.fake_datetime import now as now_fake
-from lib_datetime.fake_datetime import set_current_datetime
 from lib_datetime import datetime_to_order_board_display_string
+from lib_datetime import set_use_fake_now_implementation
+from lib_datetime.fake_datetime import set_current_datetime
 
 from limit_order_book_webserver.get_webserver_instance import get_webserver_instance
-from lib_datetime.get_now_function import get_now_function
 
 from datetime import datetime
 from datetime import timezone
@@ -26,21 +25,16 @@ current_datetime = datetime(
     tzinfo=timezone.utc,
 )
 set_current_datetime(current_datetime_value=current_datetime)
-now = now_fake
+set_use_fake_now_implementation(True)
 
 webserver = Webserver(
     use_fake_webserver=False,
     event_log_disabled=True,
 )
 
-def override_get_datetime_strategy():
-    print(f'override_get_now_function(): returning the FAKE now function')
-    return now
-
 def override_get_webserver_instance():
     return webserver
 
-app.dependency_overrides[get_now_function] = override_get_datetime_strategy
 app.dependency_overrides[get_webserver_instance] = override_get_webserver_instance
 
 
@@ -67,7 +61,7 @@ def test_order_trade():
             {
                 'trade_id': 1,
                 # TODO: wrong datetime format?
-                'timestamp': datetime_to_order_board_display_string(now()),
+                'timestamp': datetime_to_order_board_display_string(current_datetime),
                 'ticker': 'PYTH',
                 'order_id_maker': 1,
                 'order_id_taker': 2,
@@ -86,7 +80,7 @@ def test_order_trade():
         'order': {
             'order_id': 1,
             # TODO: wrong datetime format?
-            'timestamp': datetime_to_order_board_display_string(now()),
+            'timestamp': datetime_to_order_board_display_string(current_datetime),
             'ticker': 'PYTH',
             'order_side': 'BUY',
             'price': 1000,
@@ -102,7 +96,7 @@ def test_order_trade():
         'trades': [
             {
                 'trade_id': 1,
-                'timestamp': datetime_to_order_board_display_string(now()),
+                'timestamp': datetime_to_order_board_display_string(current_datetime),
                 'ticker': 'PYTH',
                 'order_id_maker': 1,
                 'order_id_taker': 2,

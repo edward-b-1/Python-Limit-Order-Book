@@ -32,7 +32,8 @@ from lib_webserver.webserver_types import FastAPI_ReturnStatus
 from lib_webserver.webserver import Webserver
 
 from limit_order_book_webserver.get_webserver_instance import get_webserver_instance
-from lib_datetime.get_now_function import get_now_function
+
+from lib_datetime import now
 
 
 # NOTE: This environment variable should NOT be set by Unit Test Code.
@@ -181,7 +182,6 @@ async def send_order(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    now: Callable = Depends(get_now_function),
 ):
     debug_print_pid()
     timestamp = now()
@@ -250,7 +250,6 @@ async def update_order(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    now: Callable = Depends(get_now_function),
 ):
     debug_print_pid()
     timestamp = now()
@@ -276,7 +275,6 @@ async def cancel_order_partial(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    now: Callable = Depends(get_now_function),
 ):
     debug_print_pid()
     timestamp = now()
@@ -302,7 +300,6 @@ async def cancel_order(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    now: Callable = Depends(get_now_function),
 ):
     debug_print_pid()
     timestamp = now()
@@ -328,7 +325,6 @@ async def top_of_book(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    now: Callable = Depends(get_now_function),
 ):
     debug_print_pid()
     timestamp = now()
@@ -354,7 +350,6 @@ async def list_all_tickers(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    now: Callable = Depends(get_now_function),
 ):
     debug_print_pid()
     timestamp = now()
@@ -379,7 +374,6 @@ async def order_board(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    now: Callable = Depends(get_now_function),
 ):
     debug_print_pid()
     timestamp = now()
@@ -404,7 +398,6 @@ async def trades(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    now: Callable = Depends(get_now_function),
 ):
     debug_print_pid()
     timestamp = now()
@@ -429,7 +422,6 @@ async def ping(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    now: Callable = Depends(get_now_function),
 ):
     debug_print_pid()
     timestamp = now()
@@ -455,7 +447,6 @@ async def debug_log_top_of_book(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    now: Callable = Depends(get_now_function),
 ):
     debug_print_pid()
     timestamp = now()
@@ -480,7 +471,6 @@ async def debug_log_current_order_id(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    now: Callable = Depends(get_now_function),
 ):
     debug_print_pid()
     timestamp = now()
@@ -505,7 +495,6 @@ async def debug_log_all_tickers(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    now: Callable = Depends(get_now_function),
 ):
     debug_print_pid()
     timestamp = now()
