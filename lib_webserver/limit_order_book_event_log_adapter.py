@@ -22,10 +22,9 @@ from lib_financial_exchange.financial_exchange_types.message_types import Sessio
 from lib_financial_exchange.financial_exchange_types.message_types import SessionEndMessage
 from lib_financial_exchange.financial_exchange_types.message_types import ResetMessage
 
-from lib_datetime.get_datetime_strategy import get_datetime_strategy
+from lib_datetime import now
 
 import os
-
 
 class LimitOrderBookEventLogAdapter():
 
@@ -38,7 +37,6 @@ class LimitOrderBookEventLogAdapter():
         self._limit_order_book_message_adapter = LimitOrderBookMessageAdapter()
         self._event_log = None
         self._event_log_disabled = event_log_disabled
-        self._datetime_strategy = get_datetime_strategy(None)
 
         event_log_file_path = f'/python-limit-order-book-data/python_limit_order_book_event_log.txt'
         if event_log_file_path_override is not None:
@@ -73,7 +71,7 @@ class LimitOrderBookEventLogAdapter():
             self._event_log = event_log
             self._event_log.write(
                 message=SessionStartMessage(
-                    created_datetime=self._datetime_strategy.now(),
+                    created_datetime=now(),
                 )
             )
             returned_trade_list.clear()
@@ -85,7 +83,7 @@ class LimitOrderBookEventLogAdapter():
         if not self._event_log_disabled:
             self._event_log.write(
                 message=SessionEndMessage(
-                    created_datetime=self._datetime_strategy.now(),
+                    created_datetime=now(),
                 )
             )
             self._event_log.close()

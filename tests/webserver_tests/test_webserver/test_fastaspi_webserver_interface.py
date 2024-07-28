@@ -7,18 +7,29 @@ from fastapi.testclient import TestClient
 from limit_order_book_webserver.fastapi_webserver import app
 
 from lib_webserver.webserver import Webserver
+from lib_datetime import set_use_fake_now_implementation
+from lib_datetime.fake_datetime import set_current_datetime
 
 from lib_datetime import datetime_to_string
 from lib_datetime import datetime_to_order_board_display_string
 
+from limit_order_book_webserver.get_webserver_instance import get_webserver_instance
+
 from datetime import datetime
 from datetime import timezone
 
-from limit_order_book_webserver.get_webserver_instance import get_webserver_instance
 
-# client = TestClient(app)
+current_datetime = datetime(
+    year=2024, month=1, day=1,
+    hour=9, minute=30, second=0,
+    tzinfo=timezone.utc,
+)
+set_current_datetime(current_datetime_value=current_datetime)
+set_use_fake_now_implementation(True)
 
-webserver_fake = Webserver(use_fake_webserver=True)
+webserver_fake = Webserver(
+    use_fake_webserver=True,
+)
 
 def override_get_webserver_instance():
     return webserver_fake

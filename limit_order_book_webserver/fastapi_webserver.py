@@ -2,17 +2,20 @@
 import os
 import threading
 
+from typing import Callable
+
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi import Request
 from fastapi import Response
 from fastapi import status
+from fastapi import Depends
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-
 from fastapi.middleware.cors import CORSMiddleware
 
-from contextlib import asynccontextmanager
 from httpx import AsyncClient
 
 from limit_order_book_webserver.fastapi_webserver_logging import log
@@ -24,12 +27,13 @@ from lib_webserver.webserver_types import FastAPI_OrderCancelMessage
 from lib_webserver.webserver_types import FastAPI_TopOfBookMessage
 
 from lib_webserver.webserver_types import FastAPI_Ticker
-
 from lib_webserver.webserver_types import FastAPI_ReturnStatus
 
 from lib_webserver.webserver import Webserver
 
-from lib_datetime import DatetimeStrategy
+from limit_order_book_webserver.get_webserver_instance import get_webserver_instance
+
+from lib_datetime import now
 
 
 # NOTE: This environment variable should NOT be set by Unit Test Code.
@@ -172,29 +176,18 @@ def debug_print_pid():
     print(f'threading.native_id={threading.get_native_id()}')
 
 
-
-from limit_order_book_webserver.get_webserver_instance import get_webserver_instance
-from lib_datetime.get_datetime_strategy import get_datetime_strategy
-
-
-from fastapi import Depends
-
 @app.post('/api/send_order')
 async def send_order(
     fastapi_order_insert_message: FastAPI_OrderInsertMessage,
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = datetime_strategy.now()
+    timestamp = now()
     ip = request.client.host
 
     log.info(f'POST /api/send_order ({ip}, {timestamp})')
-
-    # print(f'which webserver implementation is being used?')
-    # print(f'{type(webserver._webserver)}')
 
     try:
         # webserver: Webserver = request.state.webserver
@@ -254,10 +247,9 @@ async def update_order(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = datetime_strategy.now()
+    timestamp = now()
     ip = request.client.host
 
     log.info(f'POST /api/update_order ({ip}, {timestamp})')
@@ -280,10 +272,9 @@ async def cancel_order_partial(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = datetime_strategy.now()
+    timestamp = now()
     ip = request.client.host
 
     log.info(f'POST /api/cancel_order_partial ({ip}, {timestamp})')
@@ -306,10 +297,9 @@ async def cancel_order(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = datetime_strategy.now()
+    timestamp = now()
     ip = request.client.host
 
     log.info(f'POST /api/cancel_order ({ip}, {timestamp})')
@@ -332,10 +322,9 @@ async def top_of_book(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = datetime_strategy.now()
+    timestamp = now()
     ip = request.client.host
 
     log.info(f'POST /api/top_of_book ({ip}, {timestamp})')
@@ -357,10 +346,9 @@ async def list_all_tickers(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = datetime_strategy.now()
+    timestamp = now()
     ip = request.client.host
 
     log.info(f'POST /api/list_all_tickers ({ip}, {timestamp})')
@@ -382,10 +370,9 @@ async def order_board(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = datetime_strategy.now()
+    timestamp = now()
     ip = request.client.host
 
     log.info(f'GET /api/order_board ({ip}, {timestamp})')
@@ -407,10 +394,9 @@ async def trades(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = datetime_strategy.now()
+    timestamp = now()
     ip = request.client.host
 
     log.info(f'GET /api/trades ({ip}, {timestamp})')
@@ -432,10 +418,9 @@ async def ping(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = datetime_strategy.now()
+    timestamp = now()
     ip = request.client.host
 
     log.info(f'GET /api/debug/ping ({ip}, {timestamp})')
@@ -458,10 +443,9 @@ async def debug_log_top_of_book(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = datetime_strategy.now()
+    timestamp = now()
     ip = request.client.host
 
     log.info(f'POST /api/debug/debug_log_top_of_book ({ip}, {timestamp})')
@@ -483,10 +467,9 @@ async def debug_log_current_order_id(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = datetime_strategy.now()
+    timestamp = now()
     ip = request.client.host
 
     log.info(f'POST /api/debug/debug_log_current_order_id ({ip}, {timestamp})')
@@ -508,10 +491,9 @@ async def debug_log_all_tickers(
     request: Request,
     response: Response,
     webserver: Webserver = Depends(get_webserver_instance),
-    datetime_strategy: DatetimeStrategy = Depends(get_datetime_strategy),
 ):
     debug_print_pid()
-    timestamp = datetime_strategy.now()
+    timestamp = now()
     ip = request.client.host
 
     log.info(f'POST /api/debug/debug_log_all_tickers ({ip}, {timestamp})')
