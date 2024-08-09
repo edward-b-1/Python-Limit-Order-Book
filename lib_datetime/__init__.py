@@ -30,4 +30,3 @@ def now() -> datetime:
         return now_fake()
     else:
         return now_real()
-
